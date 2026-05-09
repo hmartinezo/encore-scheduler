@@ -335,10 +335,10 @@ select, input { font-family:inherit; }
   </div>
 </div>
 
-<!-- EDIT TEACHER MODAL -->
+<!-- EDIT/ADD TEACHER MODAL -->
 <div class="modal-overlay" id="edit-teacher-modal">
   <div class="modal">
-    <h3>Edit Teacher</h3>
+    <h3 id="edit-teacher-title">Edit Teacher</h3>
     <label>Full Name</label>
     <input type="text" id="edit-teacher-name">
     <label>Short Name</label>
@@ -350,6 +350,30 @@ select, input { font-family:inherit; }
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeTeacherModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveTeacher()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLASS MODAL -->
+<div class="modal-overlay" id="add-class-modal">
+  <div class="modal">
+    <h3>Add Class</h3>
+    <label>Class Name</label>
+    <input type="text" id="add-class-name" placeholder="e.g. Junior Level 2 Jazz">
+    <label>Style</label>
+    <select id="add-class-style"></select>
+    <label>Duration (minutes)</label>
+    <select id="add-class-duration">
+      <option value="30">30</option>
+      <option value="45">45</option>
+      <option value="60" selected>60</option>
+      <option value="90">90</option>
+    </select>
+    <label>Eligible Teachers</label>
+    <div class="checkbox-group" id="add-class-teachers"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeAddClassModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doAddClass()">Add Class</button>
     </div>
   </div>
 </div>
@@ -565,6 +589,8 @@ let state = {
   schedule: [],
   availability: {},
   ignoredConflicts: [],
+  customTeachers: [],
+  customClasses: [],
 };
 
 // Pre-fill availability (will be rebuilt from schedule after seed)
@@ -620,8 +646,9 @@ function redo(){
 
 // localStorage
 function save(){
-  try { localStorage.setItem('encore-schedule-v1', JSON.stringify(state)); } catch(e){}
-  document.getElementById('sidebar-footer').innerHTML = 'Auto-saved just now<br>6 rooms &middot; Mon-Sat';
+  const data = { ...state, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
+  try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
+  document.getElementById('sidebar-footer').innerHTML = 'Auto-saved just now<br>' + ROOMS.length + ' rooms &middot; ' + TEACHERS.length + ' teachers &middot; ' + CLASSES.length + ' classes';
 }
 function load(){
   try {
@@ -634,6 +661,21 @@ function load(){
       state.schedule.forEach(s => {
         if(typeof s.room === 'number') s.room = ROOM_MAP_OLD[s.room] || 'fosse';
       });
+      // Restore custom teachers
+      if(parsed.customTeachers){
+        state.customTeachers = parsed.customTeachers;
+        parsed.customTeachers.forEach(t => {
+          if(!TEACHERS.find(x=>x.id===t.id)) TEACHERS.push(t);
+        });
+        TEACHERS.sort((a,b) => a.name.localeCompare(b.name));
+      }
+      // Restore custom classes
+      if(parsed.customClasses){
+        state.customClasses = parsed.customClasses;
+        parsed.customClasses.forEach(c => {
+          if(!CLASSES.find(x=>x.id===c.id)){ CLASSES.push(c); nextClassId = Math.max(nextClassId, c.id+1); }
+        });
+      }
       // Migrate old availability slots: strip type field (teaching now derived from schedule)
       if(parsed.availability){
         for(const tid of Object.keys(parsed.availability)){
@@ -1049,7 +1091,8 @@ function renderTeachers(){
     teachersToShow = teachersToShow.filter(t => teachersInRoom.has(t.id));
   }
 
-  let html = '<div class="teacher-grid">';
+  let html = '<div style="margin-bottom:.75rem;"><button class="btn btn-primary" onclick="addTeacher()" style="font-size:.78rem;">+ Add Teacher</button></div>';
+  html += '<div class="teacher-grid">';
   teachersToShow.forEach(t => {
     const assigned = state.schedule.filter(s=>s.teacherId===t.id);
     const totalMin = assigned.reduce((sum,s)=>{ const c=CLASSES.find(cc=>cc.id===s.classId); return sum+(c?c.duration:0); },0);
@@ -1068,8 +1111,21 @@ function renderTeachers(){
 // EDIT TEACHER MODAL
 // =============================================
 let editingTeacherId = null;
+function addTeacher(){
+  editingTeacherId = '__new__';
+  document.getElementById('edit-teacher-title').textContent = 'Add Teacher';
+  document.getElementById('edit-teacher-name').value = '';
+  document.getElementById('edit-teacher-short').value = '';
+  document.getElementById('edit-teacher-color').value = '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
+  const stylesDiv = document.getElementById('edit-teacher-styles');
+  stylesDiv.innerHTML = Object.entries(STYLES).map(([key, label]) =>
+    '<label><input type="checkbox" value="' + key + '"> ' + label + '</label>'
+  ).join('');
+  document.getElementById('edit-teacher-modal').classList.add('show');
+}
 function editTeacher(id){
   editingTeacherId = id;
+  document.getElementById('edit-teacher-title').textContent = 'Edit Teacher';
   const t = teacherById(id);
   if(!t) return;
   document.getElementById('edit-teacher-name').value = t.name;
@@ -1087,16 +1143,36 @@ function closeTeacherModal(){
 }
 function saveTeacher(){
   if(!editingTeacherId) return;
-  const t = teacherById(editingTeacherId);
-  if(!t) return;
-  t.name = document.getElementById('edit-teacher-name').value.trim() || t.name;
-  t.short = document.getElementById('edit-teacher-short').value.trim() || t.short;
-  t.color = document.getElementById('edit-teacher-color').value;
-  t.styles = [...document.querySelectorAll('#edit-teacher-styles input:checked')].map(cb=>cb.value);
-  closeTeacherModal();
-  populateFilters();
-  renderAll();
-  toast('Teacher updated');
+  const name = document.getElementById('edit-teacher-name').value.trim();
+  const short = document.getElementById('edit-teacher-short').value.trim();
+  const color = document.getElementById('edit-teacher-color').value;
+  const styles = [...document.querySelectorAll('#edit-teacher-styles input:checked')].map(cb=>cb.value);
+  if(!name){ toast('Name is required'); return; }
+  if(editingTeacherId === '__new__'){
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12) + '_' + Date.now().toString(36);
+    const newT = { id, name, short: short || name.split(' ')[0], color, styles };
+    TEACHERS.push(newT);
+    TEACHERS.sort((a,b) => a.name.localeCompare(b.name));
+    if(!state.customTeachers) state.customTeachers = [];
+    state.customTeachers.push(newT);
+    closeTeacherModal();
+    populateFilters();
+    renderAll();
+    save();
+    toast('Teacher added');
+  } else {
+    const t = teacherById(editingTeacherId);
+    if(!t) return;
+    t.name = name;
+    t.short = short || t.short;
+    t.color = color;
+    t.styles = styles;
+    closeTeacherModal();
+    populateFilters();
+    renderAll();
+    save();
+    toast('Teacher updated');
+  }
 }
 
 // =============================================
@@ -1126,7 +1202,8 @@ function renderClasses(){
     });
   }
 
-  let html = '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Room</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
+  let html = '<div style="margin-bottom:.75rem;"><button class="btn btn-primary" onclick="showAddClassModal()" style="font-size:.78rem;">+ Add Class</button></div>';
+  html += '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Room</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
   classesToShow.forEach((c,i) => {
     const sched = assignedMap[c.id];
     const roomCol = sched ? roomName(sched.room) : '--';
@@ -1141,6 +1218,39 @@ function renderClasses(){
   html += '</tbody></table>';
   document.getElementById('nav-class-count').textContent = CLASSES.length;
   view.innerHTML = html;
+}
+
+// =============================================
+// ADD CLASS MODAL
+// =============================================
+function showAddClassModal(){
+  document.getElementById('add-class-name').value = '';
+  const styleSelect = document.getElementById('add-class-style');
+  styleSelect.innerHTML = Object.entries(STYLES).map(([k,v]) => '<option value="' + k + '">' + v + '</option>').join('');
+  const teachersDiv = document.getElementById('add-class-teachers');
+  teachersDiv.innerHTML = TEACHERS.map(t =>
+    '<label><input type="checkbox" value="' + t.id + '"> ' + t.name + '</label>'
+  ).join('');
+  document.getElementById('add-class-modal').classList.add('show');
+}
+function closeAddClassModal(){
+  document.getElementById('add-class-modal').classList.remove('show');
+}
+function doAddClass(){
+  const name = document.getElementById('add-class-name').value.trim();
+  if(!name){ toast('Class name is required'); return; }
+  const style = document.getElementById('add-class-style').value;
+  const duration = parseInt(document.getElementById('add-class-duration').value);
+  const eligible = [...document.querySelectorAll('#add-class-teachers input:checked')].map(cb=>cb.value);
+  if(!eligible.length){ toast('Select at least one eligible teacher'); return; }
+  const newClass = { id: nextClassId++, name, style, duration, eligibleTeachers: eligible, level: extractLevel(name) };
+  CLASSES.push(newClass);
+  if(!state.customClasses) state.customClasses = [];
+  state.customClasses.push(newClass);
+  closeAddClassModal();
+  renderAll();
+  save();
+  toast('Class added: ' + name);
 }
 
 // =============================================
