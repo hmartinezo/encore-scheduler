@@ -129,15 +129,23 @@ select, input { font-family:inherit; }
 
 /* ===== AVAILABILITY TAB ===== */
 .avail-view { flex:1; overflow:auto; padding:1rem; }
-.avail-controls { display:flex; gap:.75rem; align-items:center; margin-bottom:.5rem; flex-wrap:wrap; }
-.avail-summary { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:.5rem .75rem; margin-bottom:.75rem; font-size:.78rem; color:var(--text); min-height:2rem; }
-.avail-summary strong { color:var(--primary); }
+.avail-controls { display:flex; gap:.75rem; align-items:center; margin-bottom:.75rem; flex-wrap:wrap; }
+.avail-summary { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:.6rem .85rem; margin-bottom:.75rem; font-size:.78rem; color:var(--text); min-height:2rem; display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; }
+.avail-day-pill { display:inline-flex; align-items:center; gap:.35rem; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:16px; padding:.25rem .6rem; font-size:.72rem; white-space:nowrap; }
+.avail-day-pill strong { color:#15803D; font-weight:700; font-size:.7rem; }
+.avail-day-pill span { color:#166534; }
+.avail-day-separator { color:var(--border); font-size:.6rem; }
+.avail-legend { display:flex; gap:1rem; align-items:center; margin-bottom:.5rem; font-size:.65rem; color:var(--text-muted); }
+.avail-legend-item { display:flex; align-items:center; gap:.3rem; }
+.avail-legend-swatch { width:14px; height:14px; border-radius:3px; border:1px solid var(--border-light); }
 .avail-grid { display:grid; border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:500px; }
 .avail-cell { border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light); height:20px; cursor:pointer; transition:background .08s; }
 .avail-cell.available { background:#D1FAE5; }
 .avail-cell.available:hover { background:#BBF7D0; }
 .avail-cell:hover { background:#F0F9FF; }
 .avail-cell.has-class { background:#DBEAFE; }
+.avail-cell.available.has-class { background:linear-gradient(135deg, #BBF7D0 40%, #BFDBFE 100%); border-left:3px solid #3B82F6; }
+.avail-cell.available.has-class:hover { background:linear-gradient(135deg, #A7F3D0 40%, #93C5FD 100%); }
 .avail-header { background:#F8FAFC; font-size:.66rem; font-weight:600; color:var(--text-secondary); padding:.35rem; text-align:center; border-bottom:1px solid var(--border); cursor:default; }
 .avail-header.sat-toggle { cursor:pointer; user-select:none; }
 .avail-header.sat-toggle:hover { background:#E2E8F0; }
@@ -1142,8 +1150,15 @@ function renderAvailability(){
   html += '<span style="font-size:.72rem;color:var(--text-muted);">Click & drag to paint. Right-click to erase.</span>';
   html += '</div>';
 
-  // Live summary
+  // Live summary as day pills
   html += '<div class="avail-summary" id="avail-summary">' + getAvailSummary(availTeacher) + '</div>';
+
+  // Legend
+  html += '<div class="avail-legend">';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#D1FAE5;"></div> Available</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:linear-gradient(135deg,#BBF7D0 40%,#BFDBFE 100%);border-left:3px solid #3B82F6;"></div> Teaching</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#F5F5F5;"></div> Not Available</div>';
+  html += '</div>';
 
   // Grid
   const satHeaderWidth = satExpanded ? '1fr' : '28px';
@@ -1156,7 +1171,10 @@ function renderAvailability(){
     html += '<div class="avail-header sat-toggle" onclick="satExpanded=true;renderAvailability()" title="Expand Saturday" style="writing-mode:vertical-lr;padding:.3rem .1rem;font-size:.55rem;line-height:1;letter-spacing:1px;">+ Sat</div>';
   }
 
-  AVAIL_TIME_SLOTS.forEach(time => {
+  // Filter time slots: skip morning rows when Saturday is collapsed (weekdays start at 4PM)
+  const visibleAvailSlots = satExpanded ? AVAIL_TIME_SLOTS : AVAIL_TIME_SLOTS.filter(t => t >= WEEKDAY_START);
+
+  visibleAvailSlots.forEach(time => {
     const isHour = time % 60 === 0;
     html += '<div class="cal-time' + (isHour?' hour-mark':'') + '" style="height:20px;font-size:.58rem;">' + (isHour?minutesToTime(time):'') + '</div>';
     for(let d=0; d<5; d++){
@@ -1168,8 +1186,8 @@ function renderAvailability(){
       const avail = isAvailableRange(availTeacher, d, time, AVAIL_SLOT_MINUTES);
       const hasClass = state.schedule.some(s => s.teacherId === availTeacher && s.day === d && s.startTime <= time && s.startTime + (CLASSES.find(c=>c.id===s.classId)?.duration||60) > time);
       let cls = 'avail-cell';
+      if(avail) cls += ' available';
       if(hasClass) cls += ' has-class';
-      else if(avail) cls += ' available';
       html += '<div class="' + cls + '" data-day="' + d + '" data-time="' + time + '"></div>';
     }
     // Saturday column
@@ -1181,8 +1199,8 @@ function renderAvailability(){
         const avail = isAvailableRange(availTeacher, 5, time, AVAIL_SLOT_MINUTES);
         const hasClass = state.schedule.some(s => s.teacherId === availTeacher && s.day === 5 && s.startTime <= time && s.startTime + (CLASSES.find(c=>c.id===s.classId)?.duration||60) > time);
         let cls = 'avail-cell';
+        if(avail) cls += ' available';
         if(hasClass) cls += ' has-class';
-        else if(avail) cls += ' available';
         html += '<div class="' + cls + '" data-day="5" data-time="' + time + '"></div>';
       }
     } else {
@@ -1229,16 +1247,16 @@ function renderAvailability(){
 }
 
 function getAvailSummary(teacherId){
-  const parts = [];
+  const pills = [];
   for(let d=0; d<6; d++){
     const slots = state.availability[teacherId]?.[d];
     if(!slots || slots.length === 0) continue;
     const merged = [...slots].sort((a,b)=>a.start-b.start);
-    const ranges = merged.map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end));
-    parts.push('<strong>' + DAYS[d] + '</strong> ' + ranges.join(', '));
+    const ranges = merged.map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
+    pills.push('<span class="avail-day-pill"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
   }
-  if(!parts.length) return '<span style="color:var(--text-muted);">No availability set</span>';
-  return parts.join(' &nbsp;|&nbsp; ');
+  if(!pills.length) return '<span style="color:var(--text-muted);font-style:italic;">No availability set &mdash; click the grid below to paint available hours</span>';
+  return pills.join('');
 }
 
 function isAvailableRange(teacherId, day, time, duration){
