@@ -176,6 +176,39 @@ select, input { font-family:inherit; }
 .conflict-ignored { opacity:.5; background:#F8FAFC; }
 .conflict-ignored td { text-decoration:line-through; }
 
+/* ===== AI OPTIMIZE TAB ===== */
+.optimize-view { flex:1; overflow:auto; padding:1rem; max-width:900px; }
+.opt-hero { background:linear-gradient(135deg,#1E293B,#334155); color:#fff; border-radius:10px; padding:1.25rem; margin-bottom:1rem; }
+.opt-hero h3 { font-size:1rem; font-weight:700; margin-bottom:.35rem; }
+.opt-hero p { font-size:.75rem; color:#94A3B8; margin-bottom:.75rem; line-height:1.5; }
+.opt-hero .opt-stats { display:flex; gap:1rem; flex-wrap:wrap; }
+.opt-hero .opt-stat { background:rgba(255,255,255,.08); border-radius:6px; padding:.5rem .75rem; text-align:center; min-width:100px; }
+.opt-hero .opt-stat .num { font-size:1.1rem; font-weight:700; }
+.opt-hero .opt-stat .lbl { font-size:.6rem; color:#94A3B8; text-transform:uppercase; letter-spacing:.5px; margin-top:.15rem; }
+.opt-actions { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+.change-section { margin-bottom:1.25rem; }
+.change-section h4 { font-size:.82rem; font-weight:600; color:var(--text-secondary); margin-bottom:.5rem; display:flex; align-items:center; gap:.4rem; }
+.change-section h4 .cs-count { background:var(--primary); color:#fff; font-size:.6rem; padding:.1rem .4rem; border-radius:8px; }
+.change-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:.65rem .75rem; margin-bottom:.4rem; transition:border-color .15s; }
+.change-card:hover { border-color:var(--primary); }
+.change-card.accepted { border-color:var(--success); background:#F0FDF4; }
+.change-card.rejected { border-color:var(--border); opacity:.4; }
+.change-card .cc-top { display:flex; align-items:center; gap:.5rem; margin-bottom:.35rem; }
+.change-card .cc-icon { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem; flex-shrink:0; }
+.change-card .cc-icon.fix { background:#FEE2E2; }
+.change-card .cc-icon.bundle { background:#DBEAFE; }
+.change-card .cc-icon.teacher { background:#F3E8FF; }
+.change-card .cc-icon.move { background:#FEF3C7; }
+.change-card .cc-title { font-size:.78rem; font-weight:600; flex:1; }
+.change-card .cc-actions { display:flex; gap:.3rem; }
+.change-card .cc-reason { font-size:.68rem; color:var(--text-muted); margin-bottom:.35rem; }
+.change-card .cc-diff { display:flex; gap:.5rem; align-items:center; font-size:.7rem; }
+.change-card .cc-before { background:#FEE2E2; padding:.25rem .5rem; border-radius:4px; flex:1; }
+.change-card .cc-arrow { color:var(--text-muted); font-weight:700; flex-shrink:0; }
+.change-card .cc-after { background:#D1FAE5; padding:.25rem .5rem; border-radius:4px; flex:1; }
+.opt-empty { text-align:center; padding:3rem; color:var(--text-muted); }
+.opt-empty .opt-check { font-size:2.5rem; margin-bottom:.5rem; }
+
 /* ===== TOAST ===== */
 .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#1E293B; color:#fff; padding:.5rem 1rem; border-radius:6px; font-size:.78rem; z-index:200; display:none; box-shadow:0 4px 12px rgba(0,0,0,.2); }
 .toast.show { display:block; animation:fadeInUp .3s; }
@@ -211,6 +244,7 @@ select, input { font-family:inherit; }
     <div class="nav-item" data-tab="teachers"><span>👩‍🏫</span> Teachers <span class="count">13</span></div>
     <div class="nav-item" data-tab="availability"><span>🕐</span> Availability</div>
     <div class="nav-item" data-tab="conflicts"><span>⚠️</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
+    <div class="nav-item" data-tab="optimize"><span>✨</span> AI Optimize <span class="badge" id="nav-opt-count" style="background:#3B82F6;">0</span></div>
     <div class="nav-item" data-tab="export"><span>📤</span> Export</div>
   </nav>
 
@@ -271,6 +305,11 @@ select, input { font-family:inherit; }
   <!-- CONFLICTS TAB -->
   <div id="tab-conflicts" class="tab-content" style="display:none;flex:1;overflow:hidden;">
     <div class="classes-view" id="conflicts-view"></div>
+  </div>
+
+  <!-- AI OPTIMIZE TAB -->
+  <div id="tab-optimize" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="optimize-view" id="optimize-view"></div>
   </div>
 
   <!-- EXPORT TAB -->
@@ -419,9 +458,10 @@ function detectTeachers(name){
   if(n.includes('etap b') && n.includes('jazz')) return ['raynor'];
   if(n.includes('etap d') && n.includes('jazz')) return ['raynor','courtney'];
   if(n.includes('etap') && n.includes('jazz')) return ['raynor'];
-  if(n.includes('etap') && n.includes('tap')) return ['courtney','luke'];
+
   if(n.includes('etap') && n.includes('ballet')) return ['vadim'];
-  if(n.includes('etap') && n.includes('hip hop')) return ['luke','jessy'];
+  if(n.includes('etap') && n.includes('hip hop')) return ['luke'];
+  if(n.includes('etap') && n.includes('tap')) return ['luke','courtney'];
   if(n.includes('etap') && n.includes('contemp')) return ['cami','ashleigh'];
   if(n.includes('itp e')) return ['raynor','courtney','paige'];
   if(n.includes('itp') && n.includes('jazz')) return ['raynor','courtney'];
@@ -429,25 +469,25 @@ function detectTeachers(name){
   if(n.includes('itp') && n.includes('ballet')) return ['vadim','gaby','ashleigh'];
   if(n.includes('teen') && n.includes('ballet')) return ['gaby','ashleigh'];
   if(n.includes('teen') && n.includes('contemp')) return ['cami','ashleigh'];
-  if(n.includes('teen') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('teen') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('teen') && n.includes('jazz')) return ['paige','jessy','cami','ashleigh'];
   if(n.includes('teen') && n.includes('tap')) return ['paige','cami','courtney'];
   if(n.includes('teen') && n.includes('broadway')) return ['courtney'];
   if(n.includes('tween') && n.includes('ballet')) return ['liesl','ashleigh'];
   if(n.includes('tween') && n.includes('contemp')) return ['ashleigh','cami'];
-  if(n.includes('tween') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('tween') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('tween') && n.includes('jazz')) return ['ashleigh','paige'];
   if(n.includes('tween') && n.includes('tap')) return ['courtney','luke'];
   if(n.includes('tween') && n.includes('broadway')) return ['courtney'];
   if(n.includes('junior') && n.includes('broadway')) return ['courtney'];
   if(n.includes('junior') && n.includes('ballet')) return ['liesl','ashleigh'];
   if(n.includes('junior') && n.includes('contemp')) return ['cami','ashleigh'];
-  if(n.includes('junior') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('junior') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('junior') && n.includes('jazz')) return ['paige','courtney','cami'];
   if(n.includes('junior') && n.includes('tap')) return ['luke','courtney','paige'];
-  if(n.includes('mini') && n.includes('ballet')) return ['paige'];
-  if(n.includes('mini') && n.includes('hip hop')) return ['jessy','paige'];
-  if(n.includes('mini') && n.includes('combo')) return ['cami','jessy','paige'];
+  if(n.includes('mini') && n.includes('ballet')) return ['paige','cami'];
+  if(n.includes('mini') && n.includes('hip hop')) return ['paige','cami'];
+  if(n.includes('mini') && n.includes('combo')) return ['paige','cami'];
   if(n.includes('mini') && n.includes('jazz')) return ['paige','cami'];
   if(n.includes('munchkin')) return ['paige','cami'];
   if(n.includes('team rehearsal')) {
@@ -1253,6 +1293,478 @@ function removeScheduleItem(idx){
 }
 
 // =============================================
+// AI SCHEDULE OPTIMIZER
+// =============================================
+
+// Extract group key for bundling (e.g. "Junior L2", "ETAP A")
+function extractGroupKey(name){
+  const n = name.toLowerCase();
+  // ETAP letter groups
+  if(n.includes('etap a ') || n.startsWith('etap a')) return 'ETAP A';
+  if(n.includes('etap b') || n.includes('etap b&c')) return 'ETAP B&C';
+  if(n.includes('etap d')) return 'ETAP D';
+  if(n.includes('etap company')) return 'ETAP Company';
+  // ITP letter groups
+  if(n.includes('itp a ') || n.startsWith('itp a')) return 'ITP A';
+  if(n.includes('itp b') || n.includes('itp b &')) return 'ITP B&C';
+  if(n.includes('itp d')) return 'ITP D';
+  if(n.includes('itp e')) return 'ITP E';
+  // Age group + level
+  const ag = getAgeGroup(name);
+  const lv = extractLevel(name);
+  if(ag && lv !== null && lv >= 1) return ag + ' L' + lv;
+  if(ag) return ag;
+  return null;
+}
+
+// Extract dance style for bundling
+function extractBundleStyle(name){
+  const n = name.toLowerCase();
+  if(n.includes('acting')) return 'acting';
+  if(n.includes('voice')) return 'voice';
+  if(n.includes('broadway')) return 'broadway';
+  if(n.includes('leaps') || n.includes('turns')) return 'leaps';
+  if(n.includes('ballroom')) return 'ballroom';
+  if(n.includes('hip hop')) return 'hiphop';
+  if(n.includes('contemp')) return 'contemp';
+  if(n.includes('ballet')) return 'ballet';
+  if(n.includes('tap') && n.includes('jazz')) return 'jazz'; // combo
+  if(n.includes('tap')) return 'tap';
+  if(n.includes('jazz')) return 'jazz';
+  if(n.includes('combo')) return 'combo';
+  return null;
+}
+
+// Bundle affinity groups: styles that should be scheduled back-to-back
+const BUNDLE_GROUPS = [
+  { styles: ['tap','jazz'], label: 'Tap + Jazz' },
+  { styles: ['ballet','contemp','hiphop'], label: 'Ballet + Contemporary (+ Hip Hop)' },
+];
+
+let optimizerProposal = null; // cached result
+let changeStates = {}; // changeIdx -> 'accepted'|'rejected'|null
+
+function runOptimizer(){
+  const proposed = JSON.parse(JSON.stringify(state.schedule));
+  const changes = [];
+  let changeId = 0;
+
+  // ===== STEP 1: Fix teacher assignments =====
+  proposed.forEach((sched, idx) => {
+    const cls = CLASSES.find(c=>c.id===sched.classId);
+    if(!cls) return;
+    const n = cls.name.toLowerCase();
+    const isMiniMunchkin = n.includes('mini') || n.includes('munchkin');
+
+    // Rule: Minis/Munchkins only Paige or Cami
+    if(isMiniMunchkin && sched.teacherId !== 'paige' && sched.teacherId !== 'cami'){
+      const oldTeacher = teacherShort(sched.teacherId);
+      sched.teacherId = cls.eligibleTeachers.includes('paige') ? 'paige' : 'cami';
+      changes.push({
+        id: changeId++, type: 'teacher', category: 'Teacher Rules',
+        title: cls.name,
+        reason: 'Only Paige and Cami teach minis and munchkins',
+        before: 'Teacher: ' + oldTeacher,
+        after: 'Teacher: ' + teacherShort(sched.teacherId),
+        schedIdx: idx,
+      });
+    }
+
+    // Rule: Luke teaches Level 1 and up, all upper level hip hop
+    if(n.includes('hip hop') && !isMiniMunchkin && cls.level !== null && cls.level >= 1){
+      // For upper-level hip hop (L2+), prefer Luke
+      if(cls.level >= 2 && sched.teacherId !== 'luke' && cls.eligibleTeachers.includes('luke')){
+        const oldTeacher = teacherShort(sched.teacherId);
+        // Check Luke isn't already teaching at this time
+        const lukeConflict = proposed.some((s2, i2) => i2 !== idx && s2.teacherId === 'luke' && s2.day === sched.day && (() => {
+          const c2 = CLASSES.find(c=>c.id===s2.classId);
+          return c2 && s2.startTime < sched.startTime + cls.duration && sched.startTime < s2.startTime + c2.duration;
+        })());
+        if(!lukeConflict){
+          sched.teacherId = 'luke';
+          changes.push({
+            id: changeId++, type: 'teacher', category: 'Teacher Rules',
+            title: cls.name,
+            reason: 'Luke teaches all upper level hip hop classes',
+            before: 'Teacher: ' + oldTeacher,
+            after: 'Teacher: Luke S.',
+            schedIdx: idx,
+          });
+        }
+      }
+    }
+  });
+
+  // ===== STEP 2: Fix same-level conflicts =====
+  function findLevelConflicts(sched){
+    const conflicts = [];
+    for(let i=0; i<sched.length; i++){
+      const a = sched[i]; const ac = CLASSES.find(c=>c.id===a.classId); if(!ac) continue;
+      for(let j=i+1; j<sched.length; j++){
+        const b = sched[j]; const bc = CLASSES.find(c=>c.id===b.classId); if(!bc) continue;
+        if(a.day !== b.day) continue;
+        const aEnd = a.startTime + ac.duration;
+        const bEnd = b.startTime + bc.duration;
+        if(!(a.startTime < bEnd && b.startTime < aEnd)) continue;
+        if(ac.level !== null && bc.level !== null && ac.level === bc.level && ac.level >= 1){
+          const ag = getAgeGroup(ac.name), bg = getAgeGroup(bc.name);
+          if(ag && bg && ag === bg) conflicts.push({i, j, level: ac.level, group: ag});
+        }
+      }
+    }
+    return conflicts;
+  }
+
+  const levelConflicts = findLevelConflicts(proposed);
+  levelConflicts.forEach(lc => {
+    const sched = proposed[lc.j];
+    const cls = CLASSES.find(c=>c.id===sched.classId);
+    if(!cls) return;
+    const oldDay = DAYS[sched.day];
+    const oldTime = minutesToTime(sched.startTime);
+
+    // Try to move to a different non-conflicting time on same day first, then other days
+    let moved = false;
+    const tryDays = [sched.day, ...Array.from({length:6},(_,i)=>i).filter(d=>d!==sched.day)];
+    for(const tryDay of tryDays){
+      if(moved) break;
+      const dayStart = tryDay === 5 ? SAT_START : WEEKDAY_START;
+      const dayEnd = tryDay === 5 ? SAT_END : WEEKDAY_END;
+      for(let t = dayStart; t <= dayEnd - cls.duration; t += SLOT_MINUTES){
+        if(tryDay === sched.day && t === sched.startTime) continue;
+        // Check teacher availability
+        if(!isAvailable(sched.teacherId, tryDay, t)) continue;
+        // Check no room conflict
+        const roomConflict = proposed.some((s2, i2) => {
+          if(i2 === lc.j) return false;
+          if(s2.day !== tryDay || s2.room !== sched.room) return false;
+          const c2 = CLASSES.find(c=>c.id===s2.classId);
+          return c2 && t < s2.startTime + c2.duration && s2.startTime < t + cls.duration;
+        });
+        if(roomConflict) continue;
+        // Check no teacher conflict
+        const teacherConflict = proposed.some((s2, i2) => {
+          if(i2 === lc.j) return false;
+          if(s2.day !== tryDay || s2.teacherId !== sched.teacherId) return false;
+          const c2 = CLASSES.find(c=>c.id===s2.classId);
+          return c2 && t < s2.startTime + c2.duration && s2.startTime < t + cls.duration;
+        });
+        if(teacherConflict) continue;
+        // Check no same-level conflict at new time
+        const sameLevelConflict = proposed.some((s2, i2) => {
+          if(i2 === lc.j) return false;
+          if(s2.day !== tryDay) return false;
+          const c2 = CLASSES.find(c=>c.id===s2.classId);
+          if(!c2 || c2.level !== cls.level || c2.level < 1) return false;
+          const g2 = getAgeGroup(c2.name);
+          if(g2 !== getAgeGroup(cls.name)) return false;
+          return t < s2.startTime + c2.duration && s2.startTime < t + cls.duration;
+        });
+        if(sameLevelConflict) continue;
+
+        // Found a valid slot
+        changes.push({
+          id: changeId++, type: 'move', category: 'Same-Level Conflicts',
+          title: cls.name,
+          reason: 'No same levels at the same time (' + lc.group + ' Level ' + lc.level + ')',
+          before: oldDay + ' ' + oldTime + ' -- ' + roomName(sched.room),
+          after: DAYS[tryDay] + ' ' + minutesToTime(t) + ' -- ' + roomName(sched.room),
+          schedIdx: lc.j,
+        });
+        sched.day = tryDay;
+        sched.startTime = t;
+        moved = true;
+        break;
+      }
+    }
+  });
+
+  // ===== STEP 3: Bundle classes =====
+  // Group scheduled classes by group key
+  const grouped = {};
+  proposed.forEach((sched, idx) => {
+    const cls = CLASSES.find(c=>c.id===sched.classId);
+    if(!cls) return;
+    const key = extractGroupKey(cls.name);
+    if(!key) return;
+    const style = extractBundleStyle(cls.name);
+    if(!style) return;
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push({ idx, sched, cls, style });
+  });
+
+  // For each group, check each bundle affinity pair
+  Object.entries(grouped).forEach(([groupKey, items]) => {
+    BUNDLE_GROUPS.forEach(bg => {
+      // Find items matching this bundle group
+      const matching = items.filter(it => bg.styles.includes(it.style));
+      if(matching.length < 2) return;
+
+      // Group by day
+      const byDay = {};
+      matching.forEach(it => {
+        if(!byDay[it.sched.day]) byDay[it.sched.day] = [];
+        byDay[it.sched.day].push(it);
+      });
+
+      // Check each day for back-to-back-ness
+      Object.values(byDay).forEach(dayItems => {
+        if(dayItems.length < 2) return;
+        // Sort by start time
+        dayItems.sort((a,b) => a.sched.startTime - b.sched.startTime);
+        // Check each consecutive pair
+        for(let i=0; i<dayItems.length-1; i++){
+          const a = dayItems[i], b = dayItems[i+1];
+          const aEnd = a.sched.startTime + a.cls.duration;
+          const gap = b.sched.startTime - aEnd;
+          if(gap === 0) continue; // Already back-to-back
+          if(gap > 0 && gap <= 15) continue; // Close enough (5-15min break is fine)
+
+          // Not back-to-back -- try to move B right after A
+          const targetTime = aEnd;
+          const targetDay = a.sched.day;
+          const bIdx = b.idx;
+
+          // Can we place B at targetTime?
+          const cls = b.cls;
+          const sched = proposed[bIdx];
+          let canPlace = true;
+
+          // Check teacher availability
+          if(!isAvailable(sched.teacherId, targetDay, targetTime)) canPlace = false;
+
+          // Check room conflict
+          if(canPlace){
+            canPlace = !proposed.some((s2, i2) => {
+              if(i2 === bIdx) return false;
+              if(s2.day !== targetDay || s2.room !== sched.room) return false;
+              const c2 = CLASSES.find(c=>c.id===s2.classId);
+              return c2 && targetTime < s2.startTime + c2.duration && s2.startTime < targetTime + cls.duration;
+            });
+          }
+
+          // Check teacher conflict
+          if(canPlace){
+            canPlace = !proposed.some((s2, i2) => {
+              if(i2 === bIdx) return false;
+              if(s2.day !== targetDay || s2.teacherId !== sched.teacherId) return false;
+              const c2 = CLASSES.find(c=>c.id===s2.classId);
+              return c2 && targetTime < s2.startTime + c2.duration && s2.startTime < targetTime + cls.duration;
+            });
+          }
+
+          if(canPlace && (targetTime !== sched.startTime || targetDay !== sched.day)){
+            const oldDay = DAYS[sched.day];
+            const oldTime = minutesToTime(sched.startTime);
+            changes.push({
+              id: changeId++, type: 'bundle', category: 'Class Bundling',
+              title: cls.name,
+              reason: 'Bundle ' + bg.label + ' back-to-back (' + groupKey + ') -- right after ' + a.cls.name,
+              before: oldDay + ' ' + oldTime,
+              after: DAYS[targetDay] + ' ' + minutesToTime(targetTime),
+              schedIdx: bIdx,
+            });
+            sched.startTime = targetTime;
+            sched.day = targetDay;
+          }
+        }
+      });
+
+      // Also check: classes in this bundle that are on DIFFERENT days
+      // Find pairs on different days -- suggest moving one to make a bundle
+      const uniqueDays = Object.keys(byDay).map(Number);
+      if(uniqueDays.length >= 2 && matching.length >= 2){
+        // Find if any style appears alone on a day without its bundle partner
+        matching.forEach(item => {
+          const partners = matching.filter(m => m !== item && m.style !== item.style);
+          const sameDayPartner = partners.find(p => p.sched.day === item.sched.day);
+          if(sameDayPartner) return; // Already has a partner on same day
+
+          // Find closest partner on another day
+          const otherPartner = partners[0];
+          if(!otherPartner) return;
+
+          // Try to move this item right after or before the partner
+          const targetDay = otherPartner.sched.day;
+          const partnerEnd = otherPartner.sched.startTime + otherPartner.cls.duration;
+          const targetTime = partnerEnd;
+          const bIdx = item.idx;
+          const cls = item.cls;
+          const sched = proposed[bIdx];
+
+          if(sched.day === targetDay) return; // Already moved
+
+          let canPlace = true;
+          if(!isAvailable(sched.teacherId, targetDay, targetTime)) canPlace = false;
+          if(canPlace){
+            canPlace = !proposed.some((s2, i2) => {
+              if(i2 === bIdx) return false;
+              if(s2.day !== targetDay || s2.room !== sched.room) return false;
+              const c2 = CLASSES.find(c=>c.id===s2.classId);
+              return c2 && targetTime < s2.startTime + c2.duration && s2.startTime < targetTime + cls.duration;
+            });
+          }
+          if(canPlace){
+            canPlace = !proposed.some((s2, i2) => {
+              if(i2 === bIdx) return false;
+              if(s2.day !== targetDay || s2.teacherId !== sched.teacherId) return false;
+              const c2 = CLASSES.find(c=>c.id===s2.classId);
+              return c2 && targetTime < s2.startTime + c2.duration && s2.startTime < targetTime + cls.duration;
+            });
+          }
+
+          if(canPlace){
+            const oldDay = DAYS[sched.day];
+            const oldTime = minutesToTime(sched.startTime);
+            changes.push({
+              id: changeId++, type: 'bundle', category: 'Class Bundling',
+              title: cls.name,
+              reason: 'Move ' + item.style + ' to same day as ' + otherPartner.cls.name + ' for back-to-back bundle (' + groupKey + ')',
+              before: oldDay + ' ' + oldTime,
+              after: DAYS[targetDay] + ' ' + minutesToTime(targetTime),
+              schedIdx: bIdx,
+            });
+            sched.day = targetDay;
+            sched.startTime = targetTime;
+          }
+        });
+      }
+    });
+  });
+
+  optimizerProposal = { proposed, changes };
+  changeStates = {};
+  return optimizerProposal;
+}
+
+function renderOptimize(){
+  const view = document.getElementById('optimize-view');
+  if(!optimizerProposal) runOptimizer();
+  const { proposed, changes } = optimizerProposal;
+
+  const conflicts = getConflicts().filter(c=>!c.ignored);
+  const teacherChanges = changes.filter(c => c.category === 'Teacher Rules');
+  const levelChanges = changes.filter(c => c.category === 'Same-Level Conflicts');
+  const bundleChanges = changes.filter(c => c.category === 'Class Bundling');
+
+  const totalAccepted = Object.values(changeStates).filter(v=>v==='accepted').length;
+  const totalRejected = Object.values(changeStates).filter(v=>v==='rejected').length;
+
+  document.getElementById('nav-opt-count').textContent = changes.length;
+
+  if(!changes.length){
+    view.innerHTML = '<div class="opt-hero">' +
+      '<h3>Schedule Analysis Complete</h3>' +
+      '<p>Your schedule looks great! No optimization suggestions at this time.</p>' +
+      '<div class="opt-stats"><div class="opt-stat"><div class="num">' + state.schedule.length + '</div><div class="lbl">Assigned</div></div>' +
+      '<div class="opt-stat"><div class="num">' + getUnassigned().length + '</div><div class="lbl">Unassigned</div></div>' +
+      '<div class="opt-stat"><div class="num">' + conflicts.length + '</div><div class="lbl">Conflicts</div></div></div></div>' +
+      '<div class="opt-empty"><div class="opt-check">&#10004;</div>No changes suggested. The current schedule follows all rules.</div>';
+    return;
+  }
+
+  let html = '<div class="opt-hero">' +
+    '<h3>AI Schedule Optimizer</h3>' +
+    '<p>Analyzed ' + state.schedule.length + ' classes against Raynor\'s rules. Found <strong style="color:#F59E0B">' + changes.length + ' suggested change' + (changes.length!==1?'s':'') + '</strong> to improve the schedule.</p>' +
+    '<div class="opt-stats">' +
+      '<div class="opt-stat"><div class="num" style="color:#F59E0B">' + changes.length + '</div><div class="lbl">Suggestions</div></div>' +
+      (teacherChanges.length ? '<div class="opt-stat"><div class="num" style="color:#A855F7">' + teacherChanges.length + '</div><div class="lbl">Teacher Fixes</div></div>' : '') +
+      (levelChanges.length ? '<div class="opt-stat"><div class="num" style="color:#EF4444">' + levelChanges.length + '</div><div class="lbl">Level Conflicts</div></div>' : '') +
+      (bundleChanges.length ? '<div class="opt-stat"><div class="num" style="color:#3B82F6">' + bundleChanges.length + '</div><div class="lbl">Bundle Moves</div></div>' : '') +
+      '<div class="opt-stat"><div class="num" style="color:#22C55E">' + totalAccepted + '</div><div class="lbl">Accepted</div></div>' +
+    '</div></div>';
+
+  html += '<div class="opt-actions">' +
+    '<button class="btn btn-primary" onclick="acceptAllChanges()">&#10004; Accept All ' + changes.length + ' Changes</button>' +
+    '<button class="btn btn-outline" onclick="rerunOptimizer()">&#8635; Re-analyze</button>' +
+    (totalAccepted > 0 ? '<button class="btn btn-warning" onclick="applyAccepted()">&#9889; Apply ' + totalAccepted + ' Accepted Changes</button>' : '') +
+    '</div>';
+
+  function renderCategory(label, icon, items){
+    if(!items.length) return '';
+    let s = '<div class="change-section"><h4>' + icon + ' ' + label + ' <span class="cs-count">' + items.length + '</span></h4>';
+    items.forEach(c => {
+      const st = changeStates[c.id] || '';
+      const iconClass = c.type === 'teacher' ? 'teacher' : (c.type === 'bundle' ? 'bundle' : (c.type === 'move' ? 'move' : 'fix'));
+      const iconEmoji = c.type === 'teacher' ? '&#128101;' : (c.type === 'bundle' ? '&#128279;' : '&#8596;');
+      s += '<div class="change-card ' + st + '">' +
+        '<div class="cc-top">' +
+          '<div class="cc-icon ' + iconClass + '">' + iconEmoji + '</div>' +
+          '<div class="cc-title">' + c.title + '</div>' +
+          '<div class="cc-actions">' +
+            (st !== 'accepted' ? '<button class="btn btn-sm btn-primary" onclick="acceptChange(' + c.id + ')">Accept</button>' : '<button class="btn btn-sm btn-outline" onclick="undoChangeState(' + c.id + ')">Undo</button>') +
+            (st !== 'rejected' ? '<button class="btn btn-sm btn-outline" onclick="rejectChange(' + c.id + ')">Skip</button>' : '<button class="btn btn-sm btn-outline" onclick="undoChangeState(' + c.id + ')">Undo</button>') +
+          '</div>' +
+        '</div>' +
+        '<div class="cc-reason">' + c.reason + '</div>' +
+        '<div class="cc-diff">' +
+          '<div class="cc-before">' + c.before + '</div>' +
+          '<div class="cc-arrow">&#10132;</div>' +
+          '<div class="cc-after">' + c.after + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    s += '</div>';
+    return s;
+  }
+
+  html += renderCategory('Teacher Rule Fixes', '&#128101;', teacherChanges);
+  html += renderCategory('Same-Level Conflict Resolution', '&#9888;&#65039;', levelChanges);
+  html += renderCategory('Class Bundling (Back-to-Back)', '&#128279;', bundleChanges);
+
+  // Rules reference
+  html += '<div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:.75rem;margin-top:1rem;">' +
+    '<h4 style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;">&#128218; Rules Applied</h4>' +
+    '<ul style="font-size:.7rem;color:var(--text-secondary);margin:0;padding-left:1.2rem;line-height:1.8;">' +
+    '<li><strong>No same levels at the same time</strong> -- e.g. two Junior L2 classes can\'t overlap</li>' +
+    '<li><strong>Bundle Tap + Jazz back-to-back</strong> for each level group</li>' +
+    '<li><strong>Bundle Ballet + Contemporary (+ Hip Hop)</strong> back-to-back for each level group</li>' +
+    '<li><strong>Hip Hop can be standalone</strong> if bundling isn\'t possible</li>' +
+    '<li><strong>Paige and Cami</strong> teach minis and munchkins</li>' +
+    '<li><strong>Luke</strong> teaches Level 1 and up; all upper level hip hop</li>' +
+    '</ul></div>';
+
+  view.innerHTML = html;
+}
+
+function acceptChange(id){ changeStates[id] = 'accepted'; renderOptimize(); }
+function rejectChange(id){ changeStates[id] = 'rejected'; renderOptimize(); }
+function undoChangeState(id){ delete changeStates[id]; renderOptimize(); }
+function acceptAllChanges(){
+  if(!optimizerProposal) return;
+  optimizerProposal.changes.forEach(c => { changeStates[c.id] = 'accepted'; });
+  renderOptimize();
+}
+function rerunOptimizer(){
+  optimizerProposal = null;
+  changeStates = {};
+  runOptimizer();
+  renderOptimize();
+  toast('Schedule re-analyzed');
+}
+function applyAccepted(){
+  if(!optimizerProposal) return;
+  const accepted = optimizerProposal.changes.filter(c => changeStates[c.id] === 'accepted');
+  if(!accepted.length){ toast('No changes accepted yet'); return; }
+  if(!confirm('Apply ' + accepted.length + ' accepted change(s) to the schedule? This will modify your current schedule.')) return;
+  pushUndo();
+  // Apply the accepted changes from the proposal
+  accepted.forEach(c => {
+    const sched = state.schedule[c.schedIdx];
+    const proposedSched = optimizerProposal.proposed[c.schedIdx];
+    if(!sched || !proposedSched) return;
+    sched.teacherId = proposedSched.teacherId;
+    sched.day = proposedSched.day;
+    sched.startTime = proposedSched.startTime;
+    sched.room = proposedSched.room;
+  });
+  optimizerProposal = null;
+  changeStates = {};
+  saveAndRender();
+  toast(accepted.length + ' change(s) applied!');
+}
+
+// =============================================
 // RENDER: EXPORT TAB
 // =============================================
 function renderExport(){
@@ -1547,6 +2059,7 @@ function renderAll(){
   if(activeTab === 'classes') renderClasses();
   if(activeTab === 'availability') renderAvailability();
   if(activeTab === 'conflicts') renderConflicts();
+  if(activeTab === 'optimize'){ optimizerProposal = null; renderOptimize(); }
   if(activeTab === 'export') renderExport();
 }
 
