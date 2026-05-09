@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 4 — Kanban Board (Card-Based)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F4F5F7; color: #172B4D; overflow-x: auto; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #0052CC 0%, #0747A6 100%); color: #fff; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .header h1 { font-size: 1.1rem; font-weight: 700; }
+  .header .pipe { color: rgba(255,255,255,0.4); }
+  .header .season { font-size: 0.82rem; opacity: 0.85; }
+  .header .spacer { flex: 1; }
+  .header select { padding: 0.35rem 0.65rem; border-radius: 4px; border: none; font-family: inherit; font-size: 0.78rem; background: rgba(255,255,255,0.2); color: #fff; }
+  .header select option { color: #172B4D; background: #fff; }
+  .header .btn { padding: 0.35rem 0.75rem; border-radius: 4px; border: none; font-family: inherit; font-size: 0.78rem; cursor: pointer; font-weight: 500; }
+  .header .btn-light { background: rgba(255,255,255,0.2); color: #fff; }
+  .header .btn-light:hover { background: rgba(255,255,255,0.3); }
+  .header .btn-white { background: #fff; color: #0052CC; }
+
+  /* TABS */
+  .tabs { background: #fff; border-bottom: 1px solid #DFE1E6; padding: 0 1.5rem; display: flex; gap: 0; }
+  .tab { padding: 0.6rem 1rem; font-size: 0.82rem; font-weight: 500; color: #6B778C; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab:hover { color: #172B4D; }
+  .tab.active { color: #0052CC; border-bottom-color: #0052CC; }
+
+  /* BOARD */
+  .board { display: flex; gap: 0.75rem; padding: 1rem; overflow-x: auto; align-items: flex-start; min-height: calc(100vh - 130px); }
+
+  /* COLUMN */
+  .column { background: #EBECF0; border-radius: 6px; width: 280px; min-width: 280px; flex-shrink: 0; display: flex; flex-direction: column; max-height: calc(100vh - 150px); }
+  .column.saturday { width: 320px; min-width: 320px; }
+  .col-header { padding: 0.6rem 0.75rem; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .col-header .count { background: #DFE1E6; color: #6B778C; font-size: 0.62rem; padding: 0.1rem 0.45rem; border-radius: 10px; font-weight: 600; }
+  .col-cards { flex: 1; overflow-y: auto; padding: 0 0.5rem 0.5rem; }
+
+  /* TIME SEPARATOR */
+  .time-sep { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; margin-top: 0.25rem; }
+  .time-sep .line { flex: 1; height: 1px; background: #C1C7D0; }
+  .time-sep .time-label { font-size: 0.62rem; color: #6B778C; font-weight: 600; white-space: nowrap; }
+
+  /* CARD */
+  .card { background: #fff; border-radius: 4px; padding: 0.5rem 0.6rem; margin-bottom: 0.4rem; cursor: grab; box-shadow: 0 1px 0 rgba(9,30,66,0.15); transition: all 0.15s; position: relative; border-left: 4px solid; }
+  .card:hover { background: #F4F5F7; box-shadow: 0 1px 2px rgba(9,30,66,0.2); transform: translateY(-1px); }
+  .card .card-name { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.2rem; line-height: 1.3; }
+  .card .card-meta { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.3rem; }
+  .card .card-time { font-size: 0.65rem; color: #6B778C; }
+  .card .pill { font-size: 0.58rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 600; }
+  .card .teacher-chip { display: flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; color: #172B4D; }
+  .card .teacher-chip .avatar { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.48rem; font-weight: 700; }
+  .card .room-tag { font-size: 0.58rem; color: #6B778C; background: #F4F5F7; padding: 0.1rem 0.3rem; border-radius: 2px; }
+
+  /* STYLE COLORS */
+  .s-jazz { border-color: #0052CC; }
+  .s-jazz .pill { background: #DEEBFF; color: #0052CC; }
+  .s-tap { border-color: #FF5630; }
+  .s-tap .pill { background: #FFEBE6; color: #BF2600; }
+  .s-ballet { border-color: #6554C0; }
+  .s-ballet .pill { background: #EAE6FF; color: #403294; }
+  .s-hiphop { border-color: #36B37E; }
+  .s-hiphop .pill { background: #E3FCEF; color: #006644; }
+  .s-contemp { border-color: #FFAB00; }
+  .s-contemp .pill { background: #FFFAE6; color: #8B6914; }
+  .s-combo { border-color: #00B8D9; }
+  .s-combo .pill { background: #E6FCFF; color: #008DA6; }
+  .s-acting { border-color: #6B778C; }
+  .s-acting .pill { background: #F4F5F7; color: #5E6C84; }
+  .s-ballroom { border-color: #FF5630; }
+  .s-ballroom .pill { background: #FFEBE6; color: #BF2600; }
+  .s-team { border-color: #00B8D9; }
+  .s-team .pill { background: #E6FCFF; color: #008DA6; }
+
+  /* CONFLICT */
+  .card.conflict { box-shadow: 0 0 0 2px #FF5630; }
+  .card.conflict::before { content: '!!!'; position: absolute; top: 4px; right: 6px; font-size: 0.6rem; color: #FF5630; font-weight: 700; }
+
+  /* UNASSIGNED COLUMN */
+  .column.unassigned-col { background: #FFEEF0; }
+  .column.unassigned-col .col-header { color: #BF2600; }
+  .column.unassigned-col .card { opacity: 0.85; border-left-style: dashed; }
+
+  /* ADD CARD */
+  .add-card { padding: 0.4rem 0.6rem; color: #6B778C; font-size: 0.78rem; cursor: pointer; border-radius: 4px; }
+  .add-card:hover { background: rgba(9,30,66,0.08); color: #172B4D; }
+</style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Encore Schedule Builder</h1>
+    <span class="pipe">|</span>
+    <span class="season">2026-2027 Season</span>
+    <span class="spacer"></span>
+    <select>
+      <option>All Teachers (14)</option>
+      <option>Raynor van der Merwe</option>
+      <option>Courtney Rosendall</option>
+      <option>Vadim Bogomolov</option>
+      <option>Luke Spring</option>
+      <option>Jessy Dawson</option>
+      <option>Paige Williams</option>
+      <option>Nicole Coleman</option>
+      <option>Ashleigh Wood</option>
+    </select>
+    <select>
+      <option>All Rooms (6)</option>
+      <option>Room 1</option>
+      <option>Room 2</option>
+      <option>Room 3</option>
+    </select>
+    <button class="btn btn-light">Export</button>
+    <button class="btn btn-white">+ Assign</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab">Classes (107)</div>
+    <div class="tab">Availability</div>
+    <div class="tab active">Schedule Board</div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board">
+    <!-- MONDAY -->
+    <div class="column">
+      <div class="col-header">Monday <span class="count">16</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">4:00 PM</span><span class="line"></span></div>
+        <div class="card s-acting">
+          <div class="card-name">ETAP A/B/C Acting</div>
+          <div class="card-meta">
+            <span class="pill">Acting</span>
+            <span class="card-time">4:30-5:30</span>
+            <span class="room-tag">Rm 1</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#616161;">LM</div> Lorraine M.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 1 Hip Hop M</div>
+          <div class="card-meta">
+            <span class="pill">Hip Hop</span>
+            <span class="card-time">4:30-5:30</span>
+            <span class="room-tag">Rm 2</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+        <div class="card s-combo">
+          <div class="card-name">Mini Age 4&5 Combo</div>
+          <div class="card-meta">
+            <span class="pill">Combo</span>
+            <span class="card-time">4:45-5:30</span>
+            <span class="room-tag">Rm 3</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#4E342E;">CS</div> Cami S.</div>
+        </div>
+        <div class="card s-combo">
+          <div class="card-name">Munchkin 3&4 Combo</div>
+          <div class="card-meta">
+            <span class="pill">Combo</span>
+            <span class="card-time">4:45-5:30</span>
+            <span class="room-tag">Rm 4</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#E91E63;">PW</div> Paige W.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:30 PM</span><span class="line"></span></div>
+        <div class="card s-hiphop">
+          <div class="card-name">Tween 1 Hip Hop</div>
+          <div class="card-meta">
+            <span class="pill">Hip Hop</span>
+            <span class="card-time">5:30-6:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">Jr Level 1 Ballet</div>
+          <div class="card-meta">
+            <span class="pill">Ballet</span>
+            <span class="card-time">5:30-6:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#37474F;">LB</div> Liesl B.</div>
+        </div>
+        <div class="card s-contemp">
+          <div class="card-name">Jr Level 2 Contemp</div>
+          <div class="card-meta">
+            <span class="pill">Contemp</span>
+            <span class="card-time">5:30-6:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#4E342E;">CS</div> Cami S.</div>
+        </div>
+        <div class="card s-jazz">
+          <div class="card-name">Jr Level 1 Jazz/Tap</div>
+          <div class="card-meta">
+            <span class="pill">Jazz</span>
+            <span class="card-time">5:30-7:00</span>
+            <span class="room-tag">90m</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#E91E63;">PW</div> Paige W.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">6:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ETAP A/B Jazz</div>
+          <div class="card-meta">
+            <span class="pill">Jazz</span>
+            <span class="card-time">6:30-7:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">ETAP C&D / ITP A Ballet</div>
+          <div class="card-meta">
+            <span class="pill">Ballet</span>
+            <span class="card-time">6:30-7:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Tween 2 Hip Hop</div>
+          <div class="card-meta">
+            <span class="pill">Hip Hop</span>
+            <span class="card-time">6:30-7:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">7:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ETAP C&D / ITP A Jazz</div>
+          <div class="card-meta">
+            <span class="pill">Jazz</span>
+            <span class="card-time">7:30-8:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">ETAP A/B Ballet & Pointe</div>
+          <div class="card-meta">
+            <span class="pill">Ballet</span>
+            <span class="card-time">7:30-9:00</span>
+            <span class="room-tag">90m</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+        <div class="card s-tap">
+          <div class="card-name">ETAP C&D / ITP A Tap</div>
+          <div class="card-meta">
+            <span class="pill">Tap</span>
+            <span class="card-time">8:30-9:30</span>
+          </div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUESDAY -->
+    <div class="column">
+      <div class="col-header">Tuesday <span class="count">14</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">4:30 PM</span><span class="line"></span></div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 2 Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+        <div class="card s-jazz">
+          <div class="card-name">ITP D Jazz</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+        <div class="card s-combo">
+          <div class="card-name">Munchkin 3&4 Combo</div>
+          <div class="card-meta"><span class="pill">Combo</span><span class="card-time">4:45-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#E91E63;">PW</div> Paige W.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:30 PM</span><span class="line"></span></div>
+        <div class="card s-contemp">
+          <div class="card-name">ETAP C/D Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#FF6F00;">NC</div> Nicole C.</div>
+        </div>
+        <div class="card s-tap">
+          <div class="card-name">ETAP A/B Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">ITP B Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#5C6BC0;">AW</div> Ashleigh W.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">6:30 PM</span><span class="line"></span></div>
+        <div class="card s-ballroom">
+          <div class="card-name">ETAP A/B Ballroom</div>
+          <div class="card-meta"><span class="pill">Ballroom</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#C62828;">AB</div> Anastasiia B.</div>
+        </div>
+        <div class="card s-tap">
+          <div class="card-name">ETAP C/D Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">7:30 PM</span><span class="line"></span></div>
+        <div class="card s-contemp">
+          <div class="card-name">ETAP A/B Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#FF6F00;">NC</div> Nicole C.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">ETAP C/D Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">8:30 PM</span><span class="line"></span></div>
+        <div class="card s-ballroom conflict">
+          <div class="card-name">ETAP C/D Ballroom</div>
+          <div class="card-meta"><span class="pill">Ballroom</span><span class="card-time">8:30-9:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#C62828;">AB</div> Anastasiia B.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">ETAP A/B Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">8:30-9:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEDNESDAY -->
+    <div class="column">
+      <div class="col-header">Wednesday <span class="count">11</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">4:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">Jr Broadway Bound</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 1 HH W</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+        <div class="card s-contemp">
+          <div class="card-name">Jr Level 3 Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#FF6F00;">NC</div> Nicole C.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:30 PM</span><span class="line"></span></div>
+        <div class="card s-contemp">
+          <div class="card-name">Jr Level 1 Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#FF6F00;">NC</div> Nicole C.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 3 Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+        <div class="card s-jazz">
+          <div class="card-name">Tween 2 Jazz</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#5C6BC0;">AW</div> Ashleigh W.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">6:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ITP A&B / Teen 4 Jazz</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+        <div class="card s-tap">
+          <div class="card-name">Tween 2&3 Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">7:30 PM</span><span class="line"></span></div>
+        <div class="card s-tap">
+          <div class="card-name">ITP A&B / Teen 4 Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Tween 2 Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THURSDAY (truncated) -->
+    <div class="column">
+      <div class="col-header">Thursday <span class="count">13</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">4:30 PM</span><span class="line"></span></div>
+        <div class="card s-ballet">
+          <div class="card-name">ITP C Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Teen 2&3 Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:00 PM</span><span class="line"></span></div>
+        <div class="card s-jazz conflict">
+          <div class="card-name">ETAP C/D Jazz (90m)</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">5:00-6:30</span><span class="room-tag">90m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:30 PM</span><span class="line"></span></div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 1 HH R</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+        <div class="card s-contemp">
+          <div class="card-name">Tween 2&3 Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#FF6F00;">NC</div> Nicole C.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">6:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ETAP A/B Jazz (90m)</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">6:30-8:00</span><span class="room-tag">90m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">Teen 1&2 Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#00838F;">GA</div> Gaby A.R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">7:30 PM</span><span class="line"></span></div>
+        <div class="card s-ballet">
+          <div class="card-name">Teen 2&3 Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#00838F;">GA</div> Gaby A.R.</div>
+        </div>
+        <div class="card s-hiphop">
+          <div class="card-name">Teen 3&4 Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">7:30-8:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#F9AB00;">LS</div> Luke S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">8:00 PM</span><span class="line"></span></div>
+        <div class="card s-ballet">
+          <div class="card-name">ETAP A/B Ballet (90m)</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">8:00-9:30</span><span class="room-tag">90m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRIDAY -->
+    <div class="column">
+      <div class="col-header">Friday <span class="count">6</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">4:30 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ITP C Jazz</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">ITP D Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">4:30-5:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#00838F;">GA</div> Gaby A.R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">5:30 PM</span><span class="line"></span></div>
+        <div class="card s-hiphop">
+          <div class="card-name">Jr Level 1 HH F</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+        <div class="card s-ballet">
+          <div class="card-name">ITP C Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#00838F;">GA</div> Gaby A.R.</div>
+        </div>
+        <div class="card s-jazz">
+          <div class="card-name">ITP D Jazz</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">5:30-6:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">6:30 PM</span><span class="line"></span></div>
+        <div class="card s-tap">
+          <div class="card-name">ITP C Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">6:30-7:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#E91E63;">PW</div> Paige W.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SATURDAY -->
+    <div class="column saturday">
+      <div class="col-header">Saturday <span class="count">15</span></div>
+      <div class="col-cards">
+        <div class="time-sep"><span class="line"></span><span class="time-label">10:00 AM</span><span class="line"></span></div>
+        <div class="card s-ballet">
+          <div class="card-name">ETAP A/B Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">10:00-11:30</span><span class="room-tag">90m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+        <div class="card s-combo">
+          <div class="card-name">Munchkin Combo</div>
+          <div class="card-meta"><span class="pill">Combo</span><span class="card-time">10:00-10:45</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#4E342E;">CS</div> Cami S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">10:30 AM</span><span class="line"></span></div>
+        <div class="card s-team">
+          <div class="card-name">TM: Tap Blue</div>
+          <div class="card-meta"><span class="pill">Team</span><span class="card-time">10:30-11:00</span><span class="room-tag">30m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">11:00 AM</span><span class="line"></span></div>
+        <div class="card s-team">
+          <div class="card-name">TM: Jazz Red</div>
+          <div class="card-meta"><span class="pill">Team</span><span class="card-time">11:00-11:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+        <div class="card s-team">
+          <div class="card-name">TM: HH Green</div>
+          <div class="card-meta"><span class="pill">Team</span><span class="card-time">11:00-11:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#0D9488;">JD</div> Jessy D.</div>
+        </div>
+        <div class="card s-combo">
+          <div class="card-name">Mini 5&6 Jazz/Tap</div>
+          <div class="card-meta"><span class="pill">Combo</span><span class="card-time">11:00-12:00</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#4E342E;">CS</div> Cami S.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">11:30 AM</span><span class="line"></span></div>
+        <div class="card s-ballet">
+          <div class="card-name">ETAP C/D Ballet</div>
+          <div class="card-meta"><span class="pill">Ballet</span><span class="card-time">11:30-1:00</span><span class="room-tag">90m</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#7B1FA2;">VB</div> Vadim B.</div>
+        </div>
+        <div class="card s-team">
+          <div class="card-name">TM: Jazz Blue</div>
+          <div class="card-meta"><span class="pill">Team</span><span class="card-time">11:30-12:00</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">12:00 PM</span><span class="line"></span></div>
+        <div class="card s-tap">
+          <div class="card-name">ETAP A/B Tap</div>
+          <div class="card-meta"><span class="pill">Tap</span><span class="card-time">12:00-1:00</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+
+        <div class="time-sep"><span class="line"></span><span class="time-label">1:00 PM</span><span class="line"></span></div>
+        <div class="card s-jazz">
+          <div class="card-name">ETAP Company Leaps</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="card-time">1:00-2:00</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#D93025;">RV</div> Raynor vdM</div>
+        </div>
+        <div class="card s-team">
+          <div class="card-name">TM: Jazz Yellow</div>
+          <div class="card-meta"><span class="pill">Team</span><span class="card-time">1:00-1:30</span></div>
+          <div class="teacher-chip"><div class="avatar" style="background:#188038;">CR</div> Courtney R.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNASSIGNED -->
+    <div class="column unassigned-col">
+      <div class="col-header">Unassigned <span class="count" style="background:#FF5630;color:#fff;">12</span></div>
+      <div class="col-cards">
+        <div class="card s-jazz" style="border-left-style:dashed;">
+          <div class="card-name">ITP E Jazz/Tap</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="room-tag">90m</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">No teacher set</div>
+        </div>
+        <div class="card s-jazz" style="border-left-style:dashed;">
+          <div class="card-name">ITP E Jazz/Ballet</div>
+          <div class="card-meta"><span class="pill">Jazz</span><span class="room-tag">90m</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">No teacher set</div>
+        </div>
+        <div class="card s-acting" style="border-left-style:dashed;">
+          <div class="card-name">ETAP A/B Voice</div>
+          <div class="card-meta"><span class="pill">Voice</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">Voice Teacher</div>
+        </div>
+        <div class="card s-acting" style="border-left-style:dashed;">
+          <div class="card-name">ETAP C/D Voice</div>
+          <div class="card-meta"><span class="pill">Voice</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">Voice Teacher</div>
+        </div>
+        <div class="card s-combo" style="border-left-style:dashed;">
+          <div class="card-name">Munchkin Combo (3rd)</div>
+          <div class="card-meta"><span class="pill">Combo</span><span class="room-tag">45m</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">3 eligible teachers</div>
+        </div>
+        <div class="card s-hiphop" style="border-left-style:dashed;">
+          <div class="card-name">ETAP D Hip Hop</div>
+          <div class="card-meta"><span class="pill">Hip Hop</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">2 eligible teachers</div>
+        </div>
+        <div class="card s-contemp" style="border-left-style:dashed;">
+          <div class="card-name">ETAP D Contemp</div>
+          <div class="card-meta"><span class="pill">Contemp</span></div>
+          <div class="card-time" style="font-size:0.65rem;color:#6B778C;">Nicole C.</div>
+        </div>
+      </div>
+      <div class="add-card">+ Add class</div>
+    </div>
+  </div>
+</body>
+</html>

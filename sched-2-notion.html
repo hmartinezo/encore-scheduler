@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 2 — Notion-Style (Minimal &amp; Clean)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #fff; color: #37352F; padding: 2rem 3rem; max-width: 1400px; margin: 0 auto; }
+
+  /* HEADER */
+  .page-header { margin-bottom: 1.5rem; }
+  .page-header .breadcrumb { font-size: 0.72rem; color: #9B9A97; margin-bottom: 0.5rem; }
+  .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .page-header .subtitle { color: #9B9A97; font-size: 0.85rem; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #E8E7E4; margin-bottom: 1.5rem; }
+  .tab { padding: 0.5rem 0; margin-right: 1.5rem; font-size: 0.85rem; color: #9B9A97; cursor: pointer; border-bottom: 2px solid transparent; font-weight: 500; }
+  .tab:hover { color: #37352F; }
+  .tab.active { color: #37352F; border-bottom-color: #37352F; }
+
+  /* TOOLBAR */
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+  .teacher-select { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.75rem; border: 1px solid #E8E7E4; border-radius: 4px; cursor: pointer; font-size: 0.82rem; }
+  .teacher-select:hover { background: #F7F6F3; }
+  .teacher-select .avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.55rem; font-weight: 700; }
+  .divider { width: 1px; height: 20px; background: #E8E7E4; }
+  .spacer { flex: 1; }
+  .action-btn { padding: 0.35rem 0.75rem; border: 1px solid #E8E7E4; border-radius: 4px; font-size: 0.78rem; cursor: pointer; background: #fff; font-family: inherit; color: #37352F; }
+  .action-btn:hover { background: #F7F6F3; }
+  .action-btn.primary { background: #2383E2; color: #fff; border-color: #2383E2; }
+
+  /* DRAG HINT */
+  .drag-hint { background: #F7F6F3; border: 1px dashed #D3D1CC; border-radius: 4px; padding: 0.65rem 1rem; margin-bottom: 1rem; font-size: 0.78rem; color: #9B9A97; display: flex; align-items: center; gap: 0.5rem; }
+  .key { background: #E8E7E4; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.68rem; font-weight: 600; color: #6B6B6B; }
+
+  /* AVAILABILITY GRID */
+  .avail-section h2 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .avail-section h2 .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .avail-grid { display: grid; grid-template-columns: 80px repeat(6, 1fr); gap: 1px; background: #F7F6F3; border: 1px solid #E8E7E4; border-radius: 4px; overflow: hidden; }
+  .ag-header { background: #F7F6F3; padding: 0.5rem; text-align: center; font-size: 0.72rem; font-weight: 600; color: #9B9A97; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ag-time { background: #fff; padding: 0.3rem 0.5rem; text-align: right; font-size: 0.68rem; color: #9B9A97; display: flex; align-items: center; justify-content: flex-end; }
+  .ag-cell { background: #fff; height: 32px; cursor: pointer; transition: background 0.1s; }
+  .ag-cell:hover { background: #F0F0EE; }
+  .ag-cell.available { background: #DBEDDB; }
+  .ag-cell.available:hover { background: #C8E0C8; }
+  .ag-cell.has-class { background: #D3E5EF; position: relative; }
+  .ag-cell.has-class::after { content: attr(data-class); position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 0.58rem; color: #2E6B8A; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 95%; }
+
+  /* HOURS SUMMARY */
+  .hours-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; margin-bottom: 1.5rem; }
+  .hours-chip { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.65rem; border-radius: 4px; font-size: 0.72rem; background: #F7F6F3; }
+  .hours-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .hours-chip .hrs { font-weight: 600; }
+
+  /* CLASSES TABLE */
+  .classes-db { margin-top: 0.5rem; }
+  .classes-db h2 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .db-header { display: grid; grid-template-columns: 2.5fr 0.8fr 0.8fr 0.8fr 1.5fr 0.8fr; gap: 0; border-bottom: 1px solid #E8E7E4; padding: 0.4rem 0; }
+  .db-header span { font-size: 0.68rem; color: #9B9A97; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 0.5rem; }
+  .db-row { display: grid; grid-template-columns: 2.5fr 0.8fr 0.8fr 0.8fr 1.5fr 0.8fr; gap: 0; border-bottom: 1px solid #F7F6F3; padding: 0.45rem 0; align-items: center; cursor: pointer; transition: background 0.1s; }
+  .db-row:hover { background: #F7F6F3; }
+  .db-row span { font-size: 0.78rem; padding: 0 0.5rem; }
+  .db-row .name-col { font-weight: 500; }
+  .tag { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 3px; font-size: 0.68rem; font-weight: 500; }
+  .tag-jazz { background: #D3E5EF; color: #2E6B8A; }
+  .tag-tap { background: #F5E0E9; color: #8C3D5A; }
+  .tag-ballet { background: #E8DEEE; color: #6940A5; }
+  .tag-hiphop { background: #DBEDDB; color: #2E7D32; }
+  .tag-contemp { background: #FDECC8; color: #8B6914; }
+  .tag-combo { background: #D9E5F6; color: #3B5998; }
+  .tag-acting { background: #E8E7E4; color: #6B6B6B; }
+  .tag-ballroom { background: #F5E0E9; color: #8C3D5A; }
+  .tag-45 { background: #FDECC8; color: #8B6914; }
+  .tag-60 { background: #D3E5EF; color: #2E6B8A; }
+  .tag-90 { background: #F5E0E9; color: #8C3D5A; }
+  .tag-30 { background: #DBEDDB; color: #2E7D32; }
+
+  .teacher-pills { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .teacher-pill { padding: 0.1rem 0.45rem; border-radius: 3px; font-size: 0.65rem; font-weight: 500; cursor: pointer; }
+  .teacher-pill.assigned { background: #D3E5EF; color: #2E6B8A; }
+  .teacher-pill.eligible { background: #F7F6F3; color: #9B9A97; border: 1px dashed #D3D1CC; }
+
+  .status-ok { color: #2E7D32; }
+  .status-conflict { color: #D44C47; font-weight: 600; }
+  .status-unassigned { color: #9B9A97; }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <div class="breadcrumb">Encore Performers / Admin</div>
+    <h1>Schedule Builder</h1>
+    <div class="subtitle">2026-2027 Season &middot; 107 classes &middot; 14 teachers &middot; 6 rooms &middot; Last saved 2 min ago</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab">Classes (107)</div>
+    <div class="tab active">Availability</div>
+    <div class="tab">Schedule</div>
+    <div class="tab">Export</div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="teacher-select">
+      <div class="avatar" style="background:#E16259;">RV</div>
+      <span>Raynor van der Merwe</span>
+      <span style="color:#9B9A97;">&#x25BE;</span>
+    </div>
+    <div class="divider"></div>
+    <div class="action-btn">Copy from...</div>
+    <div class="action-btn">Clear Day</div>
+    <div class="spacer"></div>
+    <div class="action-btn">Undo</div>
+    <div class="action-btn">Redo</div>
+    <div class="action-btn primary">Save</div>
+  </div>
+
+  <div class="drag-hint">
+    Click and drag to paint available time blocks. <span class="key">Shift</span>+click to select entire day column. Click a green cell to remove.
+  </div>
+
+  <!-- AVAILABILITY GRID -->
+  <div class="avail-section">
+    <h2><span class="dot" style="background:#E16259;"></span> Raynor van der Merwe -- 17 hrs/week available</h2>
+    <div class="avail-grid">
+      <div class="ag-header"></div>
+      <div class="ag-header">Mon</div>
+      <div class="ag-header">Tue</div>
+      <div class="ag-header">Wed</div>
+      <div class="ag-header">Thu</div>
+      <div class="ag-header">Fri</div>
+      <div class="ag-header">Sat</div>
+
+      <div class="ag-time">4:00 PM</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+
+      <div class="ag-time">4:30</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+
+      <div class="ag-time">5:00</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell has-class" data-class="ETAP C/D Jazz 90m"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+
+      <div class="ag-time">5:30</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+
+      <div class="ag-time">6:00</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+
+      <div class="ag-time">6:30</div>
+      <div class="ag-cell has-class" data-class="ETAP A/B Jazz"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell has-class" data-class="ITP A&B Jazz"></div>
+      <div class="ag-cell has-class" data-class="ETAP A/B Jazz 90m"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+
+      <div class="ag-time">7:00</div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+
+      <div class="ag-time">7:30</div>
+      <div class="ag-cell has-class" data-class="ETAP C/D Jazz"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+
+      <div class="ag-time">8:00</div>
+      <div class="ag-cell has-class" data-class="(cont.)"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+
+      <div class="ag-time">8:30</div>
+      <div class="ag-cell available"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+
+      <div class="ag-time">9:00</div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+      <div class="ag-cell"></div>
+    </div>
+
+    <div class="hours-bar">
+      <div class="hours-chip"><span class="dot" style="background:#E16259;"></span> <span class="hrs">Mon 5h</span></div>
+      <div class="hours-chip"><span class="dot" style="background:#E16259;"></span> <span class="hrs">Wed 4.5h</span></div>
+      <div class="hours-chip"><span class="dot" style="background:#E16259;"></span> <span class="hrs">Thu 4.5h</span></div>
+      <div class="hours-chip"><span class="dot" style="background:#E16259;"></span> <span class="hrs">Sat 3h</span></div>
+      <div class="hours-chip" style="background:#DBEDDB;"><span style="font-weight:600;">Total: 17h</span></div>
+    </div>
+  </div>
+
+  <!-- CLASSES TABLE -->
+  <div class="classes-db">
+    <h2>Classes assigned to Raynor (8)</h2>
+    <div class="db-header">
+      <span>Name</span>
+      <span>Style</span>
+      <span>Duration</span>
+      <span>Day</span>
+      <span>Time</span>
+      <span>Status</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP A/B Jazz</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-60">60 min</span></span>
+      <span>Mon</span>
+      <span>6:30 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP C/D Jazz</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-60">60 min</span></span>
+      <span>Mon</span>
+      <span>7:30 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ITP A&B Jazz</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-60">60 min</span></span>
+      <span>Wed</span>
+      <span>6:30 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP C/D Jazz (90m)</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-90">90 min</span></span>
+      <span>Thu</span>
+      <span>5:00 PM</span>
+      <span class="status-conflict">Conflict</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP A/B Jazz (90m)</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-90">90 min</span></span>
+      <span>Thu</span>
+      <span>6:30 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP C&D / ITP A Jazz</span>
+      <span><span class="tag tag-jazz">Jazz</span></span>
+      <span><span class="tag tag-60">60 min</span></span>
+      <span>Mon</span>
+      <span>7:30 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+    <div class="db-row">
+      <span class="name-col">ETAP Company Leaps & Turns</span>
+      <span><span class="tag tag-jazz">Leaps</span></span>
+      <span><span class="tag tag-60">60 min</span></span>
+      <span>Sat</span>
+      <span>1:00 PM</span>
+      <span class="status-ok">Scheduled</span>
+    </div>
+  </div>
+</body>
+</html>

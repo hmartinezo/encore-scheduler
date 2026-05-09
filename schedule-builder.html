@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Encore Schedule Builder — 2026-2027</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-bg: #0F172A;
+  --sidebar-hover: #1E293B;
+  --sidebar-text: #94A3B8;
+  --sidebar-active: #3B82F6;
+  --bg: #F1F5F9;
+  --card: #fff;
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --primary: #3B82F6;
+  --primary-hover: #2563EB;
+  --danger: #EF4444;
+  --success: #22C55E;
+  --warning: #F59E0B;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; font-size:13px; }
+button { font-family:inherit; cursor:pointer; }
+select, input { font-family:inherit; }
+
+/* ===== SIDEBAR ===== */
+.sidebar { width:220px; background:var(--sidebar-bg); color:var(--sidebar-text); display:flex; flex-direction:column; flex-shrink:0; }
+.brand { padding:1rem 1.2rem; border-bottom:1px solid #1E293B; }
+.brand h1 { font-size:.82rem; font-weight:700; color:#fff; letter-spacing:.5px; text-transform:uppercase; }
+.brand span { font-size:.62rem; color:#475569; display:block; margin-top:2px; }
+.sidebar nav { flex:1; padding:.5rem 0; overflow-y:auto; }
+.nav-item { display:flex; align-items:center; gap:.6rem; padding:.55rem 1.2rem; color:var(--sidebar-text); text-decoration:none; font-size:.78rem; font-weight:500; cursor:pointer; border-left:3px solid transparent; transition:all .12s; }
+.nav-item:hover { color:#E2E8F0; background:var(--sidebar-hover); }
+.nav-item.active { color:#fff; background:var(--sidebar-hover); border-left-color:var(--sidebar-active); }
+.nav-item .badge { background:var(--danger); color:#fff; font-size:.58rem; padding:1px 5px; border-radius:8px; margin-left:auto; }
+.nav-item .count { color:#475569; font-size:.65rem; margin-left:auto; }
+.sidebar-footer { padding:.75rem 1.2rem; border-top:1px solid #1E293B; font-size:.68rem; color:#475569; line-height:1.6; }
+
+/* ===== MAIN ===== */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ===== TOPBAR ===== */
+.topbar { background:var(--card); border-bottom:1px solid var(--border); padding:.6rem 1.25rem; display:flex; align-items:center; gap:.75rem; flex-shrink:0; }
+.topbar h2 { font-size:1rem; font-weight:700; margin-right:auto; }
+.topbar select { padding:.35rem .6rem; border:1px solid var(--border); border-radius:5px; font-size:.78rem; background:#fff; }
+.btn { padding:.35rem .75rem; border-radius:5px; font-size:.78rem; font-weight:600; border:none; transition:all .12s; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-hover); }
+.btn-outline { background:#fff; color:var(--text-secondary); border:1px solid var(--border); }
+.btn-outline:hover { background:#F8FAFC; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-sm { padding:.25rem .5rem; font-size:.7rem; }
+
+/* ===== CONTENT ===== */
+.content { flex:1; display:flex; overflow:hidden; }
+
+/* ===== CALENDAR ===== */
+.calendar-wrap { flex:1; overflow:auto; padding:.75rem; }
+.cal-grid { display:grid; grid-template-columns:60px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:800px; }
+.cal-header { background:#F8FAFC; font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); padding:.5rem; text-align:center; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+.cal-time { font-size:.65rem; color:var(--text-muted); padding:.3rem .4rem; text-align:right; border-right:1px solid var(--border); height:40px; display:flex; align-items:flex-start; justify-content:flex-end; }
+.cal-time.hour-mark { font-weight:600; color:var(--text-secondary); }
+.cal-cell { border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light); height:40px; position:relative; cursor:pointer; transition:background .08s; }
+.cal-cell:hover { background:#F0F9FF; }
+.cal-cell.drop-target { background:#DBEAFE !important; }
+.cal-cell.unavailable { background:#F8F8F8; cursor:default; }
+.cal-cell.unavailable:hover { background:#F8F8F8; }
+
+/* ===== CLASS BLOCKS ===== */
+.class-block { position:absolute; left:1px; right:1px; border-radius:4px; padding:2px 5px; font-size:.65rem; font-weight:500; overflow:hidden; cursor:grab; z-index:2; line-height:1.3; border-left:3px solid; transition:box-shadow .12s; }
+.class-block:hover { box-shadow:0 2px 8px rgba(0,0,0,.15); z-index:5; }
+.class-block.dragging { opacity:.5; }
+.class-block .cb-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.class-block .cb-teacher { opacity:.7; font-size:.6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.class-block .cb-room { opacity:.5; font-size:.55rem; }
+.class-block.conflict { outline:2px solid var(--danger); outline-offset:-1px; animation:pulse-red 1.5s infinite; }
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2)} 50%{box-shadow:0 0 0 4px rgba(239,68,68,.1)} }
+
+/* Style colors */
+.style-jazz { background:#DBEAFE; color:#1E40AF; border-color:#3B82F6; }
+.style-tap { background:#FCE7F3; color:#9D174D; border-color:#EC4899; }
+.style-ballet { background:#F3E8FF; color:#6B21A8; border-color:#A855F7; }
+.style-hiphop { background:#D1FAE5; color:#065F46; border-color:#10B981; }
+.style-contemp { background:#FEF3C7; color:#92400E; border-color:#F59E0B; }
+.style-combo { background:#E0E7FF; color:#3730A3; border-color:#6366F1; }
+.style-broadway { background:#FFE4E6; color:#9F1239; border-color:#F43F5E; }
+.style-acting { background:#F1F5F9; color:#475569; border-color:#64748B; }
+.style-voice { background:#F1F5F9; color:#475569; border-color:#94A3B8; }
+.style-ballroom { background:#FECDD3; color:#881337; border-color:#E11D48; }
+.style-team { background:#CCFBF1; color:#134E4A; border-color:#14B8A6; }
+.style-leaps { background:#FEF3C7; color:#78350F; border-color:#D97706; }
+
+/* Half-width blocks for parallel classes */
+.class-block.col-left { right:51%; }
+.class-block.col-right { left:51%; }
+.class-block.col-third-1 { right:67%; }
+.class-block.col-third-2 { left:34%; right:34%; }
+.class-block.col-third-3 { left:67%; }
+
+/* ===== UNASSIGNED PANEL ===== */
+.unassigned-panel { width:270px; background:var(--card); border-left:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; }
+.panel-header { padding:.6rem .75rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.panel-header h3 { font-size:.82rem; font-weight:600; }
+.panel-header .badge { background:#FEE2E2; color:#DC2626; font-size:.65rem; font-weight:700; padding:.1rem .4rem; border-radius:8px; }
+.panel-search { padding:.4rem .75rem; border-bottom:1px solid var(--border-light); }
+.panel-search input { width:100%; padding:.35rem .5rem; border:1px solid var(--border); border-radius:4px; font-size:.75rem; outline:none; }
+.panel-search input:focus { border-color:var(--primary); }
+.panel-filters { padding:.4rem .75rem; display:flex; gap:.25rem; flex-wrap:wrap; border-bottom:1px solid var(--border-light); }
+.filter-chip { padding:.15rem .4rem; border-radius:10px; font-size:.62rem; font-weight:500; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--text-secondary); }
+.filter-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.class-list { flex:1; overflow-y:auto; padding:.4rem; }
+.class-item { padding:.4rem .5rem; border:1px solid var(--border); border-radius:5px; margin-bottom:.3rem; cursor:grab; transition:all .12s; font-size:.72rem; border-left:3px solid; }
+.class-item:hover { border-color:var(--primary); background:#F0F9FF; }
+.class-item .ci-name { font-weight:600; margin-bottom:1px; }
+.class-item .ci-meta { color:var(--text-muted); font-size:.65rem; }
+
+/* ===== TEACHERS TAB ===== */
+.teachers-view { flex:1; overflow:auto; padding:1rem; }
+.teacher-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:.75rem; }
+.teacher-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1rem; }
+.teacher-card h3 { font-size:.85rem; font-weight:600; margin-bottom:.5rem; display:flex; align-items:center; gap:.5rem; }
+.teacher-card .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.teacher-card .styles { display:flex; flex-wrap:wrap; gap:.25rem; margin-top:.5rem; }
+.teacher-card .style-tag { font-size:.62rem; padding:.15rem .4rem; border-radius:3px; font-weight:500; }
+.teacher-card .stat { font-size:.7rem; color:var(--text-secondary); margin-top:.5rem; }
+
+/* ===== CLASSES TAB ===== */
+.classes-view { flex:1; overflow:auto; padding:1rem; }
+.classes-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:8px; overflow:hidden; border:1px solid var(--border); min-width:700px; }
+.classes-table th { background:#F8FAFC; font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); padding:.5rem .6rem; text-align:left; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:5; }
+.classes-table td { padding:.35rem .6rem; border-bottom:1px solid var(--border-light); font-size:.75rem; }
+.classes-table tr:hover { background:#F8FAFC; }
+
+/* ===== AVAILABILITY TAB ===== */
+.avail-view { flex:1; overflow:auto; padding:1rem; }
+.avail-controls { display:flex; gap:.75rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap; }
+.avail-grid { display:grid; grid-template-columns:60px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:600px; }
+.avail-cell { border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light); height:24px; cursor:pointer; transition:background .08s; }
+.avail-cell.available { background:#D1FAE5; }
+.avail-cell.available:hover { background:#BBF7D0; }
+.avail-cell:hover { background:#F0F9FF; }
+.avail-cell.has-class { background:#DBEAFE; }
+.avail-header { background:#F8FAFC; font-size:.68rem; font-weight:600; color:var(--text-secondary); padding:.4rem; text-align:center; border-bottom:1px solid var(--border); }
+
+/* ===== MODAL ===== */
+.modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:100; display:none; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:8px; padding:1.25rem; min-width:360px; max-width:500px; max-height:80vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,.2); }
+.modal h3 { font-size:.95rem; font-weight:700; margin-bottom:1rem; }
+.modal label { display:block; font-size:.75rem; font-weight:500; margin-bottom:.25rem; color:var(--text-secondary); }
+.modal select, .modal input[type=text] { width:100%; padding:.4rem .6rem; border:1px solid var(--border); border-radius:5px; font-size:.78rem; margin-bottom:.75rem; }
+.modal .modal-actions { display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem; }
+
+/* ===== TOAST ===== */
+.toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#1E293B; color:#fff; padding:.5rem 1rem; border-radius:6px; font-size:.78rem; z-index:200; display:none; box-shadow:0 4px 12px rgba(0,0,0,.2); }
+.toast.show { display:block; animation:fadeInUp .3s; }
+@keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <h1>Encore Admin</h1>
+    <span>Schedule Builder 2026-2027</span>
+  </div>
+  <nav id="nav">
+    <div class="nav-item active" data-tab="schedule"><span>📅</span> Schedule</div>
+    <div class="nav-item" data-tab="classes"><span>📋</span> Classes <span class="count" id="nav-class-count">107</span></div>
+    <div class="nav-item" data-tab="teachers"><span>👩‍🏫</span> Teachers <span class="count">14</span></div>
+    <div class="nav-item" data-tab="availability"><span>🕐</span> Availability</div>
+    <div class="nav-item" data-tab="conflicts"><span>⚠️</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
+    <div class="nav-item" data-tab="export"><span>📤</span> Export</div>
+  </nav>
+  <div class="sidebar-footer" id="sidebar-footer">
+    Auto-saved just now<br>
+    6 rooms · Mon–Sat
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar">
+  <h2 id="topbar-title">Weekly Schedule</h2>
+  <select id="filter-teacher"><option value="">All Teachers</option></select>
+  <select id="filter-room">
+    <option value="">All Rooms (6)</option>
+    <option value="1">Room 1</option><option value="2">Room 2</option><option value="3">Room 3</option>
+    <option value="4">Room 4</option><option value="5">Room 5</option><option value="6">Room 6</option>
+  </select>
+  <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">↩ Undo</button>
+  <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">↪ Redo</button>
+  <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- SCHEDULE TAB -->
+  <div id="tab-schedule" class="tab-content" style="display:flex;flex:1;overflow:hidden;">
+    <div class="calendar-wrap" id="calendar-wrap"></div>
+    <div class="unassigned-panel">
+      <div class="panel-header">
+        <h3>Unassigned</h3>
+        <span class="badge" id="unassigned-count">0</span>
+      </div>
+      <div class="panel-search">
+        <input type="text" id="unassigned-search" placeholder="Search classes..." oninput="renderUnassigned()">
+      </div>
+      <div class="panel-filters" id="unassigned-filters"></div>
+      <div class="class-list" id="unassigned-list"></div>
+    </div>
+  </div>
+
+  <!-- CLASSES TAB -->
+  <div id="tab-classes" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="classes-view" id="classes-view"></div>
+  </div>
+
+  <!-- TEACHERS TAB -->
+  <div id="tab-teachers" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="teachers-view" id="teachers-view"></div>
+  </div>
+
+  <!-- AVAILABILITY TAB -->
+  <div id="tab-availability" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="avail-view" id="avail-view"></div>
+  </div>
+
+  <!-- CONFLICTS TAB -->
+  <div id="tab-conflicts" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="classes-view" id="conflicts-view"></div>
+  </div>
+
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="classes-view" id="export-view" style="max-width:600px;"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <h3>Assign Class</h3>
+    <label>Class</label>
+    <select id="assign-class"></select>
+    <label>Teacher</label>
+    <select id="assign-teacher"></select>
+    <label>Day</label>
+    <select id="assign-day">
+      <option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
+      <option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option>
+    </select>
+    <label>Start Time</label>
+    <select id="assign-time"></select>
+    <label>Room</label>
+    <select id="assign-room">
+      <option value="1">Room 1</option><option value="2">Room 2</option><option value="3">Room 3</option>
+      <option value="4">Room 4</option><option value="5">Room 5</option><option value="6">Room 6</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doAssign()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// DATA MODEL
+// =============================================
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAY_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const STYLES = {
+  jazz:'Jazz', tap:'Tap', ballet:'Ballet', hiphop:'Hip Hop', contemp:'Contemporary',
+  combo:'Combo', broadway:'Broadway', acting:'Acting', voice:'Voice',
+  ballroom:'Ballroom', team:'Team Rehearsal', leaps:'Leaps & Turns'
+};
+
+const TEACHERS = [
+  { id:'raynor', name:'Raynor van der Merwe', short:'Raynor vdM', color:'#DC2626', styles:['jazz','leaps'] },
+  { id:'courtney', name:'Courtney Rosendall', short:'Courtney R.', color:'#16A34A', styles:['tap','jazz','broadway'] },
+  { id:'vadim', name:'Vadim Bogomolov', short:'Vadim B.', color:'#7C3AED', styles:['ballet'] },
+  { id:'anastasiia', name:'Anastasiia Bengard', short:'Anastasiia B.', color:'#E11D48', styles:['ballroom'] },
+  { id:'nicole', name:'Nicole Coleman', short:'Nicole C.', color:'#EA580C', styles:['contemp'] },
+  { id:'luke', name:'Luke Spring', short:'Luke S.', color:'#CA8A04', styles:['hiphop','tap'] },
+  { id:'jessy', name:'Jessy Dawson', short:'Jessy D.', color:'#0D9488', styles:['hiphop'] },
+  { id:'paige', name:'Paige Williams', short:'Paige W.', color:'#DB2777', styles:['jazz','tap','combo','ballet'] },
+  { id:'ashleigh', name:'Ashleigh Wood', short:'Ashleigh W.', color:'#4F46E5', styles:['ballet','contemp','jazz'] },
+  { id:'gaby', name:'Gaby Antunano Rodriguez', short:'Gaby A.R.', color:'#0891B2', styles:['ballet'] },
+  { id:'liesl', name:'Liesl Balatsenko', short:'Liesl B.', color:'#57534E', styles:['ballet'] },
+  { id:'cami', name:'Cami Stockman', short:'Cami S.', color:'#6D4C41', styles:['contemp','jazz','combo'] },
+  { id:'lorraine', name:'Lorraine Magee', short:'Lorraine M.', color:'#546E7A', styles:['acting'] },
+  { id:'voice', name:'Voice Teacher', short:'Voice T.', color:'#9E9E9E', styles:['voice'] },
+];
+
+function teacherById(id){ return TEACHERS.find(t=>t.id===id); }
+function teacherShort(id){ const t=teacherById(id); return t?t.short:'?'; }
+
+// Determine style from class name
+function detectStyle(name){
+  const n = name.toLowerCase();
+  if(n.includes('team rehearsal')) return 'team';
+  if(n.includes('leaps') || n.includes('turns')) return 'leaps';
+  if(n.includes('acting')) return 'acting';
+  if(n.includes('voice')) return 'voice';
+  if(n.includes('broadway')) return 'broadway';
+  if(n.includes('ballroom') || n.includes('latin jazz')) return 'ballroom';
+  if(n.includes('combo')) return 'combo';
+  if(n.includes('hip hop') || n.includes('hiphop')) return 'hiphop';
+  if(n.includes('contemp')) return 'contemp';
+  if(n.includes('ballet') && n.includes('jazz')) return 'jazz';
+  if(n.includes('jazz') && n.includes('tap')) return 'jazz';
+  if(n.includes('ballet') && n.includes('pointe')) return 'ballet';
+  if(n.includes('ballet')) return 'ballet';
+  if(n.includes('tap')) return 'tap';
+  if(n.includes('jazz')) return 'jazz';
+  return 'combo';
+}
+
+// Determine duration from class name
+function detectDuration(name){
+  if(name.includes('90 min')) return 90;
+  const n = name.toLowerCase();
+  if(n.includes('team rehearsal')) return 30;
+  if(n.includes('munchkin') || (n.includes('mini') && (n.includes('combo') || n.includes('hip hop')))) return 45;
+  if(n.includes('pointe after')) return 90;
+  if((n.includes('etap') && (n.includes('jazz - 90') || n.includes('ballet - 90')))) return 90;
+  if(n.includes('etap') && n.includes('ballet') && !n.includes('60')) return 90;
+  if(n.includes('junior') && n.includes('jazz/tap')) return 90;
+  return 60;
+}
+
+// Determine eligible teachers from Tab 3 data
+function detectTeachers(name){
+  const n = name.toLowerCase();
+  // ETAP
+  if(n.includes('etap') && n.includes('acting')) return ['lorraine'];
+  if(n.includes('voice')) return ['voice'];
+  if(n.includes('etap') && n.includes('ballroom')) return ['anastasiia'];
+  if(n.includes('etap') && n.includes('leaps')) return ['raynor'];
+  if(n.includes('etap a') && n.includes('jazz')) return ['raynor'];
+  if(n.includes('etap b') && n.includes('jazz')) return ['raynor'];
+  if(n.includes('etap d') && n.includes('jazz')) return ['raynor','courtney'];
+  if(n.includes('etap') && n.includes('jazz')) return ['raynor'];
+  if(n.includes('etap') && n.includes('tap')) return ['courtney','luke'];
+  if(n.includes('etap') && n.includes('ballet')) return ['vadim'];
+  if(n.includes('etap') && n.includes('hip hop')) return ['luke','jessy'];
+  if(n.includes('etap') && n.includes('contemp')) return ['nicole'];
+  // ITP
+  if(n.includes('itp e')) return ['raynor','courtney','paige'];
+  if(n.includes('itp') && n.includes('jazz')) return ['raynor','courtney'];
+  if(n.includes('itp') && n.includes('tap')) return ['courtney','paige','luke'];
+  if(n.includes('itp') && n.includes('ballet')) return ['vadim','gaby','ashleigh'];
+  // Teen
+  if(n.includes('teen') && n.includes('ballet')) return ['gaby','ashleigh'];
+  if(n.includes('teen') && n.includes('contemp')) return ['nicole','cami'];
+  if(n.includes('teen') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('teen') && n.includes('jazz')) return ['paige','jessy','cami','ashleigh'];
+  if(n.includes('teen') && n.includes('tap')) return ['paige','cami','courtney'];
+  if(n.includes('teen') && n.includes('broadway')) return ['courtney'];
+  // Tween
+  if(n.includes('tween') && n.includes('ballet')) return ['liesl','ashleigh'];
+  if(n.includes('tween') && n.includes('contemp')) return ['nicole','ashleigh','cami'];
+  if(n.includes('tween') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('tween') && n.includes('jazz')) return ['ashleigh','paige'];
+  if(n.includes('tween') && n.includes('tap')) return ['courtney','luke'];
+  if(n.includes('tween') && n.includes('broadway')) return ['courtney'];
+  // Junior
+  if(n.includes('junior') && n.includes('broadway')) return ['courtney'];
+  if(n.includes('junior') && n.includes('ballet')) return ['liesl','ashleigh'];
+  if(n.includes('junior') && n.includes('contemp')) return ['nicole','cami'];
+  if(n.includes('junior') && n.includes('hip hop')) return ['jessy','luke'];
+  if(n.includes('junior') && n.includes('jazz')) return ['paige','courtney','cami'];
+  if(n.includes('junior') && n.includes('tap')) return ['luke','courtney','paige'];
+  // Mini
+  if(n.includes('mini') && n.includes('ballet')) return ['paige'];
+  if(n.includes('mini') && n.includes('hip hop')) return ['jessy','paige'];
+  if(n.includes('mini') && n.includes('combo')) return ['cami','jessy','paige'];
+  if(n.includes('mini') && n.includes('jazz')) return ['paige','cami'];
+  // Munchkin
+  if(n.includes('munchkin')) return ['paige','cami'];
+  // Team rehearsal
+  if(n.includes('team rehearsal')) {
+    if(n.includes('hip hop')) return ['jessy'];
+    if(n.includes('jazz')) return ['courtney','paige'];
+    if(n.includes('tap')) return ['courtney'];
+    if(n.includes('contemp')) return ['cami'];
+    if(n.includes('mini')) return ['paige'];
+    return ['courtney','paige','jessy','cami'];
+  }
+  return TEACHERS.map(t=>t.id);
+}
+
+// Build class list from Tab 1
+const CLASS_NAMES = [
+  'Munchkin Age 3 & 4 Combo','Munchkin Age 3 & 4 Combo','Munchkin Age 3 & 4 Combo',
+  'Mini Age 4 & 5 Combo Jazz/Tap','Mini Age 4 & 5 Combo Hip Hop/Jazz',
+  'Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop',
+  'Mini Age 5 & 6 Jazz/Tap','Mini Age 5 & 6 Jazz/Tap','Mini Age 5 & 6 Jazz/Tap',
+  'Mini Age 5 & 6 Ballet','Mini Age 5 & 6 Ballet',
+  'Junior Level 1 Ballet','Junior Level 1 Contemporary',
+  'Junior Level 1 Hip Hop','Junior Level 1 Hip Hop','Junior Level 1 Hip Hop','Junior Level 1 Hip Hop',
+  'Junior Level 1a Hip Hop',
+  'Junior Level 1 Jazz/Tap','Junior Level 1 Jazz/Tap','Junior Level 1 Jazz/Tap',
+  'Junior Level 2 Ballet','Junior Level 3 Ballet',
+  'Junior Level 2 Jazz','Junior Level 3 Jazz',
+  'Junior Level 2 Tap','Junior Level 3 Tap',
+  'Junior Level 2 Contemporary',
+  'Junior Level 2 Hip Hop','Junior Level 2 Hip Hop',
+  'Junior Level 3 Contemporary','Junior Level 3 Hip Hop',
+  'Junior Broadway Bound',
+  'Tween Level 1 Ballet','Tween Level 1 Hip Hop','Tween Level 1 & 2 Hip Hop',
+  'Tween Level 2 Hip Hop','Tween Level 2 Hip Hop',
+  'Tween Level 1 Contemporary','Tween Level 2 Contemporary','Tween Level 3 Contemporary',
+  'Tween Level 1 Tap','Tween Level 2 & 3 Tap',
+  'Tween Level 1 Jazz','Tween Level 2 Jazz',
+  'Tween/Teen Level 1 Jazz',
+  'Teen Level 1 & 2 Ballet','Teen Level 2 & 3 Ballet',
+  'Teen Level 1 & 2 Contemporary','Teen Level 1 & 2 Hip Hop','Teen Level 1 & 2 Hip Hop',
+  'Teen Level 1 Jazz','Teen Level 1 Tap','Teen Level 2 & 3 Tap',
+  'Teen Level 2 Contemporary','Teen Level 3 Contemporary',
+  'Teen Level 2 & 3 Hip Hop','Teen Level 2 Jazz',
+  'Teen Level 3 & 4 Hip Hop','Teen Level 3 Jazz',
+  'Tween/Teen Broadway Bound',
+  'ITP A Jazz','ITP A Jazz','ITP A Tap','ITP A Tap','ITP A Ballet','ITP A Ballet',
+  'ITP B & C Jazz','ITP B & C Jazz','ITP B & C Tap','ITP B & C Tap','ITP B & C Ballet','ITP B & C Ballet',
+  'ITP D Jazz','ITP D Jazz','ITP D Tap','ITP D Ballet',
+  'ITP E Jazz/Tap - 90 min','ITP E Jazz/Ballet - 90 min',
+  'ETAP A Jazz - 90 min','ETAP A Jazz - 60 min','ETAP A Tap','ETAP A Tap',
+  'ETAP A Ballet - 90 min','ETAP A Ballet - 90 min','ETAP A Ballet - 90 min with pointe after',
+  'ETAP A Hip Hop','ETAP A Contemporary','ETAP A Acting',
+  'ETAP B&C Jazz - 90 min','ETAP B&C Jazz - 60 min','ETAP B&C Tap','ETAP B&C Tap',
+  'ETAP B&C Ballet - 90 min','ETAP B&C Ballet - 90 min','ETAP B&C Ballet - 90 min with pointe after',
+  'ETAP B&C Hip Hop','ETAP B&C Contemporary','ETAP B&C Acting',
+  'ETAP D Jazz','ETAP D Jazz','ETAP D Tap','ETAP D Tap',
+  'ETAP D Ballet','ETAP D Ballet','ETAP D Hip Hop','ETAP D Contemporary',
+  'ETAP Company Leaps & Turns',
+];
+
+// Build classes with unique IDs
+let nextClassId = 1;
+const CLASSES = CLASS_NAMES.map(name => ({
+  id: nextClassId++,
+  name,
+  style: detectStyle(name),
+  duration: detectDuration(name),
+  eligibleTeachers: detectTeachers(name),
+}));
+
+// =============================================
+// STATE
+// =============================================
+// Schedule: array of assignments { classId, teacherId, day (0-5), startTime (minutes from midnight), room (1-6) }
+let state = {
+  schedule: [],  // assigned classes
+  availability: {}, // teacherId -> { day -> [{ start, end }] }  (minutes from midnight)
+};
+
+// Pre-fill availability: all teachers available Mon-Fri 4pm-9:30pm, Sat 9am-2pm
+TEACHERS.forEach(t => {
+  state.availability[t.id] = {};
+  for(let d=0; d<5; d++){
+    state.availability[t.id][d] = [{ start:960, end:1290 }]; // 4:00 PM - 9:30 PM
+  }
+  state.availability[t.id][5] = [{ start:540, end:840 }]; // 9:00 AM - 2:00 PM (Saturday)
+});
+
+// Undo/redo
+let undoStack = [];
+let redoStack = [];
+function pushUndo(){
+  undoStack.push(JSON.parse(JSON.stringify(state.schedule)));
+  redoStack = [];
+  if(undoStack.length > 50) undoStack.shift();
+}
+function undo(){
+  if(!undoStack.length) return;
+  redoStack.push(JSON.parse(JSON.stringify(state.schedule)));
+  state.schedule = undoStack.pop();
+  saveAndRender();
+  toast('Undo');
+}
+function redo(){
+  if(!redoStack.length) return;
+  undoStack.push(JSON.parse(JSON.stringify(state.schedule)));
+  state.schedule = redoStack.pop();
+  saveAndRender();
+  toast('Redo');
+}
+
+// localStorage
+function save(){
+  try { localStorage.setItem('encore-schedule-v1', JSON.stringify(state)); } catch(e){}
+  document.getElementById('sidebar-footer').innerHTML = `Auto-saved just now<br>6 rooms · Mon–Sat`;
+}
+function load(){
+  try {
+    const d = localStorage.getItem('encore-schedule-v1');
+    if(d) { const parsed = JSON.parse(d); state.schedule = parsed.schedule || []; if(parsed.availability) state.availability = parsed.availability; }
+  } catch(e){}
+}
+function saveAndRender(){ save(); renderAll(); }
+
+// =============================================
+// UTILITIES
+// =============================================
+function minutesToTime(m){
+  const h = Math.floor(m/60), mm = m%60;
+  const ampm = h>=12?'PM':'AM';
+  const hh = h>12?h-12:(h===0?12:h);
+  return `${hh}:${String(mm).padStart(2,'0')} ${ampm}`;
+}
+
+function getUnassigned(){
+  const assignedIds = new Set(state.schedule.map(s=>s.classId));
+  return CLASSES.filter(c=>!assignedIds.has(c.id));
+}
+
+function getConflicts(){
+  const conflicts = [];
+  for(let i=0; i<state.schedule.length; i++){
+    const a = state.schedule[i];
+    const ac = CLASSES.find(c=>c.id===a.classId);
+    if(!ac) continue;
+    const aEnd = a.startTime + ac.duration;
+    for(let j=i+1; j<state.schedule.length; j++){
+      const b = state.schedule[j];
+      const bc = CLASSES.find(c=>c.id===b.classId);
+      if(!bc) continue;
+      if(a.day !== b.day) continue;
+      const bEnd = b.startTime + bc.duration;
+      const overlap = a.startTime < bEnd && b.startTime < aEnd;
+      if(!overlap) continue;
+      // Same teacher?
+      if(a.teacherId === b.teacherId){
+        conflicts.push({ type:'teacher', a:i, b:j, msg:`${teacherShort(a.teacherId)} double-booked` });
+      }
+      // Same room?
+      if(a.room === b.room){
+        conflicts.push({ type:'room', a:i, b:j, msg:`Room ${a.room} overlap` });
+      }
+    }
+  }
+  return conflicts;
+}
+
+function isConflict(schedIdx){
+  return getConflicts().some(c=>c.a===schedIdx||c.b===schedIdx);
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+// =============================================
+// TIME GRID CONFIG
+// =============================================
+const SLOT_MINUTES = 15; // 15 min per row
+const WEEKDAY_START = 960;  // 4:00 PM
+const WEEKDAY_END = 1290;   // 9:30 PM
+const SAT_START = 540;      // 9:00 AM
+const SAT_END = 840;        // 2:00 PM
+const SLOT_HEIGHT = 40;     // px per 15 min
+
+function getTimeSlots(){
+  // Build a unified set of time rows covering all days
+  const allStarts = new Set();
+  for(let t=SAT_START; t<SAT_END; t+=SLOT_MINUTES) allStarts.add(t);
+  for(let t=WEEKDAY_START; t<WEEKDAY_END; t+=SLOT_MINUTES) allStarts.add(t);
+  return [...allStarts].sort((a,b)=>a-b);
+}
+
+const TIME_SLOTS = getTimeSlots();
+
+function isTimeInDay(time, dayIdx){
+  if(dayIdx === 5) return time >= SAT_START && time < SAT_END; // Saturday
+  return time >= WEEKDAY_START && time < WEEKDAY_END;
+}
+
+// =============================================
+// RENDER: SCHEDULE CALENDAR
+// =============================================
+function renderCalendar(){
+  const wrap = document.getElementById('calendar-wrap');
+  const filterTeacher = document.getElementById('filter-teacher').value;
+  const filterRoom = document.getElementById('filter-room').value;
+
+  let html = '<div class="cal-grid">';
+  // Header
+  html += '<div class="cal-header"></div>';
+  DAY_SHORT.forEach(d => html += `<div class="cal-header">${d}</div>`);
+
+  // Time rows
+  TIME_SLOTS.forEach(time => {
+    const isHour = time % 60 === 0;
+    html += `<div class="cal-time${isHour?' hour-mark':''}">${isHour?minutesToTime(time):''}</div>`;
+    for(let d=0; d<6; d++){
+      const valid = isTimeInDay(time, d);
+      html += `<div class="cal-cell${valid?'':' unavailable'}" data-day="${d}" data-time="${time}"></div>`;
+    }
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  // Place class blocks
+  const grid = wrap.querySelector('.cal-grid');
+  const headerCells = 7; // 1 corner + 6 day headers
+
+  state.schedule.forEach((sched, idx) => {
+    if(filterTeacher && sched.teacherId !== filterTeacher) return;
+    if(filterRoom && sched.room !== parseInt(filterRoom)) return;
+
+    const cls = CLASSES.find(c=>c.id===sched.classId);
+    if(!cls) return;
+
+    const dayCol = sched.day; // 0-5
+    const timeRow = TIME_SLOTS.indexOf(sched.startTime);
+    if(timeRow < 0) return;
+
+    const cellIdx = headerCells + timeRow * 7 + 1 + dayCol;
+    const cell = grid.children[cellIdx];
+    if(!cell) return;
+
+    const slots = cls.duration / SLOT_MINUTES;
+    const height = slots * SLOT_HEIGHT - 2;
+    const style = cls.style;
+    const hasConflict = isConflict(idx);
+
+    // Check if other blocks exist in same cell range for side-by-side
+    const overlapping = state.schedule.filter((s2, i2) => {
+      if(i2 === idx) return false;
+      if(s2.day !== sched.day) return false;
+      if(filterTeacher && s2.teacherId !== filterTeacher) return false;
+      if(filterRoom && s2.room !== parseInt(filterRoom)) return false;
+      const c2 = CLASSES.find(c=>c.id===s2.classId);
+      if(!c2) return false;
+      return s2.startTime < sched.startTime + cls.duration && sched.startTime < s2.startTime + c2.duration;
+    });
+
+    let colClass = '';
+    if(overlapping.length === 1){
+      const otherTime = overlapping[0].startTime;
+      if(sched.startTime < otherTime || (sched.startTime === otherTime && idx < state.schedule.indexOf(overlapping[0]))){
+        colClass = ' col-left';
+      } else {
+        colClass = ' col-right';
+      }
+    } else if(overlapping.length >= 2){
+      const allOverlap = [sched, ...overlapping].sort((a,b)=>a.startTime-b.startTime||(state.schedule.indexOf(a)-state.schedule.indexOf(b)));
+      const myPos = allOverlap.indexOf(sched);
+      if(myPos === 0) colClass = ' col-third-1';
+      else if(myPos === 1) colClass = ' col-third-2';
+      else colClass = ' col-third-3';
+    }
+
+    const teacher = teacherById(sched.teacherId);
+    const block = document.createElement('div');
+    block.className = `class-block style-${style}${hasConflict?' conflict':''}${colClass}`;
+    block.style.top = '0px';
+    block.style.height = height + 'px';
+    block.draggable = true;
+    block.dataset.schedIdx = idx;
+    block.innerHTML = `<div class="cb-name">${cls.name}</div><div class="cb-teacher">${teacher?teacher.short:'?'}</div><div class="cb-room">Rm ${sched.room} · ${cls.duration}m</div>`;
+    block.title = `${cls.name}\n${teacher?teacher.name:'?'}\n${DAYS[sched.day]} ${minutesToTime(sched.startTime)}-${minutesToTime(sched.startTime+cls.duration)}\nRoom ${sched.room}`;
+
+    // Drag events
+    block.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', idx);
+      block.classList.add('dragging');
+    });
+    block.addEventListener('dragend', () => block.classList.remove('dragging'));
+
+    // Click to edit
+    block.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if(confirm(`Remove "${cls.name}" from schedule?`)){
+        pushUndo();
+        state.schedule.splice(idx, 1);
+        saveAndRender();
+        toast('Class removed');
+      }
+    });
+
+    cell.appendChild(block);
+  });
+
+  // Drop targets
+  grid.querySelectorAll('.cal-cell:not(.unavailable)').forEach(cell => {
+    cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drop-target'); });
+    cell.addEventListener('dragleave', () => cell.classList.remove('drop-target'));
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      cell.classList.remove('drop-target');
+      const data = e.dataTransfer.getData('text/plain');
+      const day = parseInt(cell.dataset.day);
+      const time = parseInt(cell.dataset.time);
+
+      // From schedule (move)
+      if(data && !isNaN(parseInt(data)) && parseInt(data) < state.schedule.length){
+        const schedIdx = parseInt(data);
+        pushUndo();
+        state.schedule[schedIdx].day = day;
+        state.schedule[schedIdx].startTime = time;
+        saveAndRender();
+        toast('Class moved');
+      }
+      // From unassigned (new assignment)
+      else if(data.startsWith('class-')){
+        const classId = parseInt(data.replace('class-',''));
+        const cls = CLASSES.find(c=>c.id===classId);
+        if(!cls) return;
+        showAssignModal(classId, day, time);
+      }
+    });
+
+    // Click empty cell to assign
+    cell.addEventListener('dblclick', () => {
+      const day = parseInt(cell.dataset.day);
+      const time = parseInt(cell.dataset.time);
+      showAssignModal(null, day, time);
+    });
+  });
+
+  // Update conflict count
+  const conflicts = getConflicts();
+  document.getElementById('nav-conflict-count').textContent = conflicts.length;
+}
+
+// =============================================
+// RENDER: UNASSIGNED PANEL
+// =============================================
+function renderUnassigned(){
+  const list = document.getElementById('unassigned-list');
+  const search = document.getElementById('unassigned-search').value.toLowerCase();
+  const unassigned = getUnassigned();
+  const filtered = unassigned.filter(c => !search || c.name.toLowerCase().includes(search));
+
+  document.getElementById('unassigned-count').textContent = unassigned.length;
+
+  list.innerHTML = filtered.map(c => {
+    const teachers = c.eligibleTeachers.map(id=>teacherShort(id)).join(', ');
+    return `<div class="class-item style-${c.style}" draggable="true" data-class-id="${c.id}">
+      <div class="ci-name">${c.name}</div>
+      <div class="ci-meta">${STYLES[c.style]||c.style} · ${c.duration}m · ${teachers}</div>
+    </div>`;
+  }).join('');
+
+  // Make draggable
+  list.querySelectorAll('.class-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', 'class-' + item.dataset.classId);
+    });
+    item.addEventListener('dblclick', () => {
+      showAssignModal(parseInt(item.dataset.classId));
+    });
+  });
+}
+
+// =============================================
+// RENDER: TEACHERS TAB
+// =============================================
+function renderTeachers(){
+  const view = document.getElementById('teachers-view');
+  let html = '<div class="teacher-grid">';
+  TEACHERS.forEach(t => {
+    const assigned = state.schedule.filter(s=>s.teacherId===t.id);
+    const totalMin = assigned.reduce((sum,s)=>{ const c=CLASSES.find(cc=>cc.id===s.classId); return sum+(c?c.duration:0); },0);
+    const hours = (totalMin/60).toFixed(1);
+    html += `<div class="teacher-card">
+      <h3><span class="dot" style="background:${t.color}"></span>${t.name}</h3>
+      <div class="styles">${t.styles.map(s=>`<span class="style-tag style-${s}">${STYLES[s]||s}</span>`).join('')}</div>
+      <div class="stat">${assigned.length} classes · ${hours}h/week</div>
+    </div>`;
+  });
+  html += '</div>';
+  view.innerHTML = html;
+}
+
+// =============================================
+// RENDER: CLASSES TAB
+// =============================================
+function renderClasses(){
+  const view = document.getElementById('classes-view');
+  let html = '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
+  const assignedIds = new Set(state.schedule.map(s=>s.classId));
+  CLASSES.forEach((c,i) => {
+    const assigned = assignedIds.has(c.id);
+    const sched = state.schedule.find(s=>s.classId===c.id);
+    let status = '<span style="color:var(--danger);font-weight:600;">Unassigned</span>';
+    if(sched){
+      const t = teacherById(sched.teacherId);
+      status = `<span style="color:var(--success);font-weight:600;">${DAYS[sched.day]} ${minutesToTime(sched.startTime)}</span><br><span style="font-size:.65rem;color:var(--text-muted);">${t?t.short:'?'} · Rm ${sched.room}</span>`;
+    }
+    html += `<tr><td>${i+1}</td><td style="font-weight:600;">${c.name}</td><td><span class="style-tag style-${c.style}" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">${STYLES[c.style]||c.style}</span></td><td>${c.duration}m</td><td style="font-size:.68rem;color:var(--text-secondary);">${c.eligibleTeachers.map(id=>teacherShort(id)).join(', ')}</td><td>${status}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('nav-class-count').textContent = CLASSES.length;
+  view.innerHTML = html;
+}
+
+// =============================================
+// RENDER: AVAILABILITY TAB
+// =============================================
+let availTeacher = 'raynor';
+let availPainting = false;
+let availPaintValue = true;
+
+function renderAvailability(){
+  const view = document.getElementById('avail-view');
+  let html = '<div class="avail-controls">';
+  html += '<label style="font-weight:600;font-size:.82rem;">Teacher:</label>';
+  html += `<select id="avail-teacher-select" onchange="availTeacher=this.value;renderAvailability()">`;
+  TEACHERS.forEach(t => html += `<option value="${t.id}"${t.id===availTeacher?' selected':''}>${t.name}</option>`);
+  html += '</select>';
+  html += '<span style="font-size:.72rem;color:var(--text-muted);">Click & drag to paint availability. Right-click to erase.</span>';
+  html += '</div>';
+
+  html += '<div class="avail-grid" id="avail-grid">';
+  html += '<div class="avail-header"></div>';
+  DAY_SHORT.forEach(d => html += `<div class="avail-header">${d}</div>`);
+
+  TIME_SLOTS.forEach(time => {
+    const isHour = time % 60 === 0;
+    html += `<div class="cal-time${isHour?' hour-mark':''}" style="height:24px;font-size:.6rem;">${isHour?minutesToTime(time):''}</div>`;
+    for(let d=0; d<6; d++){
+      const valid = isTimeInDay(time, d);
+      if(!valid){
+        html += `<div class="avail-cell" style="background:#F5F5F5;cursor:default;" data-day="${d}" data-time="${time}"></div>`;
+        continue;
+      }
+      const avail = isAvailable(availTeacher, d, time);
+      const hasClass = state.schedule.some(s => s.teacherId === availTeacher && s.day === d && s.startTime <= time && s.startTime + (CLASSES.find(c=>c.id===s.classId)?.duration||60) > time);
+      let cls = 'avail-cell';
+      if(hasClass) cls += ' has-class';
+      else if(avail) cls += ' available';
+      html += `<div class="${cls}" data-day="${d}" data-time="${time}"></div>`;
+    }
+  });
+  html += '</div>';
+  view.innerHTML = html;
+
+  // Paint events
+  const grid = document.getElementById('avail-grid');
+  if(!grid) return;
+  grid.addEventListener('mousedown', e => {
+    const cell = e.target.closest('.avail-cell');
+    if(!cell || cell.style.cursor === 'default') return;
+    e.preventDefault();
+    availPainting = true;
+    const d = parseInt(cell.dataset.day);
+    const t = parseInt(cell.dataset.time);
+    if(e.button === 2){
+      availPaintValue = false;
+      removeAvailability(availTeacher, d, t);
+    } else {
+      const currently = isAvailable(availTeacher, d, t);
+      availPaintValue = !currently;
+      if(availPaintValue) addAvailability(availTeacher, d, t);
+      else removeAvailability(availTeacher, d, t);
+    }
+    renderAvailability();
+  });
+  grid.addEventListener('mouseover', e => {
+    if(!availPainting) return;
+    const cell = e.target.closest('.avail-cell');
+    if(!cell || cell.style.cursor === 'default') return;
+    const d = parseInt(cell.dataset.day);
+    const t = parseInt(cell.dataset.time);
+    if(availPaintValue) addAvailability(availTeacher, d, t);
+    else removeAvailability(availTeacher, d, t);
+    renderAvailability();
+  });
+  grid.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('mouseup', () => { if(availPainting){ availPainting=false; save(); } });
+}
+
+function isAvailable(teacherId, day, time){
+  const slots = state.availability[teacherId]?.[day];
+  if(!slots) return false;
+  return slots.some(s => time >= s.start && time < s.end);
+}
+
+function addAvailability(teacherId, day, time){
+  if(!state.availability[teacherId]) state.availability[teacherId] = {};
+  if(!state.availability[teacherId][day]) state.availability[teacherId][day] = [];
+  if(isAvailable(teacherId, day, time)) return;
+  state.availability[teacherId][day].push({ start:time, end:time+SLOT_MINUTES });
+  mergeAvailSlots(teacherId, day);
+}
+
+function removeAvailability(teacherId, day, time){
+  if(!state.availability[teacherId]?.[day]) return;
+  state.availability[teacherId][day] = state.availability[teacherId][day].flatMap(s => {
+    if(time >= s.start && time < s.end){
+      const result = [];
+      if(s.start < time) result.push({ start:s.start, end:time });
+      if(time + SLOT_MINUTES < s.end) result.push({ start:time+SLOT_MINUTES, end:s.end });
+      return result;
+    }
+    return [s];
+  });
+}
+
+function mergeAvailSlots(teacherId, day){
+  const slots = state.availability[teacherId][day];
+  if(!slots || slots.length < 2) return;
+  slots.sort((a,b)=>a.start-b.start);
+  const merged = [slots[0]];
+  for(let i=1; i<slots.length; i++){
+    const last = merged[merged.length-1];
+    if(slots[i].start <= last.end){
+      last.end = Math.max(last.end, slots[i].end);
+    } else {
+      merged.push(slots[i]);
+    }
+  }
+  state.availability[teacherId][day] = merged;
+}
+
+// =============================================
+// RENDER: CONFLICTS TAB
+// =============================================
+function renderConflicts(){
+  const view = document.getElementById('conflicts-view');
+  const conflicts = getConflicts();
+  if(!conflicts.length){
+    view.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><div style="font-size:2rem;margin-bottom:.5rem;">✅</div>No conflicts detected!</div>';
+    return;
+  }
+  let html = '<h3 style="margin-bottom:1rem;font-size:.95rem;">⚠️ ' + conflicts.length + ' Conflict' + (conflicts.length>1?'s':'') + '</h3>';
+  html += '<table class="classes-table"><thead><tr><th>Type</th><th>Class A</th><th>Class B</th><th>Details</th><th>Action</th></tr></thead><tbody>';
+  conflicts.forEach(c => {
+    const a = state.schedule[c.a], b = state.schedule[c.b];
+    const ca = CLASSES.find(cc=>cc.id===a.classId), cb = CLASSES.find(cc=>cc.id===b.classId);
+    html += `<tr>
+      <td><span style="color:var(--danger);font-weight:600;">${c.type==='teacher'?'👩‍🏫 Teacher':'🏠 Room'}</span></td>
+      <td style="font-weight:600;">${ca?ca.name:'?'}<br><span style="font-size:.65rem;color:var(--text-muted);">${DAYS[a.day]} ${minutesToTime(a.startTime)}</span></td>
+      <td style="font-weight:600;">${cb?cb.name:'?'}<br><span style="font-size:.65rem;color:var(--text-muted);">${DAYS[b.day]} ${minutesToTime(b.startTime)}</span></td>
+      <td style="font-size:.72rem;">${c.msg}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeScheduleItem(${c.b})">Remove B</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  view.innerHTML = html;
+}
+
+function removeScheduleItem(idx){
+  pushUndo();
+  state.schedule.splice(idx, 1);
+  saveAndRender();
+  toast('Removed');
+}
+
+// =============================================
+// RENDER: EXPORT TAB
+// =============================================
+function renderExport(){
+  const view = document.getElementById('export-view');
+  view.innerHTML = `
+    <h3 style="margin-bottom:1rem;">Export Schedule</h3>
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <button class="btn btn-primary" onclick="exportCSV()" style="padding:.75rem;">📄 Export as CSV</button>
+      <button class="btn btn-outline" onclick="exportJSON()" style="padding:.75rem;">🗂️ Export as JSON</button>
+      <button class="btn btn-outline" onclick="importJSON()" style="padding:.75rem;">📥 Import JSON</button>
+      <hr style="border:none;border-top:1px solid var(--border);">
+      <button class="btn btn-danger" onclick="resetSchedule()" style="padding:.75rem;">🗑️ Clear All Assignments</button>
+    </div>
+    <input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">
+  `;
+}
+
+function exportCSV(){
+  let csv = 'Class,Style,Duration,Teacher,Day,Start Time,End Time,Room\n';
+  state.schedule.forEach(s => {
+    const c = CLASSES.find(cc=>cc.id===s.classId);
+    const t = teacherById(s.teacherId);
+    if(!c) return;
+    csv += `"${c.name}","${STYLES[c.style]||c.style}",${c.duration},"${t?t.name:''}","${DAYS[s.day]}","${minutesToTime(s.startTime)}","${minutesToTime(s.startTime+c.duration)}",${s.room}\n`;
+  });
+  downloadFile('encore-schedule.csv', csv, 'text/csv');
+  toast('CSV exported');
+}
+
+function exportJSON(){
+  const data = JSON.stringify(state, null, 2);
+  downloadFile('encore-schedule.json', data, 'application/json');
+  toast('JSON exported');
+}
+
+function importJSON(){
+  document.getElementById('import-input').click();
+}
+
+function handleImport(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if(data.schedule){
+        pushUndo();
+        state.schedule = data.schedule;
+        if(data.availability) state.availability = data.availability;
+        saveAndRender();
+        toast('Schedule imported');
+      }
+    } catch(err){ toast('Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+}
+
+function downloadFile(name, content, type){
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetSchedule(){
+  if(!confirm('Clear ALL class assignments? This cannot be undone.')) return;
+  pushUndo();
+  state.schedule = [];
+  saveAndRender();
+  toast('Schedule cleared');
+}
+
+// =============================================
+// ASSIGN MODAL
+// =============================================
+function showAssignModal(classId, day, time){
+  const modal = document.getElementById('assign-modal');
+  modal.classList.add('show');
+
+  // Populate class dropdown (only unassigned)
+  const classSelect = document.getElementById('assign-class');
+  const unassigned = getUnassigned();
+  classSelect.innerHTML = unassigned.map(c=>`<option value="${c.id}"${c.id===classId?' selected':''}>${c.name} (${c.duration}m)</option>`).join('');
+
+  // Set day/time if provided
+  if(day !== undefined) document.getElementById('assign-day').value = day;
+  if(time !== undefined) document.getElementById('assign-time').value = time;
+
+  updateAssignTeachers();
+  classSelect.onchange = updateAssignTeachers;
+
+  // Populate time dropdown
+  const timeSelect = document.getElementById('assign-time');
+  timeSelect.innerHTML = '';
+  TIME_SLOTS.forEach(t => {
+    timeSelect.innerHTML += `<option value="${t}"${t===time?' selected':''}>${minutesToTime(t)}</option>`;
+  });
+}
+
+function updateAssignTeachers(){
+  const classId = parseInt(document.getElementById('assign-class').value);
+  const cls = CLASSES.find(c=>c.id===classId);
+  const teacherSelect = document.getElementById('assign-teacher');
+  if(!cls){ teacherSelect.innerHTML = '<option>Select a class first</option>'; return; }
+  teacherSelect.innerHTML = cls.eligibleTeachers.map(id => {
+    const t = teacherById(id);
+    return `<option value="${id}">${t?t.name:id}</option>`;
+  }).join('');
+}
+
+function doAssign(){
+  const classId = parseInt(document.getElementById('assign-class').value);
+  const teacherId = document.getElementById('assign-teacher').value;
+  const day = parseInt(document.getElementById('assign-day').value);
+  const startTime = parseInt(document.getElementById('assign-time').value);
+  const room = parseInt(document.getElementById('assign-room').value);
+
+  if(!classId || !teacherId) return;
+
+  pushUndo();
+  state.schedule.push({ classId, teacherId, day, startTime, room });
+  closeModal();
+  saveAndRender();
+  toast('Class assigned!');
+}
+
+function closeModal(){
+  document.getElementById('assign-modal').classList.remove('show');
+}
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+let activeTab = 'schedule';
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    activeTab = item.dataset.tab;
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+    const tabEl = document.getElementById('tab-'+activeTab);
+    if(tabEl) tabEl.style.display = 'flex';
+    renderAll();
+  });
+});
+
+// =============================================
+// POPULATE TEACHER FILTER
+// =============================================
+function populateFilters(){
+  const sel = document.getElementById('filter-teacher');
+  sel.innerHTML = '<option value="">All Teachers</option>';
+  TEACHERS.forEach(t => sel.innerHTML += `<option value="${t.id}">${t.name}</option>`);
+  sel.onchange = renderCalendar;
+  document.getElementById('filter-room').onchange = renderCalendar;
+}
+
+// =============================================
+// RENDER ALL
+// =============================================
+function renderAll(){
+  renderCalendar();
+  renderUnassigned();
+  if(activeTab === 'teachers') renderTeachers();
+  if(activeTab === 'classes') renderClasses();
+  if(activeTab === 'availability') renderAvailability();
+  if(activeTab === 'conflicts') renderConflicts();
+  if(activeTab === 'export') renderExport();
+}
+
+// =============================================
+// KEYBOARD SHORTCUTS
+// =============================================
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && e.key === 'z'){ e.preventDefault(); undo(); }
+  if(e.ctrlKey && e.key === 'y'){ e.preventDefault(); redo(); }
+  if(e.key === 'Escape') closeModal();
+});
+
+// =============================================
+// SEED SCHEDULE FROM TAB 3 (2025-2026 data)
+// =============================================
+function seedFromTab3(){
+  // Only seed if schedule is empty
+  if(state.schedule.length > 0) return;
+
+  const tab3 = [
+    // ETAP classes
+    { name:'ETAP A Acting', teacher:'lorraine', day:0, time:990, room:1 }, // Mon 4:30
+    { name:'ETAP B&C Acting', teacher:'lorraine', day:0, time:1050, room:1 }, // Mon 5:30
+    { name:'ETAP A Jazz - 60 min', teacher:'raynor', day:0, time:1110, room:1 }, // Mon 6:30
+    { name:'ETAP B&C Jazz - 60 min', teacher:'raynor', day:0, time:1170, room:1 }, // Mon 7:30
+    { name:'ETAP A Ballet - 90 min with pointe after', teacher:'vadim', day:0, time:1170, room:2 }, // Mon 7:30
+    { name:'ETAP B&C Tap', teacher:'courtney', day:0, time:1230, room:1 }, // Mon 8:30
+    { name:'ETAP B&C Contemporary', teacher:'nicole', day:1, time:1050, room:1 }, // Tue 5:30
+    { name:'ETAP A Tap', teacher:'luke', day:1, time:1050, room:2 }, // Tue 5:30
+    { name:'ETAP A Contemporary', teacher:'nicole', day:1, time:1170, room:1 }, // Tue 7:30
+    { name:'ETAP B&C Hip Hop', teacher:'luke', day:1, time:1170, room:2 }, // Tue 7:30
+    { name:'ETAP A Hip Hop', teacher:'luke', day:1, time:1230, room:1 }, // Tue 8:30
+    { name:'ETAP A Tap', teacher:'courtney', day:5, time:720, room:1 }, // Sat 12:00
+    { name:'ETAP A Ballet - 90 min', teacher:'vadim', day:5, time:600, room:1 }, // Sat 10:00
+    { name:'ETAP A Ballet - 90 min', teacher:'vadim', day:3, time:1200, room:1 }, // Thu 8:00
+    { name:'ETAP A Jazz - 90 min', teacher:'raynor', day:3, time:1110, room:2 }, // Thu 6:30
+    { name:'ETAP B&C Jazz - 90 min', teacher:'raynor', day:3, time:1020, room:2 }, // Thu 5:00
+    { name:'ETAP B&C Ballet - 90 min', teacher:'vadim', day:3, time:1110, room:1 }, // Thu 6:30
+    { name:'ETAP B&C Ballet - 90 min', teacher:'vadim', day:5, time:690, room:1 }, // Sat 11:30
+    { name:'ETAP B&C Tap', teacher:'luke', day:1, time:1110, room:2 }, // Tue 6:30
+    { name:'ETAP D Jazz', teacher:'courtney', day:1, time:990, room:1 }, // Tue 4:30
+    { name:'ETAP D Jazz', teacher:'courtney', day:4, time:1050, room:2 }, // Fri 5:30
+    { name:'ETAP D Tap', teacher:'courtney', day:1, time:1050, room:3 }, // Tue 5:30
+    { name:'ETAP D Ballet', teacher:'gaby', day:3, time:1050, room:2 }, // Thu 5:30
+    { name:'ETAP D Ballet', teacher:'gaby', day:4, time:990, room:2 }, // Fri 4:30
+    { name:'ETAP Company Leaps & Turns', teacher:'raynor', day:5, time:780, room:1 }, // Sat 1:00
+    // ETAP Ballroom / Voice
+    { name:'ETAP A Hip Hop', teacher:'luke', day:1, time:1230, room:2 }, // Tue 8:30 (duplicate, skip this one)
+    // ITP classes
+    { name:'ITP A Jazz', teacher:'raynor', day:2, time:1110, room:1 }, // Wed 6:30
+    { name:'ITP A Tap', teacher:'courtney', day:2, time:1170, room:1 }, // Wed 7:30
+    { name:'ITP A Ballet', teacher:'gaby', day:3, time:1050, room:3 }, // Thu 5:30
+    { name:'ITP B & C Jazz', teacher:'courtney', day:1, time:1170, room:3 }, // Tue 7:30
+    { name:'ITP B & C Tap', teacher:'courtney', day:1, time:1110, room:3 }, // Tue 6:30
+    { name:'ITP B & C Ballet', teacher:'ashleigh', day:1, time:1050, room:4 }, // Tue 5:30
+    { name:'ITP D Jazz', teacher:'courtney', day:1, time:990, room:2 }, // Tue 4:30 (different room)
+    { name:'ITP D Tap', teacher:'courtney', day:1, time:1050, room:5 }, // Tue 5:30
+    { name:'ITP D Ballet', teacher:'gaby', day:4, time:990, room:3 }, // Fri 4:30
+    { name:'ITP A Jazz', teacher:'raynor', day:2, time:1110, room:2 }, // Wed 6:30 (second instance)
+    { name:'ITP A Tap', teacher:'courtney', day:2, time:1170, room:2 }, // Wed 7:30 (second)
+    { name:'ITP A Ballet', teacher:'gaby', day:3, time:1110, room:3 }, // Thu 6:30
+    { name:'ITP B & C Jazz', teacher:'courtney', day:4, time:1110, room:1 }, // Fri 6:30 (guess, fill remaining)
+    { name:'ITP B & C Tap', teacher:'paige', day:4, time:1110, room:2 }, // Fri 6:30
+    { name:'ITP B & C Ballet', teacher:'ashleigh', day:4, time:1050, room:4 }, // Fri 5:30
+    // Junior classes
+    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:0, time:990, room:2 }, // Mon 4:30
+    { name:'Junior Level 1 Hip Hop', teacher:'luke', day:2, time:990, room:2 }, // Wed 4:30
+    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:3, time:1050, room:3 }, // Thu 5:30
+    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:4, time:1050, room:3 }, // Fri 5:30
+    { name:'Junior Level 1a Hip Hop', teacher:'jessy', day:1, time:1110, room:4 }, // Tue 6:30
+    { name:'Junior Level 1 Ballet', teacher:'liesl', day:0, time:1050, room:3 }, // Mon 5:30
+    { name:'Junior Level 1 Contemporary', teacher:'nicole', day:2, time:1050, room:3 }, // Wed 5:30
+    { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:0, time:1050, room:4 }, // Mon 5:30 (90m)
+    { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:5, time:600, room:2 }, // Sat 10:00 (90m)
+    { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:4, time:1005, room:4 }, // Fri 4:45 (90m)
+    { name:'Junior Level 2 Ballet', teacher:'liesl', day:0, time:1110, room:3 }, // Mon 6:30
+    { name:'Junior Level 3 Ballet', teacher:'liesl', day:0, time:1110, room:4 }, // Mon 6:30 (combined in real data)
+    { name:'Junior Level 2 Jazz', teacher:'courtney', day:3, time:990, room:3 }, // Thu 4:30
+    { name:'Junior Level 3 Jazz', teacher:'courtney', day:3, time:990, room:4 }, // Thu 4:30
+    { name:'Junior Level 2 Tap', teacher:'luke', day:3, time:1050, room:4 }, // Thu 5:30
+    { name:'Junior Level 3 Tap', teacher:'luke', day:3, time:1050, room:5 }, // Thu 5:30
+    { name:'Junior Level 2 Contemporary', teacher:'cami', day:0, time:1050, room:5 }, // Mon 5:30
+    { name:'Junior Level 2 Hip Hop', teacher:'luke', day:1, time:990, room:3 }, // Tue 4:30
+    { name:'Junior Level 2 Hip Hop', teacher:'jessy', day:5, time:690, room:2 }, // Sat 11:30
+    { name:'Junior Level 3 Contemporary', teacher:'nicole', day:2, time:990, room:3 }, // Wed 4:30
+    { name:'Junior Level 3 Hip Hop', teacher:'luke', day:2, time:1050, room:4 }, // Wed 5:30
+    { name:'Junior Broadway Bound', teacher:'courtney', day:2, time:990, room:4 }, // Wed 4:30
+    // Mini classes
+    { name:'Mini Age 4 & 5 Combo Jazz/Tap', teacher:'cami', day:0, time:1005, room:5 }, // Mon 4:45
+    { name:'Mini Age 4 & 5 Combo Hip Hop/Jazz', teacher:'jessy', day:1, time:1050, room:5 }, // Tue 5:30
+    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:4, time:1005, room:5 }, // Fri 4:45
+    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:5, time:615, room:3 }, // Sat 10:15
+    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:1, time:1005, room:5 }, // Tue 4:45
+    { name:'Mini Age 4-6 Hip Hop', teacher:'paige', day:2, time:1050, room:5 }, // Wed 5:30
+    { name:'Mini Age 5 & 6 Ballet', teacher:'paige', day:3, time:990, room:5 }, // Thu 4:30
+    { name:'Mini Age 5 & 6 Ballet', teacher:'paige', day:1, time:1050, room:6 }, // Tue 5:30
+    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'cami', day:5, time:660, room:3 }, // Sat 11:00
+    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'paige', day:2, time:990, room:5 }, // Wed 4:30
+    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'paige', day:3, time:1050, room:6 }, // Thu 5:30
+    // Munchkin
+    { name:'Munchkin Age 3 & 4 Combo', teacher:'cami', day:5, time:600, room:3 }, // Sat 10:00
+    { name:'Munchkin Age 3 & 4 Combo', teacher:'paige', day:0, time:1005, room:6 }, // Mon 4:45
+    { name:'Munchkin Age 3 & 4 Combo', teacher:'paige', day:1, time:1005, room:6 }, // Tue 4:45
+    // Tween
+    { name:'Tween Level 1 Hip Hop', teacher:'jessy', day:0, time:1050, room:2 }, // Mon 5:30
+    { name:'Tween Level 1 Jazz', teacher:'ashleigh', day:2, time:990, room:6 }, // Wed 4:30
+    { name:'Tween Level 1 Contemporary', teacher:'ashleigh', day:1, time:1110, room:4 }, // Tue 6:30
+    { name:'Tween Level 1 Tap', teacher:'courtney', day:2, time:1050, room:6 }, // Wed 5:30
+    { name:'Tween Level 1 Ballet', teacher:'ashleigh', day:1, time:1170, room:4 }, // Tue 7:30
+    { name:'Tween Level 1 & 2 Hip Hop', teacher:'luke', day:3, time:1110, room:3 }, // Thu 6:30
+    { name:'Tween Level 2 Hip Hop', teacher:'jessy', day:0, time:1110, room:2 }, // Mon 6:30
+    { name:'Tween Level 2 Hip Hop', teacher:'luke', day:2, time:1170, room:3 }, // Wed 7:30
+    { name:'Tween Level 2 Jazz', teacher:'ashleigh', day:2, time:1050, room:1 }, // Wed 5:30
+    { name:'Tween Level 2 & 3 Tap', teacher:'luke', day:2, time:1110, room:3 }, // Wed 6:30
+    { name:'Tween Level 2 Contemporary', teacher:'nicole', day:1, time:1110, room:5 }, // Tue 6:30 (guess)
+    { name:'Tween Level 3 Contemporary', teacher:'nicole', day:3, time:1050, room:5 }, // Thu 5:30 (guess)
+    { name:'Tween/Teen Level 1 Jazz', teacher:'paige', day:0, time:1170, room:3 }, // Mon 7:30
+    // Teen
+    { name:'Teen Level 1 & 2 Ballet', teacher:'gaby', day:3, time:1110, room:4 }, // Thu 6:30
+    { name:'Teen Level 2 & 3 Ballet', teacher:'gaby', day:3, time:1170, room:4 }, // Thu 7:30
+    { name:'Teen Level 1 & 2 Contemporary', teacher:'nicole', day:1, time:1110, room:1 }, // Tue 6:30
+    { name:'Teen Level 1 & 2 Hip Hop', teacher:'jessy', day:1, time:1170, room:1 }, // Tue 7:30
+    { name:'Teen Level 1 & 2 Hip Hop', teacher:'jessy', day:3, time:990, room:4 }, // Thu 4:30 (Teen 2&3 HH in tab3)
+    { name:'Teen Level 1 Jazz', teacher:'paige', day:2, time:1170, room:4 }, // Wed 7:30
+    { name:'Teen Level 1 Tap', teacher:'paige', day:2, time:1110, room:4 }, // Wed 6:30
+    { name:'Teen Level 2 & 3 Tap', teacher:'cami', day:0, time:1110, room:5 }, // Mon 6:30
+    { name:'Teen Level 2 Contemporary', teacher:'nicole', day:3, time:1110, room:5 }, // Thu 6:30
+    { name:'Teen Level 3 Contemporary', teacher:'nicole', day:3, time:1170, room:5 }, // Thu 7:30 (guess)
+    { name:'Teen Level 2 & 3 Hip Hop', teacher:'jessy', day:3, time:990, room:5 }, // Thu 4:30
+    { name:'Teen Level 2 Jazz', teacher:'jessy', day:0, time:1170, room:4 }, // Mon 7:30
+    { name:'Teen Level 3 & 4 Hip Hop', teacher:'luke', day:3, time:1170, room:3 }, // Thu 7:30
+    { name:'Teen Level 3 Jazz', teacher:'cami', day:0, time:1170, room:5 }, // Mon 7:30
+    { name:'Tween/Teen Broadway Bound', teacher:'courtney', day:2, time:1110, room:5 }, // Wed 6:30
+    // Ballroom
+    { name:'ETAP B&C Ballet - 90 min with pointe after', teacher:'vadim', day:3, time:1110, room:6 }, // Thu 6:30 (guess)
+    // Team Rehearsals (Saturday)
+    { name:'Munchkin Age 3 & 4 Combo', teacher:'paige', day:1, time:1005, room:6 }, // already done, will be skipped
+  ];
+
+  // Match tab3 entries to CLASSES by name
+  const usedClassIds = new Set();
+  tab3.forEach(entry => {
+    const cls = CLASSES.find(c => c.name === entry.name && !usedClassIds.has(c.id));
+    if(!cls) return;
+    usedClassIds.add(cls.id);
+    state.schedule.push({
+      classId: cls.id,
+      teacherId: entry.teacher,
+      day: entry.day,
+      startTime: entry.time,
+      room: entry.room,
+    });
+  });
+
+  // Team rehearsals (Saturday)
+  const teams = [
+    ['TEAM REHEARSAL: TAP BLUE','Tap','courtney',630,1],  // Sat 10:30
+    ['TEAM REHEARSAL: JAZZ RED','Jazz','courtney',660,1],  // Sat 11:00
+    ['TEAM REHEARSAL: GREEN HIP HOP','Hip Hop','jessy',660,2],  // Sat 11:00
+    ['TEAM REHEARSAL: JAZZ BLUE','Jazz','courtney',690,1],  // Sat 11:30
+    ['TEAM REHEARSAL: JAZZ GREEN','Jazz','paige',690,2],  // Sat 11:30
+    ['TEAM REHEARSAL: CONTEMPORARY BLUE','Contemp','cami',720,1],  // Sat 12:00
+    ['TEAM REHEARSAL: MINI JAZZ','Jazz','paige',720,2],  // Sat 12:00
+    ['TEAM REHEARSAL: CONTEMPORARY YELLOW','Contemp','cami',750,1],  // Sat 12:30
+    ['TEAM REHEARSAL: HIP HOP BLUE','Hip Hop','jessy',750,2],  // Sat 12:30
+    ['TEAM REHEARSAL: JAZZ YELLOW','Jazz','courtney',780,1],  // Sat 1:00
+    ['TEAM REHEARSAL: HIP HOP YELLOW','Hip Hop','jessy',810,2],  // Sat 1:30
+  ];
+  // We don't have individual team rehearsal entries in CLASSES, but the mockup included them
+  // The Tab 1 list doesn't include team rehearsals as separate classes
+  // So we skip team rehearsal seeding for now
+
+  save();
+}
+
+// =============================================
+// INIT
+// =============================================
+load();
+populateFilters();
+seedFromTab3();
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 3 — Google Calendar (Familiar Calendar UI)</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Roboto', sans-serif; background: #fff; color: #3C4043; }
+
+  /* TOPBAR */
+  .topbar { display: flex; align-items: center; padding: 0.5rem 1rem; border-bottom: 1px solid #DADCE0; height: 56px; }
+  .topbar .menu { font-size: 1.2rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; color: #5F6368; }
+  .topbar .logo { display: flex; align-items: center; gap: 0.5rem; margin-right: 2rem; }
+  .topbar .logo span { font-size: 1.3rem; color: #5F6368; font-weight: 400; }
+  .topbar .today-btn { padding: 0.4rem 1rem; border: 1px solid #DADCE0; border-radius: 4px; background: #fff; cursor: pointer; font-family: inherit; font-size: 0.82rem; font-weight: 500; color: #3C4043; margin-right: 1rem; }
+  .topbar .today-btn:hover { background: #F1F3F4; }
+  .topbar .nav-arrows { display: flex; gap: 0.25rem; margin-right: 1rem; }
+  .topbar .nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #DADCE0; background: #fff; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; color: #5F6368; }
+  .topbar .nav-btn:hover { background: #F1F3F4; }
+  .topbar .period { font-size: 1.1rem; font-weight: 500; flex: 1; }
+  .topbar .teacher-dropdown { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border: 1px solid #DADCE0; border-radius: 4px; cursor: pointer; font-size: 0.82rem; min-width: 220px; }
+  .topbar .teacher-dropdown .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .topbar .room-dropdown { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border: 1px solid #DADCE0; border-radius: 4px; cursor: pointer; font-size: 0.82rem; margin-left: 0.5rem; }
+
+  /* LAYOUT */
+  .layout { display: flex; height: calc(100vh - 56px); }
+
+  /* TEACHER SIDEBAR */
+  .teacher-sidebar { width: 220px; border-right: 1px solid #DADCE0; padding: 1rem 0; overflow-y: auto; flex-shrink: 0; }
+  .teacher-sidebar h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #5F6368; padding: 0 1rem; margin-bottom: 0.5rem; }
+  .teacher-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; cursor: pointer; font-size: 0.78rem; transition: background 0.1s; border-left: 3px solid transparent; }
+  .teacher-item:hover { background: #F1F3F4; }
+  .teacher-item.active { background: #E8F0FE; border-left-color: #1A73E8; }
+  .teacher-item .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .teacher-item .info { flex: 1; min-width: 0; }
+  .teacher-item .tname { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .teacher-item .thrs { font-size: 0.65rem; color: #5F6368; }
+  .teacher-sidebar .add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; color: #1A73E8; font-size: 0.78rem; font-weight: 500; cursor: pointer; margin-top: 0.5rem; }
+  .section { margin-bottom: 1.5rem; }
+
+  /* LEGEND */
+  .legend { padding: 1rem; border-top: 1px solid #DADCE0; }
+  .legend h3 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: #5F6368; margin-bottom: 0.5rem; }
+  .legend .item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #5F6368; margin-bottom: 0.25rem; }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 2px; }
+
+  /* STATS */
+  .stats { padding: 0.75rem 1rem; border-top: 1px solid #DADCE0; }
+  .stats .stat-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: #5F6368; margin-bottom: 0.2rem; }
+  .stats .stat-row .val { font-weight: 600; color: #3C4043; }
+
+  /* CALENDAR */
+  .calendar { flex: 1; overflow: auto; }
+  .cal-grid { display: grid; grid-template-columns: 56px repeat(6, 1fr); min-width: 700px; }
+  .cal-header { padding: 0.75rem 0.5rem; text-align: center; font-size: 0.72rem; font-weight: 500; color: #5F6368; border-bottom: 1px solid #DADCE0; background: #fff; position: sticky; top: 0; z-index: 5; }
+  .cal-header .day-label { font-size: 0.68rem; text-transform: uppercase; }
+  .cal-time-col { font-size: 0.62rem; color: #70757A; text-align: right; padding-right: 8px; border-right: 1px solid #DADCE0; height: 48px; display: flex; align-items: flex-start; justify-content: flex-end; margin-top: -6px; }
+  .cal-cell { border-right: 1px solid #F1F3F4; border-bottom: 1px solid #DADCE0; height: 48px; position: relative; }
+  .cal-cell:hover { background: #F8F9FA; }
+
+  /* EVENTS */
+  .event { position: absolute; left: 1px; right: 1px; border-radius: 4px; padding: 2px 6px; font-size: 0.68rem; overflow: hidden; cursor: pointer; z-index: 2; border-left: 4px solid; }
+  .event .ev-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .event .ev-teacher { opacity: 0.8; font-size: 0.62rem; }
+  .event .ev-room { opacity: 0.6; font-size: 0.58rem; }
+  .ev-blue { background: #C2D9FC; border-color: #1A73E8; color: #174EA6; }
+  .ev-green { background: #CEEAD6; border-color: #188038; color: #137333; }
+  .ev-purple { background: #D7C4ED; border-color: #7B1FA2; color: #5B2D8E; }
+  .ev-red { background: #FACFC7; border-color: #D93025; color: #B31412; }
+  .ev-yellow { background: #FEF1C7; border-color: #F9AB00; color: #8A6D00; }
+  .ev-teal { background: #C4EDE5; border-color: #0D9488; color: #065F46; }
+  .ev-pink { background: #F8C8DC; border-color: #D81B60; color: #AD1457; }
+  .ev-grey { background: #E8EAED; border-color: #5F6368; color: #3C4043; }
+  .ev-orange { background: #FDDCB5; border-color: #E8710A; color: #8A4B08; }
+  .ev-indigo { background: #C5CAE9; border-color: #3F51B5; color: #1A237E; }
+
+  /* CONFLICT */
+  .event.conflict { outline: 2px solid #D93025; outline-offset: -1px; }
+  .event.conflict::after { content: '!!!'; position: absolute; top: 2px; right: 4px; font-size: 0.6rem; color: #D93025; font-weight: 700; }
+
+  /* SIDE-BY-SIDE EVENTS */
+  .event.col-left { right: 51%; }
+  .event.col-right { left: 51%; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #fff; border: 1px solid #DADCE0; border-radius: 24px; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08); font-size: 0.85rem; font-weight: 500; color: #3C4043; z-index: 100; }
+  .fab:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.16), 0 6px 12px rgba(0,0,0,0.12); }
+  .fab .plus { font-size: 1.5rem; color: #1A73E8; font-weight: 300; line-height: 1; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="menu">&#9776;</span>
+    <div class="logo">
+      <span>Encore Schedule</span>
+    </div>
+    <button class="today-btn">Today</button>
+    <div class="nav-arrows">
+      <button class="nav-btn">&#8249;</button>
+      <button class="nav-btn">&#8250;</button>
+    </div>
+    <div class="period">Weekly View -- 2026-2027 Season</div>
+    <div class="teacher-dropdown">
+      <span class="dot" style="background:#1A73E8;"></span>
+      All Teachers (14)
+      <span style="color:#5F6368;">&#x25BE;</span>
+    </div>
+    <div class="room-dropdown">
+      All Rooms (6)
+      <span style="color:#5F6368;">&#x25BE;</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- TEACHER SIDEBAR -->
+    <aside class="teacher-sidebar">
+      <div class="section">
+        <h3>Teachers</h3>
+        <div class="teacher-item active">
+          <span class="dot" style="background:#1A73E8;"></span>
+          <div class="info"><div class="tname">All Teachers</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#D93025;"></span>
+          <div class="info"><div class="tname">Raynor vdM</div><div class="thrs">8 cls &middot; 10h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#188038;"></span>
+          <div class="info"><div class="tname">Courtney R.</div><div class="thrs">14 cls &middot; 16h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#7B1FA2;"></span>
+          <div class="info"><div class="tname">Vadim B.</div><div class="thrs">8 cls &middot; 14h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#F9AB00;"></span>
+          <div class="info"><div class="tname">Luke Spring</div><div class="thrs">10 cls &middot; 12h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#0D9488;"></span>
+          <div class="info"><div class="tname">Jessy Dawson</div><div class="thrs">14 cls &middot; 15h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#E91E63;"></span>
+          <div class="info"><div class="tname">Paige W.</div><div class="thrs">12 cls &middot; 14h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#FF6F00;"></span>
+          <div class="info"><div class="tname">Nicole C.</div><div class="thrs">7 cls &middot; 8h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#5C6BC0;"></span>
+          <div class="info"><div class="tname">Ashleigh W.</div><div class="thrs">7 cls &middot; 8h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#00838F;"></span>
+          <div class="info"><div class="tname">Gaby A.R.</div><div class="thrs">4 cls &middot; 5h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#4E342E;"></span>
+          <div class="info"><div class="tname">Cami S.</div><div class="thrs">5 cls &middot; 6h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#37474F;"></span>
+          <div class="info"><div class="tname">Liesl B.</div><div class="thrs">3 cls &middot; 3h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#C62828;"></span>
+          <div class="info"><div class="tname">Anastasiia B.</div><div class="thrs">3 cls &middot; 3h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#616161;"></span>
+          <div class="info"><div class="tname">Lorraine M.</div><div class="thrs">2 cls &middot; 2h</div></div>
+        </div>
+        <div class="teacher-item">
+          <span class="dot" style="background:#9E9E9E;"></span>
+          <div class="info"><div class="tname">Voice Teacher</div><div class="thrs">2 cls &middot; 2h</div></div>
+        </div>
+        <div class="add-btn">+ Add teacher</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-row"><span>Total classes</span><span class="val">107</span></div>
+        <div class="stat-row"><span>Scheduled</span><span class="val" style="color:#188038;">95</span></div>
+        <div class="stat-row"><span>Unassigned</span><span class="val" style="color:#D93025;">12</span></div>
+        <div class="stat-row"><span>Conflicts</span><span class="val" style="color:#D93025;">3</span></div>
+      </div>
+
+      <div class="legend">
+        <h3>Style Colors</h3>
+        <div class="item"><span class="swatch" style="background:#C2D9FC;"></span> Jazz</div>
+        <div class="item"><span class="swatch" style="background:#F8C8DC;"></span> Tap</div>
+        <div class="item"><span class="swatch" style="background:#D7C4ED;"></span> Ballet</div>
+        <div class="item"><span class="swatch" style="background:#CEEAD6;"></span> Hip Hop</div>
+        <div class="item"><span class="swatch" style="background:#FEF1C7;"></span> Contemporary</div>
+        <div class="item"><span class="swatch" style="background:#C4EDE5;"></span> Ballroom/Broadway</div>
+        <div class="item"><span class="swatch" style="background:#FACFC7;"></span> Combo</div>
+        <div class="item"><span class="swatch" style="background:#E8EAED;"></span> Acting/Voice</div>
+        <div class="item"><span class="swatch" style="background:#C5CAE9;"></span> Team Rehearsal</div>
+      </div>
+    </aside>
+
+    <!-- CALENDAR -->
+    <div class="calendar">
+      <div class="cal-grid">
+        <div class="cal-header"></div>
+        <div class="cal-header"><div class="day-label">Mon</div></div>
+        <div class="cal-header"><div class="day-label">Tue</div></div>
+        <div class="cal-header"><div class="day-label">Wed</div></div>
+        <div class="cal-header"><div class="day-label">Thu</div></div>
+        <div class="cal-header"><div class="day-label">Fri</div></div>
+        <div class="cal-header"><div class="day-label">Sat</div></div>
+
+        <!-- 4:00 PM -->
+        <div class="cal-time-col">4 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-grey col-left" style="top:0;height:94px;"><div class="ev-name">ETAP A/B/C Acting</div><div class="ev-teacher">Lorraine M. &middot; 60m</div><div class="ev-room">Rm 1</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Jr 1 HH M</div><div class="ev-teacher">Jessy D.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ITP D Jazz</div><div class="ev-teacher">Courtney R.</div></div>
+          <div class="event ev-red col-right" style="top:0;height:34px;"><div class="ev-name">Munchkin Combo</div><div class="ev-teacher">Paige W. &middot; 45m</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-red col-left" style="top:12px;height:46px;"><div class="ev-name">Mini 5&6 Jazz/Tap</div><div class="ev-teacher">Paige W.</div></div>
+          <div class="event ev-yellow col-right" style="top:12px;height:46px;"><div class="ev-name">Jr 3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-purple col-left" style="top:12px;height:46px;"><div class="ev-name">ITP C Ballet</div><div class="ev-teacher">Vadim B.</div></div>
+          <div class="event ev-pink col-right" style="top:12px;height:46px;"><div class="ev-name">Mini 5&6 Ballet</div><div class="ev-teacher">Paige W.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:12px;height:46px;"><div class="ev-name">ITP C Jazz</div><div class="ev-teacher">Courtney R.</div></div>
+          <div class="event ev-purple col-right" style="top:12px;height:46px;"><div class="ev-name">ITP D Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-red col-left" style="top:0;height:34px;"><div class="ev-name">Munchkin Combo</div><div class="ev-teacher">Cami S. &middot; 45m</div></div>
+          <div class="event ev-green col-right" style="top:0;height:34px;"><div class="ev-name">Mini HH</div><div class="ev-teacher">Jessy D. &middot; 45m</div></div>
+        </div>
+
+        <!-- 5:00 PM -->
+        <div class="cal-time-col">5 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-grey col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Acting</div><div class="ev-teacher">Lorraine M.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Tw 1 Hip Hop</div><div class="ev-teacher">Jessy D.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+          <div class="event ev-purple col-right" style="top:0;height:46px;"><div class="ev-name">ITP B Ballet</div><div class="ev-teacher">Ashleigh W.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-yellow col-left" style="top:24px;height:46px;"><div class="ev-name">Jr 1 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Jr 3 HH</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-blue conflict col-left" style="top:0;height:70px;"><div class="ev-name">ETAP C/D Jazz 90m</div><div class="ev-teacher">Raynor vdM</div></div>
+          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 2&3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">ITP C Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:34px;"><div class="ev-name">Mini HH F</div><div class="ev-teacher">Jessy D. &middot; 45m</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-indigo col-left" style="top:0;height:24px;"><div class="ev-name">TM: Jazz Red</div></div>
+          <div class="event ev-indigo col-right" style="top:0;height:24px;"><div class="ev-name">TM: HH Green</div></div>
+        </div>
+
+        <!-- 6:00 PM -->
+        <div class="cal-time-col">6 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">Jr 2 Contemp</div><div class="ev-teacher">Cami S.</div></div>
+          <div class="event ev-purple col-right" style="top:0;height:46px;"><div class="ev-name">Jr 2&3 Ballet</div><div class="ev-teacher">Liesl B.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-pink col-left" style="top:0;height:46px;"><div class="ev-name">ITP D Tap</div><div class="ev-teacher">Courtney R.</div></div>
+          <div class="event ev-yellow col-right" style="top:0;height:46px;"><div class="ev-name">Tw 1 Contemp</div><div class="ev-teacher">Ashleigh W.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ITP A&B Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
+          <div class="event ev-pink col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 1 Tap</div><div class="ev-teacher">Courtney R.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:24px;height:70px;"><div class="ev-name">ETAP A/B Jazz 90m</div><div class="ev-teacher">Raynor vdM</div></div>
+          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 1&2 HH</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-pink col-left" style="top:24px;height:46px;"><div class="ev-name">ITP C Tap</div><div class="ev-teacher">Paige W.</div></div>
+          <div class="event ev-blue col-right" style="top:24px;height:46px;"><div class="ev-name">ITP D Jazz</div><div class="ev-teacher">Courtney R.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-indigo col-left" style="top:0;height:24px;"><div class="ev-name">TM: Contemp Blue</div></div>
+          <div class="event ev-indigo col-right" style="top:0;height:24px;"><div class="ev-name">TM: Mini Jazz</div></div>
+        </div>
+
+        <!-- 7:00 PM -->
+        <div class="cal-time-col">7 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ETAP A/B Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
+          <div class="event ev-purple col-right" style="top:24px;height:70px;"><div class="ev-name">ETAP A/B Ballet+Pt</div><div class="ev-teacher">Vadim B. &middot; 90m</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-teal col-left" style="top:24px;height:46px;"><div class="ev-name">ETAP A/B Ballroom</div><div class="ev-teacher">Anastasiia B.</div></div>
+          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Teen 1&2 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">Jr 1 Ballet</div><div class="ev-teacher">Ashleigh W.</div></div>
+          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 2&3 Tap</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">Teen 1&2 Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
+          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Teen 2&3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-red" style="top:24px;height:46px;"><div class="ev-name">Mini 6 Lv2 Jazz/Tap</div><div class="ev-teacher">Paige W.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-indigo" style="top:0;height:24px;"><div class="ev-name">TM: Jazz Yellow</div></div>
+        </div>
+
+        <!-- 8:00 PM -->
+        <div class="cal-time-col">8 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-blue col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
+          <div class="event ev-pink col-right" style="top:24px;height:46px;"><div class="ev-name">ETAP C/D Tap</div><div class="ev-teacher">Courtney R.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">ETAP A/B Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Teen 1&2 HH</div><div class="ev-teacher">Jessy D.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-pink col-left" style="top:0;height:46px;"><div class="ev-name">ITP A&B Tap</div><div class="ev-teacher">Courtney R.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Tw 2 HH</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-purple col-left" style="top:0;height:70px;"><div class="ev-name">ETAP A/B Ballet 90m</div><div class="ev-teacher">Vadim B.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Teen 3&4 HH</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell">
+          <div class="event ev-indigo" style="top:12px;height:24px;"><div class="ev-name">TM: HH Yellow</div></div>
+        </div>
+
+        <!-- 9:00 PM -->
+        <div class="cal-time-col">9 PM</div>
+        <div class="cal-cell">
+          <div class="event ev-blue" style="top:0;height:46px;"><div class="ev-name">Teen 2 Jazz</div><div class="ev-teacher">Jessy D.</div></div>
+        </div>
+        <div class="cal-cell">
+          <div class="event ev-teal conflict col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Ballroom</div><div class="ev-teacher">Anastasiia B.</div></div>
+          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">ETAP C/D HH</div><div class="ev-teacher">Luke S.</div></div>
+        </div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab">
+    <span class="plus">+</span>
+    Assign Class
+  </div>
+</body>
+</html>

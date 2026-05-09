@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Builder -- 5 Design Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #111; color: #fff; min-height: 100vh; padding: 3rem 2rem; }
+  h1 { font-size: 2.5rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+  .sub { text-align: center; color: #888; margin-bottom: 3rem; font-size: 1rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
+  .mockup { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; overflow: hidden; transition: transform 0.3s, border-color 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+  .mockup:hover { transform: translateY(-4px); border-color: #555; }
+  .mockup iframe { width: 100%; height: 320px; border: none; pointer-events: none; transform: scale(0.5); transform-origin: top left; width: 200%; height: 640px; }
+  .mockup-info { padding: 1.25rem 1.5rem; border-top: 1px solid #333; }
+  .mockup-info .num { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 0.3rem; }
+  .mockup-info h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .mockup-info p { font-size: 0.8rem; color: #888; line-height: 1.5; }
+  .mockup-info .tags { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .mockup-info .tag { background: #2a2a2a; color: #aaa; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.7rem; }
+  .rec { border: 1px solid #0D9488 !important; }
+  .rec .mockup-info .badge { display: inline-block; background: rgba(13,148,136,0.15); color: #0D9488; padding: 0.15rem 0.6rem; border-radius: 6px; font-size: 0.65rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .note { text-align: center; color: #555; margin-top: 2rem; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+  <h1>Schedule Builder</h1>
+  <p class="sub">5 Design Directions -- Click any to open full-size</p>
+
+  <div class="grid">
+    <a href="sched-1-dashboard-pro.html" class="mockup rec">
+      <div style="height:320px;overflow:hidden;">
+        <iframe src="sched-1-dashboard-pro.html" loading="lazy"></iframe>
+      </div>
+      <div class="mockup-info">
+        <span class="badge">RECOMMENDED</span>
+        <div class="num">Mockup 1</div>
+        <h2>Dashboard Pro</h2>
+        <p>Dark navy sidebar with calendar grid. Admin-tool feel with color-coded class blocks, conflict indicators, and room dropdowns.</p>
+        <div class="tags">
+          <span class="tag">Dark Sidebar</span>
+          <span class="tag">Calendar Grid</span>
+          <span class="tag">Admin Panel</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sched-2-notion.html" class="mockup">
+      <div style="height:320px;overflow:hidden;">
+        <iframe src="sched-2-notion.html" loading="lazy"></iframe>
+      </div>
+      <div class="mockup-info">
+        <div class="num">Mockup 2</div>
+        <h2>Notion-Style</h2>
+        <p>Minimal white layout with availability grid. Green = available, blue = has class. Database table for class list, Notion-like simplicity.</p>
+        <div class="tags">
+          <span class="tag">Minimal</span>
+          <span class="tag">Notion-like</span>
+          <span class="tag">Availability View</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sched-3-google-cal.html" class="mockup rec">
+      <div style="height:320px;overflow:hidden;">
+        <iframe src="sched-3-google-cal.html" loading="lazy"></iframe>
+      </div>
+      <div class="mockup-info">
+        <span class="badge">RECOMMENDED</span>
+        <div class="num">Mockup 3</div>
+        <h2>Google Calendar</h2>
+        <p>Familiar Google Calendar layout. Teacher sidebar with dots, side-by-side events, FAB button, style color legend, stats panel.</p>
+        <div class="tags">
+          <span class="tag">Google Cal</span>
+          <span class="tag">Familiar UX</span>
+          <span class="tag">Side-by-side</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sched-4-kanban.html" class="mockup">
+      <div style="height:320px;overflow:hidden;">
+        <iframe src="sched-4-kanban.html" loading="lazy"></iframe>
+      </div>
+      <div class="mockup-info">
+        <div class="num">Mockup 4</div>
+        <h2>Kanban Board</h2>
+        <p>Trello-style day columns with draggable class cards. Teacher avatar chips, time separators, unassigned column, style-colored borders.</p>
+        <div class="tags">
+          <span class="tag">Trello-style</span>
+          <span class="tag">Card Based</span>
+          <span class="tag">Drag & Drop</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="sched-5-spreadsheet.html" class="mockup">
+      <div style="height:320px;overflow:hidden;">
+        <iframe src="sched-5-spreadsheet.html" loading="lazy"></iframe>
+      </div>
+      <div class="mockup-info">
+        <div class="num">Mockup 5</div>
+        <h2>Spreadsheet Power</h2>
+        <p>Dense Excel-style grid. 15-min rows, merged cells, formula bar, right-click context menu, sheet tabs, maximum data density.</p>
+        <div class="tags">
+          <span class="tag">Spreadsheet</span>
+          <span class="tag">Dense Grid</span>
+          <span class="tag">Power User</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <p class="note">Recommended combo: Mockup 3 (Google Cal layout) + Mockup 1 (Dashboard sidebar)</p>
+</body>
+</html>

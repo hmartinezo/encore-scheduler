@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup 5 — Spreadsheet Power (Dense Grid)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #FAFAFA; color: #1a1a1a; font-size: 12px; }
+
+  /* TOOLBAR */
+  .toolbar { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.75rem; background: #fff; border-bottom: 1px solid #E0E0E0; }
+  .toolbar .logo { font-weight: 700; font-size: 0.9rem; color: #333; margin-right: 0.75rem; }
+  .toolbar .sep { width: 1px; height: 20px; background: #E0E0E0; margin: 0 0.25rem; }
+  .toolbar button { padding: 0.25rem 0.5rem; border: 1px solid #D0D0D0; border-radius: 3px; background: #fff; cursor: pointer; font-family: inherit; font-size: 0.72rem; color: #444; }
+  .toolbar button:hover { background: #F5F5F5; }
+  .toolbar button.active { background: #E8F0FE; border-color: #1A73E8; color: #1A73E8; }
+  .toolbar select { padding: 0.2rem 0.4rem; border: 1px solid #D0D0D0; border-radius: 3px; font-family: inherit; font-size: 0.72rem; color: #444; }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .stat { font-size: 0.68rem; color: #888; }
+  .toolbar .stat b { color: #333; }
+  .toolbar .conflict-badge { background: #FFEBEE; color: #C62828; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.68rem; font-weight: 600; }
+
+  /* FORMULA BAR */
+  .formula-bar { display: flex; align-items: center; padding: 0.2rem 0.75rem; background: #fff; border-bottom: 1px solid #E0E0E0; gap: 0.5rem; }
+  .formula-bar .cell-ref { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; background: #F5F5F5; border: 1px solid #E0E0E0; padding: 0.15rem 0.4rem; border-radius: 2px; width: 70px; text-align: center; color: #333; }
+  .formula-bar .fx { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #888; padding: 0 0.3rem; }
+  .formula-bar .formula-input { flex: 1; border: 1px solid #E0E0E0; padding: 0.15rem 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; border-radius: 2px; color: #333; }
+
+  /* GRID */
+  .grid-wrapper { overflow: auto; height: calc(100vh - 75px); }
+  table { border-collapse: collapse; width: 100%; min-width: 1100px; }
+  th { background: #F8F9FA; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #5F6368; position: sticky; top: 0; z-index: 10; }
+  th, td { border: 1px solid #E0E0E0; text-align: center; height: 26px; }
+  th.time-col { width: 56px; min-width: 56px; }
+  th.day-col { min-width: 170px; }
+
+  /* TIME COLUMN */
+  td.time-cell { background: #F8F9FA; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #5F6368; font-weight: 500; position: sticky; left: 0; z-index: 5; width: 56px; }
+  td.time-cell.hour-mark { border-top: 2px solid #BDBDBD; font-weight: 600; color: #333; }
+
+  /* DATA CELLS */
+  td.data { padding: 0; cursor: pointer; position: relative; vertical-align: top; }
+  td.data:hover { outline: 2px solid #1A73E8; outline-offset: -1px; z-index: 2; }
+  td.data.selected { outline: 2px solid #1A73E8; outline-offset: -1px; background: #E8F0FE !important; z-index: 3; }
+
+  /* MERGED CELL (class block) */
+  .cell-block { display: flex; align-items: center; justify-content: center; gap: 0.25rem; width: 100%; height: 100%; font-size: 0.7rem; font-weight: 500; padding: 1px 3px; line-height: 1.2; }
+  .cell-block .initials { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 0.52rem; font-weight: 700; flex-shrink: 0; }
+  .cell-block .cls-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; text-align: left; }
+  .cell-block .rm { font-size: 0.58rem; color: rgba(0,0,0,0.5); flex-shrink: 0; }
+
+  /* STYLE COLORS (cell backgrounds) */
+  .bg-jazz { background: #DEEBFF; }
+  .bg-tap { background: #FFEBE6; }
+  .bg-ballet { background: #EAE6FF; }
+  .bg-hiphop { background: #E3FCEF; }
+  .bg-contemp { background: #FFFAE6; }
+  .bg-combo { background: #E6FCFF; }
+  .bg-acting { background: #F4F5F7; }
+  .bg-ballroom { background: #FFF0E6; }
+  .bg-team { background: #E8EAF6; }
+  .bg-broadway { background: #FCE4EC; }
+
+  /* CONFLICT CELL */
+  .bg-conflict { background: #FFCDD2 !important; }
+  .bg-conflict .cell-block::after { content: '!!!'; position: absolute; top: 1px; right: 3px; font-size: 0.5rem; color: #C62828; font-weight: 700; }
+
+  /* EMPTY CELL HOVER */
+  td.data.empty-hover::after { content: '+'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1rem; color: #BDBDBD; }
+
+  /* CONTEXT MENU (static mockup) */
+  .ctx-menu { position: fixed; top: 200px; right: 100px; width: 180px; background: #fff; border: 1px solid #E0E0E0; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 100; font-size: 0.78rem; padding: 0.25rem 0; display: none; }
+  .ctx-menu.show { display: block; }
+  .ctx-item { padding: 0.4rem 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+  .ctx-item:hover { background: #F5F5F5; }
+  .ctx-item .shortcut { margin-left: auto; color: #999; font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; }
+  .ctx-sep { height: 1px; background: #E8E8E8; margin: 0.2rem 0; }
+
+  /* STATUS BAR */
+  .status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #E0E0E0; padding: 0.2rem 0.75rem; display: flex; align-items: center; gap: 1rem; font-size: 0.65rem; color: #888; z-index: 50; }
+  .status-bar .green { color: #2E7D32; font-weight: 600; }
+  .status-bar .red { color: #C62828; font-weight: 600; }
+  .status-bar .right { margin-left: auto; display: flex; gap: 1rem; }
+
+  /* TABS */
+  .sheet-tabs { position: fixed; bottom: 22px; left: 0; right: 0; background: #F8F9FA; border-top: 1px solid #E0E0E0; display: flex; align-items: center; padding: 0; z-index: 50; }
+  .sheet-tab { padding: 0.35rem 0.75rem; font-size: 0.72rem; cursor: pointer; border-right: 1px solid #E0E0E0; color: #5F6368; }
+  .sheet-tab:hover { background: #EEEEEE; }
+  .sheet-tab.active { background: #fff; color: #1A73E8; font-weight: 600; border-bottom: 2px solid #1A73E8; }
+  .sheet-tab-add { padding: 0.35rem 0.6rem; font-size: 0.82rem; cursor: pointer; color: #888; }
+</style>
+</head>
+<body>
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <span class="logo">Encore Schedule</span>
+    <div class="sep"></div>
+    <button>Undo</button>
+    <button>Redo</button>
+    <div class="sep"></div>
+    <select><option>All Teachers (14)</option></select>
+    <select><option>All Rooms (6)</option></select>
+    <select><option>All Styles</option></select>
+    <div class="sep"></div>
+    <button class="active">Week</button>
+    <button>Day</button>
+    <button>Teacher</button>
+    <div class="spacer"></div>
+    <span class="stat"><b>95</b>/107 scheduled</span>
+    <span class="conflict-badge">3 conflicts</span>
+    <div class="sep"></div>
+    <button>Export CSV</button>
+    <button>Print</button>
+  </div>
+
+  <!-- FORMULA BAR -->
+  <div class="formula-bar">
+    <span class="cell-ref">Thu 5:00</span>
+    <span class="fx">fx</span>
+    <input class="formula-input" value="ETAP C/D Jazz | Raynor vdM | Rm 1 | 90m" readonly>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="time-col">Time</th>
+          <th class="day-col">Monday</th>
+          <th class="day-col">Tuesday</th>
+          <th class="day-col">Wednesday</th>
+          <th class="day-col">Thursday</th>
+          <th class="day-col">Friday</th>
+          <th class="day-col">Saturday</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 9:00 AM (Saturday only) -->
+        <tr>
+          <td class="time-cell hour-mark">9:00</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">9:15</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">9:30</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">9:45</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data"></td>
+        </tr>
+
+        <!-- 10:00 AM -->
+        <tr>
+          <td class="time-cell hour-mark">10:00</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data bg-ballet" rowspan="6">
+            <div class="cell-block"><span class="initials" style="background:#7B1FA2;">VB</span><span class="cls-name">ETAP A/B Ballet</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">10:15</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">10:30</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">10:45</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+        </tr>
+
+        <!-- 11:00 AM -->
+        <tr>
+          <td class="time-cell hour-mark">11:00</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">11:15</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">11:30</td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data" style="background:#F5F5F5;"></td>
+          <td class="data bg-ballet" rowspan="6">
+            <div class="cell-block"><span class="initials" style="background:#7B1FA2;">VB</span><span class="cls-name">ETAP C/D Ballet</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+
+        <!-- skip ahead to show afternoon pattern -->
+        <!-- ... rows 11:45 - 3:45 would exist but omitted for mockup brevity ... -->
+
+        <!-- 4:00 PM - this is where weekday classes begin -->
+        <tr>
+          <td class="time-cell hour-mark">4:00</td>
+          <td class="data bg-acting" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#616161;">LM</span><span class="cls-name">ETAP A/B/C Acting</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">4:15</td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">4:30</td>
+          <td class="data bg-jazz" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#188038;">CR</span><span class="cls-name">ITP D Jazz</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data bg-hiphop" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#F9AB00;">LS</span><span class="cls-name">Jr 1 HH W</span><span class="rm">R3</span></div>
+          </td>
+          <td class="data bg-ballet" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#7B1FA2;">VB</span><span class="cls-name">ITP C Ballet</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-jazz" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#188038;">CR</span><span class="cls-name">ITP C Jazz</span><span class="rm">R2</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">4:45</td>
+        </tr>
+
+        <!-- 5:00 PM -->
+        <tr>
+          <td class="time-cell hour-mark">5:00</td>
+          <td class="data bg-hiphop" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#0D9488;">JD</span><span class="cls-name">Tw 1 HH</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data bg-conflict" rowspan="6">
+            <div class="cell-block" style="flex-direction:column;justify-content:center;"><span class="cls-name" style="font-weight:700;color:#C62828;">ETAP C/D Jazz 90m</span><span class="initials" style="background:#D93025;margin-top:2px;">RV</span><span style="font-size:0.55rem;color:#C62828;">CONFLICT: Rm overlap</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">5:15</td>
+        </tr>
+        <tr>
+          <td class="time-cell">5:30</td>
+          <td class="data bg-contemp" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#FF6F00;">NC</span><span class="cls-name">ETAP C/D Contemp</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-contemp" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#FF6F00;">NC</span><span class="cls-name">Jr 1 Contemp</span><span class="rm">R3</span></div>
+          </td>
+          <td class="data bg-hiphop" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#0D9488;">JD</span><span class="cls-name">Jr 1 HH R</span><span class="rm">R3</span></div>
+          </td>
+          <td class="data bg-ballet" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#00838F;">GA</span><span class="cls-name">ITP D Ballet</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">5:45</td>
+        </tr>
+
+        <!-- 6:00 PM -->
+        <tr>
+          <td class="time-cell hour-mark">6:00</td>
+          <td class="data bg-ballet" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#37474F;">LB</span><span class="cls-name">Jr 2&3 Ballet</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">6:15</td>
+        </tr>
+        <tr>
+          <td class="time-cell">6:30</td>
+          <td class="data bg-ballroom" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#C62828;">AB</span><span class="cls-name">ETAP A/B Ballroom</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data bg-jazz" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#D93025;">RV</span><span class="cls-name">ITP A&B Jazz</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-jazz" rowspan="6">
+            <div class="cell-block"><span class="initials" style="background:#D93025;">RV</span><span class="cls-name">ETAP A/B Jazz 90m</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-tap" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#E91E63;">PW</span><span class="cls-name">ITP C Tap</span><span class="rm">R2</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">6:45</td>
+        </tr>
+
+        <!-- 7:00 PM -->
+        <tr>
+          <td class="time-cell hour-mark">7:00</td>
+          <td class="data bg-jazz" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#D93025;">RV</span><span class="cls-name">ETAP A/B Jazz</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">7:15</td>
+        </tr>
+        <tr>
+          <td class="time-cell">7:30</td>
+          <td class="data bg-contemp" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#FF6F00;">NC</span><span class="cls-name">Teen 1&2 Contemp</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data bg-tap" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#188038;">CR</span><span class="cls-name">ITP A&B Tap</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-hiphop" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#F9AB00;">LS</span><span class="cls-name">Teen 3&4 HH</span><span class="rm">R3</span></div>
+          </td>
+          <td class="data bg-jazz selected" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#E91E63;">PW</span><span class="cls-name">Mini 6 Lv2 Jazz/Tap</span><span class="rm">R4</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">7:45</td>
+        </tr>
+
+        <!-- 8:00 PM -->
+        <tr>
+          <td class="time-cell hour-mark">8:00</td>
+          <td class="data bg-jazz" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#D93025;">RV</span><span class="cls-name">ETAP C/D Jazz</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data bg-ballet" rowspan="6">
+            <div class="cell-block"><span class="initials" style="background:#7B1FA2;">VB</span><span class="cls-name">ETAP A/B Ballet 90m</span><span class="rm">R1</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="time-cell">8:15</td>
+        </tr>
+        <tr>
+          <td class="time-cell">8:30</td>
+          <td class="data bg-contemp" rowspan="4">
+            <div class="cell-block"><span class="initials" style="background:#FF6F00;">NC</span><span class="cls-name">ETAP A/B Contemp</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">8:45</td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+
+        <!-- 9:00 PM -->
+        <tr>
+          <td class="time-cell hour-mark">9:00</td>
+          <td class="data bg-tap" rowspan="2">
+            <div class="cell-block"><span class="initials" style="background:#188038;">CR</span><span class="cls-name">ETAP C/D Tap</span><span class="rm">R1</span></div>
+          </td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+        <tr>
+          <td class="time-cell">9:15</td>
+          <td class="data bg-ballroom" rowspan="2">
+            <div class="cell-block"><span class="initials" style="background:#C62828;">AB</span><span class="cls-name">ETAP C/D Ballroom</span><span class="rm">R2</span></div>
+          </td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+
+        <tr>
+          <td class="time-cell">9:30</td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+          <td class="data"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CONTEXT MENU (mockup - shown static) -->
+  <div class="ctx-menu show">
+    <div class="ctx-item">Assign Teacher<span class="shortcut">T</span></div>
+    <div class="ctx-item">Change Room<span class="shortcut">R</span></div>
+    <div class="ctx-item">Move to...<span class="shortcut">M</span></div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item">Duplicate<span class="shortcut">Ctrl+D</span></div>
+    <div class="ctx-item" style="color:#C62828;">Delete<span class="shortcut">Del</span></div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item">Copy row<span class="shortcut">Ctrl+C</span></div>
+    <div class="ctx-item">Paste<span class="shortcut">Ctrl+V</span></div>
+  </div>
+
+  <!-- SHEET TABS -->
+  <div class="sheet-tabs">
+    <div class="sheet-tab active">Schedule</div>
+    <div class="sheet-tab">Teachers</div>
+    <div class="sheet-tab">Availability</div>
+    <div class="sheet-tab">Unassigned (12)</div>
+    <div class="sheet-tab-add">+</div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span>107 classes</span>
+    <span class="green">95 scheduled</span>
+    <span class="red">12 unassigned</span>
+    <span class="red">3 conflicts</span>
+    <div class="right">
+      <span>Auto-save: ON</span>
+      <span>Last saved: just now</span>
+    </div>
+  </div>
+</body>
+</html>
