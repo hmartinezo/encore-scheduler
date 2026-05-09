@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Encore Schedule Builder — 2026-2027</title>
+<title>Encore Schedule Builder &#8212; 2026-2027</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -40,22 +40,6 @@ select, input { font-family:inherit; }
 .nav-item.active { color:#fff; background:var(--sidebar-hover); border-left-color:var(--sidebar-active); }
 .nav-item .badge { background:var(--danger); color:#fff; font-size:.58rem; padding:1px 5px; border-radius:8px; margin-left:auto; }
 .nav-item .count { color:#475569; font-size:.65rem; margin-left:auto; }
-
-/* Unassigned section in sidebar */
-.sidebar-unassigned { flex:1; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid #1E293B; }
-.sidebar-unassigned-header { display:flex; align-items:center; justify-content:space-between; padding:.55rem 1.2rem; cursor:pointer; color:#E2E8F0; font-size:.78rem; font-weight:600; }
-.sidebar-unassigned-header:hover { background:var(--sidebar-hover); }
-.sidebar-unassigned-header .badge { background:#FEE2E2; color:#DC2626; font-size:.65rem; font-weight:700; padding:.1rem .4rem; border-radius:8px; }
-.sidebar-unassigned-body { flex:1; display:flex; flex-direction:column; overflow:hidden; padding:0 .6rem .4rem; }
-.sidebar-unassigned-body.collapsed { display:none; }
-.sidebar-unassigned-body input { width:100%; padding:.3rem .5rem; border:1px solid #334155; border-radius:4px; font-size:.72rem; background:#1E293B; color:#E2E8F0; outline:none; margin-bottom:.4rem; }
-.sidebar-unassigned-body input:focus { border-color:var(--primary); }
-.sidebar-unassigned-body input::placeholder { color:#64748B; }
-.sidebar-class-list { flex:1; overflow-y:auto; }
-.sidebar-class-item { padding:.35rem .5rem; border-radius:4px; margin-bottom:.2rem; cursor:grab; font-size:.68rem; border-left:3px solid; background:#1E293B; transition:background .1s; }
-.sidebar-class-item:hover { background:#334155; }
-.sidebar-class-item .sci-name { font-weight:600; color:#E2E8F0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.sidebar-class-item .sci-meta { color:#64748B; font-size:.6rem; }
 
 .sidebar-footer { padding:.75rem 1.2rem; border-top:1px solid #1E293B; font-size:.68rem; color:#475569; line-height:1.6; flex-shrink:0; }
 
@@ -239,26 +223,15 @@ select, input { font-family:inherit; }
     <span>Schedule Builder 2026-2027</span>
   </div>
   <nav id="nav">
-    <div class="nav-item active" data-tab="schedule"><span>📅</span> Schedule</div>
-    <div class="nav-item" data-tab="classes"><span>📋</span> Classes <span class="count" id="nav-class-count">107</span></div>
-    <div class="nav-item" data-tab="teachers"><span>👩‍🏫</span> Teachers <span class="count">13</span></div>
-    <div class="nav-item" data-tab="availability"><span>🕐</span> Availability</div>
-    <div class="nav-item" data-tab="conflicts"><span>⚠️</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
-    <div class="nav-item" data-tab="optimize"><span>✨</span> AI Optimize <span class="badge" id="nav-opt-count" style="background:#3B82F6;">0</span></div>
-    <div class="nav-item" data-tab="export"><span>📤</span> Export</div>
+    <div class="nav-item active" data-tab="schedule"><span>&#128197;</span> Schedule</div>
+    <div class="nav-item" data-tab="classes"><span>&#128218;</span> Classes <span class="count" id="nav-class-count">107</span></div>
+    <div class="nav-item" data-tab="teachers"><span>&#128105;&#8205;&#127891;</span> Teachers <span class="count">13</span></div>
+    <div class="nav-item" data-tab="availability"><span>&#128338;</span> Availability</div>
+    <div class="nav-item" data-tab="conflicts"><span>&#9888;&#65039;</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
+    <div class="nav-item" data-tab="optimize"><span>&#10024;</span> AI Optimize <span class="badge" id="nav-opt-count" style="background:#3B82F6;">0</span></div>
+    <div class="nav-item" data-tab="export"><span>&#128228;</span> Export</div>
+    <div class="nav-item" data-tab="unassigned"><span>&#128203;</span> Unassigned <span class="badge" id="nav-unassigned-count" style="background:var(--danger);">0</span></div>
   </nav>
-
-  <!-- UNASSIGNED IN SIDEBAR -->
-  <div class="sidebar-unassigned">
-    <div class="sidebar-unassigned-header" onclick="toggleUnassignedPanel()">
-      <span>📦 Unassigned</span>
-      <span class="badge" id="unassigned-count">0</span>
-    </div>
-    <div class="sidebar-unassigned-body" id="unassigned-body">
-      <input type="text" id="unassigned-search" placeholder="Search classes..." oninput="renderUnassigned()">
-      <div class="sidebar-class-list" id="unassigned-list"></div>
-    </div>
-  </div>
 
   <div class="sidebar-footer" id="sidebar-footer">
     Auto-saved just now<br>
@@ -315,6 +288,11 @@ select, input { font-family:inherit; }
   <!-- EXPORT TAB -->
   <div id="tab-export" class="tab-content" style="display:none;flex:1;overflow:hidden;">
     <div class="classes-view" id="export-view" style="max-width:600px;"></div>
+  </div>
+
+  <!-- UNASSIGNED TAB -->
+  <div id="tab-unassigned" class="tab-content" style="display:none;flex:1;overflow:hidden;">
+    <div class="classes-view" id="unassigned-view"></div>
   </div>
 
 </div>
@@ -576,13 +554,33 @@ let state = {
   ignoredConflicts: [],
 };
 
-// Pre-fill availability
+// Pre-fill availability (will be rebuilt from schedule after seed)
+function buildAvailabilityFromSchedule(){
+  TEACHERS.forEach(t => {
+    state.availability[t.id] = {};
+    // Start with empty availability
+    for(let d=0; d<6; d++) state.availability[t.id][d] = [];
+  });
+  // For each scheduled class, mark the teacher available during that window (with 30min buffer before/after)
+  state.schedule.forEach(s => {
+    const cls = CLASSES.find(c=>c.id===s.classId);
+    if(!cls) return;
+    const BUFFER = 30;
+    const dayStart = s.day === 5 ? SAT_START : WEEKDAY_START;
+    const dayEnd = s.day === 5 ? SAT_END : WEEKDAY_END;
+    const start = Math.max(dayStart, s.startTime - BUFFER);
+    const end = Math.min(dayEnd, s.startTime + cls.duration + BUFFER);
+    if(!state.availability[s.teacherId]) state.availability[s.teacherId] = {};
+    if(!state.availability[s.teacherId][s.day]) state.availability[s.teacherId][s.day] = [];
+    state.availability[s.teacherId][s.day].push({ start, end });
+    mergeAvailSlots(s.teacherId, s.day);
+  });
+}
+
+// Initial empty availability (will be rebuilt after load/seed)
 TEACHERS.forEach(t => {
   state.availability[t.id] = {};
-  for(let d=0; d<5; d++){
-    state.availability[t.id][d] = [{ start:960, end:1290 }];
-  }
-  state.availability[t.id][5] = [{ start:540, end:840 }];
+  for(let d=0; d<6; d++) state.availability[t.id][d] = [];
 });
 
 // Undo/redo
@@ -619,7 +617,6 @@ function load(){
     if(d) {
       const parsed = JSON.parse(d);
       state.schedule = parsed.schedule || [];
-      if(parsed.availability) state.availability = parsed.availability;
       if(parsed.ignoredConflicts) state.ignoredConflicts = parsed.ignoredConflicts;
       // Migrate old integer room IDs to string IDs
       state.schedule.forEach(s => {
@@ -755,51 +752,70 @@ function isTimeInDay(time, dayIdx){
 }
 
 // =============================================
-// UNASSIGNED PANEL (in sidebar)
+// UNASSIGNED PAGE
 // =============================================
-let unassignedExpanded = true;
-function toggleUnassignedPanel(){
-  unassignedExpanded = !unassignedExpanded;
-  document.getElementById('unassigned-body').classList.toggle('collapsed', !unassignedExpanded);
+function renderUnassigned(){
+  const unassigned = getUnassigned();
+  document.getElementById('nav-unassigned-count').textContent = unassigned.length;
 }
 
-function renderUnassigned(){
-  const list = document.getElementById('unassigned-list');
-  const search = document.getElementById('unassigned-search').value.toLowerCase();
+function renderUnassignedPage(){
+  const view = document.getElementById('unassigned-view');
   const unassigned = getUnassigned();
-  const filtered = unassigned.filter(c => !search || c.name.toLowerCase().includes(search));
+  document.getElementById('nav-unassigned-count').textContent = unassigned.length;
 
-  document.getElementById('unassigned-count').textContent = unassigned.length;
+  if(!unassigned.length){
+    view.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><div style="font-size:2rem;margin-bottom:.5rem;">&#10004;</div>All ' + CLASSES.length + ' classes are assigned!</div>';
+    return;
+  }
 
-  list.innerHTML = filtered.map(c => {
-    const teachers = c.eligibleTeachers.map(id=>teacherShort(id)).join(', ');
-    return '<div class="sidebar-class-item style-' + c.style + '" draggable="true" data-class-id="' + c.id + '">' +
-      '<div class="sci-name">' + c.name + '</div>' +
-      '<div class="sci-meta">' + (STYLES[c.style]||c.style) + ' &middot; ' + c.duration + 'm</div>' +
-    '</div>';
-  }).join('');
+  let html = '<h3 style="margin-bottom:.75rem;">' + unassigned.length + ' Unassigned Class' + (unassigned.length!==1?'es':'') + '</h3>';
+  html += '<input type="text" id="unassigned-search-page" placeholder="Search classes..." oninput="filterUnassignedPage()" style="padding:.4rem .6rem;border:1px solid var(--border);border-radius:5px;font-size:.78rem;width:300px;margin-bottom:.75rem;">';
+  html += '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Eligible Teachers</th><th>Action</th></tr></thead><tbody id="unassigned-tbody">';
+  unassigned.forEach((c,i) => {
+    html += '<tr data-name="' + c.name.toLowerCase() + '"><td>' + (i+1) + '</td><td style="font-weight:600;">' + c.name + '</td><td><span class="style-tag style-' + c.style + '" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">' + (STYLES[c.style]||c.style) + '</span></td><td>' + c.duration + 'm</td><td style="font-size:.68rem;color:var(--text-secondary);">' + c.eligibleTeachers.map(id=>teacherShort(id)).join(', ') + '</td><td><button class="btn btn-sm btn-primary" onclick="showAssignModal(' + c.id + ')">Assign</button></td></tr>';
+  });
+  html += '</tbody></table>';
+  view.innerHTML = html;
+}
 
-  list.querySelectorAll('.sidebar-class-item').forEach(item => {
-    item.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', 'class-' + item.dataset.classId);
-    });
-    item.addEventListener('dblclick', () => {
-      showAssignModal(parseInt(item.dataset.classId));
-    });
+function filterUnassignedPage(){
+  const search = document.getElementById('unassigned-search-page').value.toLowerCase();
+  document.querySelectorAll('#unassigned-tbody tr').forEach(tr => {
+    tr.style.display = (!search || tr.dataset.name.includes(search)) ? '' : 'none';
   });
 }
 
 // =============================================
 // RENDER: SCHEDULE CALENDAR
 // =============================================
+let focusDay = -1; // -1 = show all days equally, 0-5 = expanded day
+
 function renderCalendar(){
   const wrap = document.getElementById('calendar-wrap');
   const filterTeacher = document.getElementById('filter-teacher').value;
   const filterRoom = document.getElementById('filter-room').value;
 
-  let html = '<div class="cal-grid">';
+  // Build grid columns based on focus day
+  let colTemplate;
+  if(focusDay >= 0){
+    const cols = [];
+    for(let d=0; d<6; d++){
+      cols.push(d === focusDay ? '4fr' : '0.5fr');
+    }
+    colTemplate = '56px ' + cols.join(' ');
+  } else {
+    colTemplate = '56px repeat(6,1fr)';
+  }
+
+  let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
   html += '<div class="cal-header"></div>';
-  DAY_SHORT.forEach(d => html += '<div class="cal-header">' + d + '</div>');
+  DAY_SHORT.forEach((d, idx) => {
+    const isExpanded = focusDay === idx;
+    const expandedStyle = isExpanded ? 'background:#DBEAFE;color:var(--primary);' : '';
+    const dayLabel = focusDay >= 0 && !isExpanded ? d.charAt(0) : (isExpanded ? DAYS[idx] : d);
+    html += '<div class="cal-header" style="cursor:pointer;' + expandedStyle + '" data-day-header="' + idx + '">' + dayLabel + '</div>';
+  });
 
   TIME_SLOTS.forEach(time => {
     const isHour = time % 60 === 0;
@@ -859,13 +875,20 @@ function renderCalendar(){
     }
 
     const teacher = teacherById(sched.teacherId);
+    const isCollapsedDay = focusDay >= 0 && sched.day !== focusDay;
     const block = document.createElement('div');
     block.className = 'class-block style-' + style + (hasConflict?' conflict':'') + colClass;
     block.style.top = '0px';
     block.style.height = height + 'px';
     block.draggable = true;
     block.dataset.schedIdx = idx;
-    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + roomName(sched.room) + ' &middot; ' + cls.duration + 'm</div>';
+    if(isCollapsedDay){
+      block.innerHTML = '';
+      block.style.padding = '0';
+      block.style.fontSize = '0';
+    } else {
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + roomName(sched.room) + ' &middot; ' + cls.duration + 'm</div>';
+    }
     block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+cls.duration) + '\n' + roomName(sched.room);
 
     block.addEventListener('dragstart', e => {
@@ -928,6 +951,15 @@ function renderCalendar(){
 
   const conflicts = getConflicts().filter(c => !c.ignored);
   document.getElementById('nav-conflict-count').textContent = conflicts.length;
+
+  // Day header click to expand/collapse
+  grid.querySelectorAll('[data-day-header]').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const d = parseInt(hdr.dataset.dayHeader);
+      focusDay = (focusDay === d) ? -1 : d;
+      renderCalendar();
+    });
+  });
 }
 
 // =============================================
@@ -1022,16 +1054,17 @@ function renderClasses(){
     });
   }
 
-  let html = '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
+  let html = '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Room</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
   classesToShow.forEach((c,i) => {
     const sched = assignedMap[c.id];
+    const roomCol = sched ? roomName(sched.room) : '--';
     let status = '<span style="color:var(--danger);font-weight:600;">Unassigned</span>';
     if(sched){
       const t = teacherById(sched.teacherId);
-      status = '<span style="color:var(--success);font-weight:600;">' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '</span><br><span style="font-size:.65rem;color:var(--text-muted);">' + (t?t.short:'?') + ' &middot; ' + roomName(sched.room) + '</span>';
+      status = '<span style="color:var(--success);font-weight:600;">' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '</span><br><span style="font-size:.65rem;color:var(--text-muted);">' + (t?t.short:'?') + '</span>';
     }
     const schedIdx = sched ? state.schedule.indexOf(sched) : -1;
-    html += '<tr onclick="' + (sched ? 'showEditAssignment(' + schedIdx + ')' : 'showAssignModal(' + c.id + ')') + '"><td>' + (i+1) + '</td><td style="font-weight:600;">' + c.name + '</td><td><span class="style-tag style-' + c.style + '" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">' + (STYLES[c.style]||c.style) + '</span></td><td>' + c.duration + 'm</td><td style="font-size:.68rem;color:var(--text-secondary);">' + c.eligibleTeachers.map(id=>teacherShort(id)).join(', ') + '</td><td>' + status + '</td></tr>';
+    html += '<tr onclick="' + (sched ? 'showEditAssignment(' + schedIdx + ')' : 'showAssignModal(' + c.id + ')') + '"><td>' + (i+1) + '</td><td style="font-weight:600;">' + c.name + '</td><td><span class="style-tag style-' + c.style + '" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">' + (STYLES[c.style]||c.style) + '</span></td><td>' + c.duration + 'm</td><td>' + roomCol + '</td><td style="font-size:.68rem;color:var(--text-secondary);">' + c.eligibleTeachers.map(id=>teacherShort(id)).join(', ') + '</td><td>' + status + '</td></tr>';
   });
   html += '</tbody></table>';
   document.getElementById('nav-class-count').textContent = CLASSES.length;
@@ -1341,10 +1374,18 @@ const BUNDLE_GROUPS = [
   { styles: ['ballet','contemp','hiphop'], label: 'Ballet + Contemporary (+ Hip Hop)' },
 ];
 
-let optimizerProposal = null; // cached result
+let optimizerProposals = {}; // strategy -> { proposed, changes }
+let activeStrategy = 'recommended';
 let changeStates = {}; // changeIdx -> 'accepted'|'rejected'|null
 
-function runOptimizer(){
+const STRATEGIES = [
+  { id: 'recommended', label: '&#11088; Recommended', desc: 'Teacher rules + conflict fixes + bundling' },
+  { id: 'minimal', label: '&#128296; Minimal Changes', desc: 'Only fix teacher rules and level conflicts' },
+  { id: 'maxbundle', label: '&#128279; Maximum Bundling', desc: 'Aggressively bundle all style pairs' },
+];
+
+function runOptimizer(strategy){
+  strategy = strategy || activeStrategy;
   const proposed = JSON.parse(JSON.stringify(state.schedule));
   const changes = [];
   let changeId = 0;
@@ -1395,7 +1436,7 @@ function runOptimizer(){
     }
   });
 
-  // ===== STEP 2: Fix same-level conflicts =====
+  // ===== STEP 2: Fix same-level conflicts (all strategies) =====
   function findLevelConflicts(sched){
     const conflicts = [];
     for(let i=0; i<sched.length; i++){
@@ -1479,8 +1520,15 @@ function runOptimizer(){
     }
   });
 
-  // ===== STEP 3: Bundle classes =====
+  // ===== STEP 3: Bundle classes (recommended + maxbundle only) =====
+  if(strategy !== 'minimal'){
   // Group scheduled classes by group key
+  const activeBundleGroups = strategy === 'maxbundle' ? [
+    ...BUNDLE_GROUPS,
+    { styles: ['jazz','contemp'], label: 'Jazz + Contemporary' },
+    { styles: ['tap','hiphop'], label: 'Tap + Hip Hop' },
+    { styles: ['ballet','jazz'], label: 'Ballet + Jazz' },
+  ] : BUNDLE_GROUPS;
   const grouped = {};
   proposed.forEach((sched, idx) => {
     const cls = CLASSES.find(c=>c.id===sched.classId);
@@ -1495,7 +1543,7 @@ function runOptimizer(){
 
   // For each group, check each bundle affinity pair
   Object.entries(grouped).forEach(([groupKey, items]) => {
-    BUNDLE_GROUPS.forEach(bg => {
+    activeBundleGroups.forEach(bg => {
       // Find items matching this bundle group
       const matching = items.filter(it => bg.styles.includes(it.style));
       if(matching.length < 2) return;
@@ -1632,15 +1680,24 @@ function runOptimizer(){
     });
   });
 
-  optimizerProposal = { proposed, changes };
-  changeStates = {};
-  return optimizerProposal;
+  } // end if strategy !== 'minimal'
+
+  optimizerProposals[strategy] = { proposed, changes };
+  if(strategy === activeStrategy) changeStates = {};
+  return optimizerProposals[strategy];
 }
 
 function renderOptimize(){
   const view = document.getElementById('optimize-view');
-  if(!optimizerProposal) runOptimizer();
-  const { proposed, changes } = optimizerProposal;
+
+  // Run all strategies
+  STRATEGIES.forEach(s => {
+    if(!optimizerProposals[s.id]) runOptimizer(s.id);
+  });
+
+  const proposal = optimizerProposals[activeStrategy];
+  if(!proposal) return;
+  const { proposed, changes } = proposal;
 
   const conflicts = getConflicts().filter(c=>!c.ignored);
   const teacherChanges = changes.filter(c => c.category === 'Teacher Rules');
@@ -1652,18 +1709,30 @@ function renderOptimize(){
 
   document.getElementById('nav-opt-count').textContent = changes.length;
 
+  // Strategy tabs
+  let html = '<div style="display:flex;gap:0;margin-bottom:1rem;border-bottom:2px solid var(--border);overflow-x:auto;">';
+  STRATEGIES.forEach(s => {
+    const ct = optimizerProposals[s.id]?.changes?.length || 0;
+    const isActive = s.id === activeStrategy;
+    html += '<div onclick="switchStrategy(\'' + s.id + '\')" style="padding:.5rem 1rem;cursor:pointer;font-size:.78rem;font-weight:' + (isActive?'700':'500') + ';color:' + (isActive?'var(--primary)':'var(--text-secondary)') + ';border-bottom:' + (isActive?'2px solid var(--primary)':'2px solid transparent') + ';margin-bottom:-2px;white-space:nowrap;transition:all .15s;">' +
+      s.label + ' <span style="background:' + (isActive?'var(--primary)':'#E2E8F0') + ';color:' + (isActive?'#fff':'var(--text-secondary)') + ';font-size:.6rem;padding:.1rem .35rem;border-radius:8px;margin-left:.25rem;">' + ct + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+
   if(!changes.length){
-    view.innerHTML = '<div class="opt-hero">' +
+    html += '<div class="opt-hero">' +
       '<h3>Schedule Analysis Complete</h3>' +
-      '<p>Your schedule looks great! No optimization suggestions at this time.</p>' +
+      '<p>Your schedule looks great! No optimization suggestions for this strategy.</p>' +
       '<div class="opt-stats"><div class="opt-stat"><div class="num">' + state.schedule.length + '</div><div class="lbl">Assigned</div></div>' +
       '<div class="opt-stat"><div class="num">' + getUnassigned().length + '</div><div class="lbl">Unassigned</div></div>' +
       '<div class="opt-stat"><div class="num">' + conflicts.length + '</div><div class="lbl">Conflicts</div></div></div></div>' +
       '<div class="opt-empty"><div class="opt-check">&#10004;</div>No changes suggested. The current schedule follows all rules.</div>';
+    view.innerHTML = html;
     return;
   }
 
-  let html = '<div class="opt-hero">' +
+  html += '<div class="opt-hero">' +
     '<h3>AI Schedule Optimizer</h3>' +
     '<p>Analyzed ' + state.schedule.length + ' classes against Raynor\'s rules. Found <strong style="color:#F59E0B">' + changes.length + ' suggested change' + (changes.length!==1?'s':'') + '</strong> to improve the schedule.</p>' +
     '<div class="opt-stats">' +
@@ -1727,38 +1796,46 @@ function renderOptimize(){
   view.innerHTML = html;
 }
 
+function switchStrategy(id){
+  activeStrategy = id;
+  changeStates = {};
+  renderOptimize();
+}
+
 function acceptChange(id){ changeStates[id] = 'accepted'; renderOptimize(); }
 function rejectChange(id){ changeStates[id] = 'rejected'; renderOptimize(); }
 function undoChangeState(id){ delete changeStates[id]; renderOptimize(); }
 function acceptAllChanges(){
-  if(!optimizerProposal) return;
-  optimizerProposal.changes.forEach(c => { changeStates[c.id] = 'accepted'; });
+  const proposal = optimizerProposals[activeStrategy];
+  if(!proposal) return;
+  proposal.changes.forEach(c => { changeStates[c.id] = 'accepted'; });
   renderOptimize();
 }
 function rerunOptimizer(){
-  optimizerProposal = null;
+  optimizerProposals = {};
   changeStates = {};
-  runOptimizer();
+  STRATEGIES.forEach(s => runOptimizer(s.id));
   renderOptimize();
   toast('Schedule re-analyzed');
 }
 function applyAccepted(){
-  if(!optimizerProposal) return;
-  const accepted = optimizerProposal.changes.filter(c => changeStates[c.id] === 'accepted');
+  const proposal = optimizerProposals[activeStrategy];
+  if(!proposal) return;
+  const accepted = proposal.changes.filter(c => changeStates[c.id] === 'accepted');
   if(!accepted.length){ toast('No changes accepted yet'); return; }
   if(!confirm('Apply ' + accepted.length + ' accepted change(s) to the schedule? This will modify your current schedule.')) return;
   pushUndo();
   // Apply the accepted changes from the proposal
   accepted.forEach(c => {
     const sched = state.schedule[c.schedIdx];
-    const proposedSched = optimizerProposal.proposed[c.schedIdx];
+    const proposedSched = proposal.proposed[c.schedIdx];
     if(!sched || !proposedSched) return;
     sched.teacherId = proposedSched.teacherId;
     sched.day = proposedSched.day;
     sched.startTime = proposedSched.startTime;
     sched.room = proposedSched.room;
   });
-  optimizerProposal = null;
+  optimizerProposals = {};
   changeStates = {};
   saveAndRender();
   toast(accepted.length + ' change(s) applied!');
@@ -1774,11 +1851,7 @@ function renderExport(){
     '<div style="display:flex;flex-direction:column;gap:.75rem;">' +
       '<button class="btn btn-primary" onclick="exportExcel()" style="padding:.75rem;">&#128196; Export as Excel (.xlsx)</button>' +
       '<button class="btn btn-outline" onclick="exportPDF()" style="padding:.75rem;">&#128424; Export as PDF (Print)</button>' +
-      '<hr style="border:none;border-top:1px solid var(--border);">' +
-      '<button class="btn btn-outline" onclick="importJSON()" style="padding:.75rem;">&#128229; Import JSON Backup</button>' +
-      '<button class="btn btn-danger" onclick="resetSchedule()" style="padding:.75rem;">&#128465; Clear All Assignments</button>' +
-    '</div>' +
-    '<input type="file" id="import-input" accept=".json" style="display:none;" onchange="handleImport(event)">';
+    '</div>';
 }
 
 function exportExcel(){
@@ -2059,8 +2132,9 @@ function renderAll(){
   if(activeTab === 'classes') renderClasses();
   if(activeTab === 'availability') renderAvailability();
   if(activeTab === 'conflicts') renderConflicts();
-  if(activeTab === 'optimize'){ optimizerProposal = null; renderOptimize(); }
+  if(activeTab === 'optimize'){ optimizerProposals = {}; renderOptimize(); }
   if(activeTab === 'export') renderExport();
+  if(activeTab === 'unassigned') renderUnassignedPage();
 }
 
 // =============================================
@@ -2206,6 +2280,7 @@ function seedFromTab3(){
 // =============================================
 load();
 seedFromTab3();
+buildAvailabilityFromSchedule();
 populateFilters();
 renderAll();
 </script>
