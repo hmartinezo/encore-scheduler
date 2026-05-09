@@ -1324,10 +1324,10 @@ function mergeForDisplay(slots){
 function getCellType(teacherId, day, time, duration){
   const slots = state.availability[teacherId]?.[day];
   if(!slots) return 'none';
-  // Teaching takes priority if overlapping
-  const isTeaching = slots.some(s => s.type === 'teaching' && time >= s.start && (time + duration) <= s.end);
+  // Use overlap check (any part of cell intersects slot), not containment
+  const isTeaching = slots.some(s => s.type === 'teaching' && time < s.end && (time + duration) > s.start);
   if(isTeaching) return 'teaching';
-  const isAvail = slots.some(s => s.type === 'available' && time >= s.start && (time + duration) <= s.end);
+  const isAvail = slots.some(s => s.type === 'available' && time < s.end && (time + duration) > s.start);
   if(isAvail) return 'available';
   return 'none';
 }
