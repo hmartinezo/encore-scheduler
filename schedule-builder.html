@@ -174,7 +174,7 @@ select, input { font-family:inherit; }
   <nav id="nav">
     <div class="nav-item active" data-tab="schedule"><span>📅</span> Schedule</div>
     <div class="nav-item" data-tab="classes"><span>📋</span> Classes <span class="count" id="nav-class-count">107</span></div>
-    <div class="nav-item" data-tab="teachers"><span>👩‍🏫</span> Teachers <span class="count">14</span></div>
+    <div class="nav-item" data-tab="teachers"><span>👩‍🏫</span> Teachers <span class="count">13</span></div>
     <div class="nav-item" data-tab="availability"><span>🕐</span> Availability</div>
     <div class="nav-item" data-tab="conflicts"><span>⚠️</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
     <div class="nav-item" data-tab="export"><span>📤</span> Export</div>
@@ -297,7 +297,6 @@ const TEACHERS = [
   { id:'courtney', name:'Courtney Rosendall', short:'Courtney R.', color:'#16A34A', styles:['tap','jazz','broadway'] },
   { id:'vadim', name:'Vadim Bogomolov', short:'Vadim B.', color:'#7C3AED', styles:['ballet'] },
   { id:'anastasiia', name:'Anastasiia Bengard', short:'Anastasiia B.', color:'#E11D48', styles:['ballroom'] },
-  { id:'nicole', name:'Nicole Coleman', short:'Nicole C.', color:'#EA580C', styles:['contemp'] },
   { id:'luke', name:'Luke Spring', short:'Luke S.', color:'#CA8A04', styles:['hiphop','tap'] },
   { id:'jessy', name:'Jessy Dawson', short:'Jessy D.', color:'#0D9488', styles:['hiphop'] },
   { id:'paige', name:'Paige Williams', short:'Paige W.', color:'#DB2777', styles:['jazz','tap','combo','ballet'] },
@@ -361,7 +360,7 @@ function detectTeachers(name){
   if(n.includes('etap') && n.includes('tap')) return ['courtney','luke'];
   if(n.includes('etap') && n.includes('ballet')) return ['vadim'];
   if(n.includes('etap') && n.includes('hip hop')) return ['luke','jessy'];
-  if(n.includes('etap') && n.includes('contemp')) return ['nicole'];
+  if(n.includes('etap') && n.includes('contemp')) return ['cami','ashleigh'];
   // ITP
   if(n.includes('itp e')) return ['raynor','courtney','paige'];
   if(n.includes('itp') && n.includes('jazz')) return ['raynor','courtney'];
@@ -369,14 +368,14 @@ function detectTeachers(name){
   if(n.includes('itp') && n.includes('ballet')) return ['vadim','gaby','ashleigh'];
   // Teen
   if(n.includes('teen') && n.includes('ballet')) return ['gaby','ashleigh'];
-  if(n.includes('teen') && n.includes('contemp')) return ['nicole','cami'];
+  if(n.includes('teen') && n.includes('contemp')) return ['cami','ashleigh'];
   if(n.includes('teen') && n.includes('hip hop')) return ['jessy','luke'];
   if(n.includes('teen') && n.includes('jazz')) return ['paige','jessy','cami','ashleigh'];
   if(n.includes('teen') && n.includes('tap')) return ['paige','cami','courtney'];
   if(n.includes('teen') && n.includes('broadway')) return ['courtney'];
   // Tween
   if(n.includes('tween') && n.includes('ballet')) return ['liesl','ashleigh'];
-  if(n.includes('tween') && n.includes('contemp')) return ['nicole','ashleigh','cami'];
+  if(n.includes('tween') && n.includes('contemp')) return ['ashleigh','cami'];
   if(n.includes('tween') && n.includes('hip hop')) return ['jessy','luke'];
   if(n.includes('tween') && n.includes('jazz')) return ['ashleigh','paige'];
   if(n.includes('tween') && n.includes('tap')) return ['courtney','luke'];
@@ -384,7 +383,7 @@ function detectTeachers(name){
   // Junior
   if(n.includes('junior') && n.includes('broadway')) return ['courtney'];
   if(n.includes('junior') && n.includes('ballet')) return ['liesl','ashleigh'];
-  if(n.includes('junior') && n.includes('contemp')) return ['nicole','cami'];
+  if(n.includes('junior') && n.includes('contemp')) return ['cami','ashleigh'];
   if(n.includes('junior') && n.includes('hip hop')) return ['jessy','luke'];
   if(n.includes('junior') && n.includes('jazz')) return ['paige','courtney','cami'];
   if(n.includes('junior') && n.includes('tap')) return ['luke','courtney','paige'];
@@ -1168,9 +1167,9 @@ function seedFromTab3(){
     { name:'ETAP B&C Jazz - 60 min', teacher:'raynor', day:0, time:1170, room:1 }, // Mon 7:30
     { name:'ETAP A Ballet - 90 min with pointe after', teacher:'vadim', day:0, time:1170, room:2 }, // Mon 7:30
     { name:'ETAP B&C Tap', teacher:'courtney', day:0, time:1230, room:1 }, // Mon 8:30
-    { name:'ETAP B&C Contemporary', teacher:'nicole', day:1, time:1050, room:1 }, // Tue 5:30
+    { name:'ETAP B&C Contemporary', teacher:'cami', day:1, time:1050, room:1 }, // Tue 5:30
     { name:'ETAP A Tap', teacher:'luke', day:1, time:1050, room:2 }, // Tue 5:30
-    { name:'ETAP A Contemporary', teacher:'nicole', day:1, time:1170, room:1 }, // Tue 7:30
+    { name:'ETAP A Contemporary', teacher:'cami', day:1, time:1170, room:1 }, // Tue 7:30
     { name:'ETAP B&C Hip Hop', teacher:'luke', day:1, time:1170, room:2 }, // Tue 7:30
     { name:'ETAP A Hip Hop', teacher:'luke', day:1, time:1230, room:1 }, // Tue 8:30
     { name:'ETAP A Tap', teacher:'courtney', day:5, time:720, room:1 }, // Sat 12:00
@@ -1212,7 +1211,7 @@ function seedFromTab3(){
     { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:4, time:1050, room:3 }, // Fri 5:30
     { name:'Junior Level 1a Hip Hop', teacher:'jessy', day:1, time:1110, room:4 }, // Tue 6:30
     { name:'Junior Level 1 Ballet', teacher:'liesl', day:0, time:1050, room:3 }, // Mon 5:30
-    { name:'Junior Level 1 Contemporary', teacher:'nicole', day:2, time:1050, room:3 }, // Wed 5:30
+    { name:'Junior Level 1 Contemporary', teacher:'cami', day:2, time:1050, room:3 }, // Wed 5:30
     { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:0, time:1050, room:4 }, // Mon 5:30 (90m)
     { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:5, time:600, room:2 }, // Sat 10:00 (90m)
     { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:4, time:1005, room:4 }, // Fri 4:45 (90m)
@@ -1225,7 +1224,7 @@ function seedFromTab3(){
     { name:'Junior Level 2 Contemporary', teacher:'cami', day:0, time:1050, room:5 }, // Mon 5:30
     { name:'Junior Level 2 Hip Hop', teacher:'luke', day:1, time:990, room:3 }, // Tue 4:30
     { name:'Junior Level 2 Hip Hop', teacher:'jessy', day:5, time:690, room:2 }, // Sat 11:30
-    { name:'Junior Level 3 Contemporary', teacher:'nicole', day:2, time:990, room:3 }, // Wed 4:30
+    { name:'Junior Level 3 Contemporary', teacher:'cami', day:2, time:990, room:3 }, // Wed 4:30
     { name:'Junior Level 3 Hip Hop', teacher:'luke', day:2, time:1050, room:4 }, // Wed 5:30
     { name:'Junior Broadway Bound', teacher:'courtney', day:2, time:990, room:4 }, // Wed 4:30
     // Mini classes
@@ -1255,20 +1254,20 @@ function seedFromTab3(){
     { name:'Tween Level 2 Hip Hop', teacher:'luke', day:2, time:1170, room:3 }, // Wed 7:30
     { name:'Tween Level 2 Jazz', teacher:'ashleigh', day:2, time:1050, room:1 }, // Wed 5:30
     { name:'Tween Level 2 & 3 Tap', teacher:'luke', day:2, time:1110, room:3 }, // Wed 6:30
-    { name:'Tween Level 2 Contemporary', teacher:'nicole', day:1, time:1110, room:5 }, // Tue 6:30 (guess)
-    { name:'Tween Level 3 Contemporary', teacher:'nicole', day:3, time:1050, room:5 }, // Thu 5:30 (guess)
+    { name:'Tween Level 2 Contemporary', teacher:'ashleigh', day:1, time:1110, room:5 }, // Tue 6:30
+    { name:'Tween Level 3 Contemporary', teacher:'cami', day:3, time:1050, room:5 }, // Thu 5:30
     { name:'Tween/Teen Level 1 Jazz', teacher:'paige', day:0, time:1170, room:3 }, // Mon 7:30
     // Teen
     { name:'Teen Level 1 & 2 Ballet', teacher:'gaby', day:3, time:1110, room:4 }, // Thu 6:30
     { name:'Teen Level 2 & 3 Ballet', teacher:'gaby', day:3, time:1170, room:4 }, // Thu 7:30
-    { name:'Teen Level 1 & 2 Contemporary', teacher:'nicole', day:1, time:1110, room:1 }, // Tue 6:30
+    { name:'Teen Level 1 & 2 Contemporary', teacher:'cami', day:1, time:1110, room:1 }, // Tue 6:30
     { name:'Teen Level 1 & 2 Hip Hop', teacher:'jessy', day:1, time:1170, room:1 }, // Tue 7:30
     { name:'Teen Level 1 & 2 Hip Hop', teacher:'jessy', day:3, time:990, room:4 }, // Thu 4:30 (Teen 2&3 HH in tab3)
     { name:'Teen Level 1 Jazz', teacher:'paige', day:2, time:1170, room:4 }, // Wed 7:30
     { name:'Teen Level 1 Tap', teacher:'paige', day:2, time:1110, room:4 }, // Wed 6:30
     { name:'Teen Level 2 & 3 Tap', teacher:'cami', day:0, time:1110, room:5 }, // Mon 6:30
-    { name:'Teen Level 2 Contemporary', teacher:'nicole', day:3, time:1110, room:5 }, // Thu 6:30
-    { name:'Teen Level 3 Contemporary', teacher:'nicole', day:3, time:1170, room:5 }, // Thu 7:30 (guess)
+    { name:'Teen Level 2 Contemporary', teacher:'cami', day:3, time:1110, room:5 }, // Thu 6:30
+    { name:'Teen Level 3 Contemporary', teacher:'ashleigh', day:3, time:1170, room:5 }, // Thu 7:30
     { name:'Teen Level 2 & 3 Hip Hop', teacher:'jessy', day:3, time:990, room:5 }, // Thu 4:30
     { name:'Teen Level 2 Jazz', teacher:'jessy', day:0, time:1170, room:4 }, // Mon 7:30
     { name:'Teen Level 3 & 4 Hip Hop', teacher:'luke', day:3, time:1170, room:3 }, // Thu 7:30
