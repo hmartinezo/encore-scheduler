@@ -148,8 +148,8 @@ select, input { font-family:inherit; }
 .avail-cell { border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light); height:20px; cursor:pointer; transition:background .08s; }
 .avail-cell.available { background:#D1FAE5; }
 .avail-cell.available:hover { background:#A7F3D0; }
-.avail-cell.teaching { background:#93C5FD; }
-.avail-cell.teaching:hover { background:#60A5FA; }
+.avail-cell.teaching { background:#3B82F6; }
+.avail-cell.teaching:hover { background:#2563EB; }
 .avail-cell:hover { background:#F0F9FF; }
 .avail-header { background:#F8FAFC; font-size:.66rem; font-weight:600; color:var(--text-secondary); padding:.35rem; text-align:center; border-bottom:1px solid var(--border); cursor:default; }
 .avail-header.sat-toggle { cursor:pointer; user-select:none; }
@@ -1181,7 +1181,7 @@ function renderAvailability(){
   // Legend
   html += '<div class="avail-legend">';
   html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#D1FAE5;"></div> Available (click 1x)</div>';
-  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#93C5FD;"></div> Teaching (click 2x)</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#3B82F6;"></div> Teaching (click 2x)</div>';
   html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#F5F5F5;"></div> Not Available (click 3x / right-click)</div>';
   html += '</div>';
 
@@ -1281,27 +1281,30 @@ function renderAvailability(){
 }
 
 function getAvailSummary(teacherId){
-  // Build 2-row summary: Available and Teaching
-  const availPills = [];
+  // Row 1: full window (available + teaching merged) = when teacher is at the studio
+  // Row 2: just teaching times
+  const windowPills = [];
   const teachPills = [];
   for(let d=0; d<6; d++){
     const slots = state.availability[teacherId]?.[d];
     if(!slots || slots.length === 0) continue;
     const sorted = [...slots].sort((a,b)=>a.start-b.start);
-    const availSlots = sorted.filter(s => s.type === 'available');
-    const teachSlots = sorted.filter(s => s.type === 'teaching');
-    if(availSlots.length){
-      const ranges = mergeForDisplay(availSlots).map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
-      availPills.push('<span class="avail-day-pill type-available"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
+    // Full window = merge ALL slots regardless of type
+    const allRanges = mergeForDisplay(sorted);
+    if(allRanges.length){
+      const ranges = allRanges.map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
+      windowPills.push('<span class="avail-day-pill type-available"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
     }
+    // Teaching only
+    const teachSlots = sorted.filter(s => s.type === 'teaching');
     if(teachSlots.length){
       const ranges = mergeForDisplay(teachSlots).map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
       teachPills.push('<span class="avail-day-pill type-teaching"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
     }
   }
-  if(!availPills.length && !teachPills.length) return '<span style="color:var(--text-muted);font-style:italic;">No availability set &mdash; click the grid below to paint available hours</span>';
+  if(!windowPills.length && !teachPills.length) return '<span style="color:var(--text-muted);font-style:italic;">No availability set &mdash; click the grid below to paint available hours</span>';
   let html = '';
-  html += '<div class="avail-summary-row"><span class="avail-summary-label" style="color:#15803D;">&#9679; Available</span>' + (availPills.length ? availPills.join('') : '<span style="color:var(--text-muted);font-size:.7rem;">None</span>') + '</div>';
+  html += '<div class="avail-summary-row"><span class="avail-summary-label" style="color:#15803D;">&#9679; Available</span>' + (windowPills.length ? windowPills.join('') : '<span style="color:var(--text-muted);font-size:.7rem;">None</span>') + '</div>';
   html += '<div class="avail-summary-row"><span class="avail-summary-label" style="color:#2563EB;">&#9679; Teaching</span>' + (teachPills.length ? teachPills.join('') : '<span style="color:var(--text-muted);font-size:.7rem;">None</span>') + '</div>';
   return html;
 }
