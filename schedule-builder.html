@@ -1200,7 +1200,7 @@ function renderAvailability(){
       const hasClass = state.schedule.some(s => s.teacherId === availTeacher && s.day === d && s.startTime <= time && s.startTime + (CLASSES.find(c=>c.id===s.classId)?.duration||60) > time);
       let cls = 'avail-cell';
       if(avail) cls += ' available';
-      if(hasClass) cls += ' has-class';
+      if(hasClass) cls += ' teaching';
       html += '<div class="' + cls + '" data-day="' + d + '" data-time="' + time + '"></div>';
     }
     // Saturday column
@@ -1213,7 +1213,7 @@ function renderAvailability(){
         const hasClass = state.schedule.some(s => s.teacherId === availTeacher && s.day === 5 && s.startTime <= time && s.startTime + (CLASSES.find(c=>c.id===s.classId)?.duration||60) > time);
         let cls = 'avail-cell';
         if(avail) cls += ' available';
-        if(hasClass) cls += ' has-class';
+        if(hasClass) cls += ' teaching';
         html += '<div class="' + cls + '" data-day="5" data-time="' + time + '"></div>';
       }
     } else {
