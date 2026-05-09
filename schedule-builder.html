@@ -571,32 +571,20 @@ let state = {
 function buildAvailabilityFromSchedule(){
   TEACHERS.forEach(t => {
     state.availability[t.id] = {};
-    // Start with empty availability
     for(let d=0; d<6; d++) state.availability[t.id][d] = [];
   });
-  // For each scheduled class, mark teaching time + available buffer
+  // For each scheduled class, mark teacher available during that window (with 30min buffer)
   state.schedule.forEach(s => {
     const cls = CLASSES.find(c=>c.id===s.classId);
     if(!cls) return;
     const BUFFER = 30;
     const dayStart = s.day === 5 ? SAT_START : WEEKDAY_START;
     const dayEnd = s.day === 5 ? SAT_END : WEEKDAY_END;
-    const classStart = s.startTime;
-    const classEnd = s.startTime + cls.duration;
-    const bufferStart = Math.max(dayStart, classStart - BUFFER);
-    const bufferEnd = Math.min(dayEnd, classEnd + BUFFER);
+    const start = Math.max(dayStart, s.startTime - BUFFER);
+    const end = Math.min(dayEnd, s.startTime + cls.duration + BUFFER);
     if(!state.availability[s.teacherId]) state.availability[s.teacherId] = {};
     if(!state.availability[s.teacherId][s.day]) state.availability[s.teacherId][s.day] = [];
-    // Buffer before class = available
-    if(bufferStart < classStart){
-      state.availability[s.teacherId][s.day].push({ start:bufferStart, end:classStart, type:'available' });
-    }
-    // Class time = teaching
-    state.availability[s.teacherId][s.day].push({ start:classStart, end:classEnd, type:'teaching' });
-    // Buffer after class = available
-    if(classEnd < bufferEnd){
-      state.availability[s.teacherId][s.day].push({ start:classEnd, end:bufferEnd, type:'available' });
-    }
+    state.availability[s.teacherId][s.day].push({ start, end });
     mergeAvailSlots(s.teacherId, s.day);
   });
 }
@@ -646,11 +634,11 @@ function load(){
       state.schedule.forEach(s => {
         if(typeof s.room === 'number') s.room = ROOM_MAP_OLD[s.room] || 'fosse';
       });
-      // Migrate old availability slots without type field
+      // Migrate old availability slots: strip type field (teaching now derived from schedule)
       if(parsed.availability){
         for(const tid of Object.keys(parsed.availability)){
           for(const day of Object.keys(parsed.availability[tid])){
-            parsed.availability[tid][day].forEach(s => { if(!s.type) s.type = 'available'; });
+            parsed.availability[tid][day].forEach(s => { delete s.type; });
           }
         }
         state.availability = parsed.availability;
@@ -1180,9 +1168,9 @@ function renderAvailability(){
 
   // Legend
   html += '<div class="avail-legend">';
-  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#D1FAE5;"></div> Available (click 1x)</div>';
-  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#3B82F6;"></div> Teaching (click 2x)</div>';
-  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#F5F5F5;"></div> Not Available (click 3x / right-click)</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#D1FAE5;"></div> Available (click to toggle)</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#3B82F6;"></div> Teaching (from schedule)</div>';
+  html += '<div class="avail-legend-item"><div class="avail-legend-swatch" style="background:#F5F5F5;"></div> Not Available (right-click to clear)</div>';
   html += '</div>';
 
   // Grid
@@ -1248,21 +1236,14 @@ function renderAvailability(){
     const t = parseInt(cell.dataset.time);
     if(e.button === 2){
       // Right-click always clears
-      availPaintValue = 'clear';
+      availPaintValue = false;
       removeAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
     } else {
-      // Left-click cycles: empty → available → teaching → empty
-      const current = getCellType(availTeacher, d, t, AVAIL_SLOT_MINUTES);
-      if(current === 'none'){
-        availPaintValue = 'available';
-        setAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES, 'available');
-      } else if(current === 'available'){
-        availPaintValue = 'teaching';
-        setAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES, 'teaching');
-      } else {
-        availPaintValue = 'clear';
-        removeAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
-      }
+      // Left-click toggles available on/off (teaching is read-only from schedule)
+      const isAvail = isAvailableSlot(availTeacher, d, t, AVAIL_SLOT_MINUTES);
+      availPaintValue = !isAvail;
+      if(availPaintValue) addAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
+      else removeAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
     }
     renderAvailability();
   });
@@ -1272,8 +1253,8 @@ function renderAvailability(){
     if(!cell || cell.style.cursor === 'default') return;
     const d = parseInt(cell.dataset.day);
     const t = parseInt(cell.dataset.time);
-    if(availPaintValue === 'clear') removeAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
-    else setAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES, availPaintValue);
+    if(availPaintValue) addAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
+    else removeAvailabilityBlock(availTeacher, d, t, AVAIL_SLOT_MINUTES);
     renderAvailability();
   });
   grid.addEventListener('contextmenu', e => e.preventDefault());
@@ -1281,24 +1262,25 @@ function renderAvailability(){
 }
 
 function getAvailSummary(teacherId){
-  // Row 1: full window (available + teaching merged) = when teacher is at the studio
-  // Row 2: just teaching times
+  // Row 1: full availability window (from availability data)
+  // Row 2: teaching times (derived from state.schedule)
   const windowPills = [];
   const teachPills = [];
   for(let d=0; d<6; d++){
+    // Available: from availability data
     const slots = state.availability[teacherId]?.[d];
-    if(!slots || slots.length === 0) continue;
-    const sorted = [...slots].sort((a,b)=>a.start-b.start);
-    // Full window = merge ALL slots regardless of type
-    const allRanges = mergeForDisplay(sorted);
-    if(allRanges.length){
-      const ranges = allRanges.map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
+    if(slots && slots.length > 0){
+      const ranges = mergeForDisplay(slots).map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
       windowPills.push('<span class="avail-day-pill type-available"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
     }
-    // Teaching only
-    const teachSlots = sorted.filter(s => s.type === 'teaching');
-    if(teachSlots.length){
-      const ranges = mergeForDisplay(teachSlots).map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
+    // Teaching: from schedule
+    const dayClasses = state.schedule.filter(s => s.teacherId === teacherId && s.day === d);
+    if(dayClasses.length){
+      const teachRanges = dayClasses.map(s => {
+        const cls = CLASSES.find(c=>c.id===s.classId);
+        return { start:s.startTime, end:s.startTime + (cls?.duration||60) };
+      });
+      const ranges = mergeForDisplay(teachRanges).map(s => minutesToTimeShort(s.start) + '-' + minutesToTimeShort(s.end)).join(', ');
       teachPills.push('<span class="avail-day-pill type-teaching"><strong>' + DAY_SHORT[d] + '</strong> <span>' + ranges + '</span></span>');
     }
   }
@@ -1322,14 +1304,24 @@ function mergeForDisplay(slots){
 }
 
 function getCellType(teacherId, day, time, duration){
+  // Teaching: derived from actual schedule (source of truth)
+  const hasClass = state.schedule.some(s => {
+    if(s.teacherId !== teacherId || s.day !== day) return false;
+    const cls = CLASSES.find(c=>c.id===s.classId);
+    const classEnd = s.startTime + (cls?.duration||60);
+    return time < classEnd && (time + duration) > s.startTime;
+  });
+  if(hasClass) return 'teaching';
+  // Available: from painted availability data
   const slots = state.availability[teacherId]?.[day];
-  if(!slots) return 'none';
-  // Use overlap check (any part of cell intersects slot), not containment
-  const isTeaching = slots.some(s => s.type === 'teaching' && time < s.end && (time + duration) > s.start);
-  if(isTeaching) return 'teaching';
-  const isAvail = slots.some(s => s.type === 'available' && time < s.end && (time + duration) > s.start);
-  if(isAvail) return 'available';
+  if(slots && slots.some(s => time < s.end && (time + duration) > s.start)) return 'available';
   return 'none';
+}
+
+function isAvailableSlot(teacherId, day, time, duration){
+  const slots = state.availability[teacherId]?.[day];
+  if(!slots) return false;
+  return slots.some(s => time < s.end && (time + duration) > s.start);
 }
 
 function isAvailableRange(teacherId, day, time, duration){
@@ -1344,12 +1336,11 @@ function isAvailable(teacherId, day, time){
   return slots.some(s => time >= s.start && time < s.end);
 }
 
-function setAvailabilityBlock(teacherId, day, time, duration, type){
-  // Remove existing slots in this range first, then add new ones
+function setAvailabilityBlock(teacherId, day, time, duration){
   removeAvailabilityBlock(teacherId, day, time, duration);
   if(!state.availability[teacherId]) state.availability[teacherId] = {};
   if(!state.availability[teacherId][day]) state.availability[teacherId][day] = [];
-  state.availability[teacherId][day].push({ start:time, end:time+duration, type:type });
+  state.availability[teacherId][day].push({ start:time, end:time+duration });
   mergeAvailSlots(teacherId, day);
 }
 
@@ -1358,7 +1349,7 @@ function addAvailabilityBlock(teacherId, day, time, duration){
   if(!state.availability[teacherId][day]) state.availability[teacherId][day] = [];
   for(let t=time; t<time+duration; t+=15){
     if(!isAvailable(teacherId, day, t)){
-      state.availability[teacherId][day].push({ start:t, end:t+15, type:'available' });
+      state.availability[teacherId][day].push({ start:t, end:t+15 });
     }
   }
   mergeAvailSlots(teacherId, day);
@@ -1370,8 +1361,8 @@ function removeAvailabilityBlock(teacherId, day, time, duration){
     state.availability[teacherId][day] = state.availability[teacherId][day].flatMap(s => {
       if(t >= s.start && t < s.end){
         const result = [];
-        if(s.start < t) result.push({ start:s.start, end:t, type:s.type });
-        if(t + 15 < s.end) result.push({ start:t+15, end:s.end, type:s.type });
+        if(s.start < t) result.push({ start:s.start, end:t });
+        if(t + 15 < s.end) result.push({ start:t+15, end:s.end });
         return result;
       }
       return [s];
@@ -1382,29 +1373,12 @@ function removeAvailabilityBlock(teacherId, day, time, duration){
 function mergeAvailSlots(teacherId, day){
   const slots = state.availability[teacherId][day];
   if(!slots || slots.length < 2) return;
-  // Merge slots of the same type only
-  slots.sort((a,b)=>a.start-b.start || a.type.localeCompare(b.type));
+  slots.sort((a,b)=>a.start-b.start);
   const merged = [slots[0]];
   for(let i=1; i<slots.length; i++){
     const last = merged[merged.length-1];
-    if(slots[i].type === last.type && slots[i].start <= last.end){
+    if(slots[i].start <= last.end){
       last.end = Math.max(last.end, slots[i].end);
-    } else if(slots[i].type !== last.type && slots[i].start < last.end){
-      // Different types overlapping: teaching wins over available
-      if(slots[i].type === 'teaching' && last.type === 'available'){
-        const lastEnd = last.end;
-        last.end = slots[i].start; // trim available
-        if(last.end <= last.start) merged.pop();
-        merged.push(slots[i]);
-        if(slots[i].end < lastEnd) merged.push({ start:slots[i].end, end:lastEnd, type:'available' });
-      } else if(slots[i].type === 'available' && last.type === 'teaching'){
-        // available absorbed into teaching
-        if(slots[i].end > last.end){
-          merged.push({ start:last.end, end:slots[i].end, type:'available' });
-        }
-      } else {
-        merged.push(slots[i]);
-      }
     } else {
       merged.push(slots[i]);
     }
