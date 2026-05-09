@@ -3,366 +3,884 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mockup 3 — Google Calendar (Familiar Calendar UI)</title>
+<title>Mockup 3 — Google Calendar Style</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Roboto', sans-serif; background: #fff; color: #3C4043; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Roboto',sans-serif;background:#fff;color:#3C4043;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 
-  /* TOPBAR */
-  .topbar { display: flex; align-items: center; padding: 0.5rem 1rem; border-bottom: 1px solid #DADCE0; height: 56px; }
-  .topbar .menu { font-size: 1.2rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; color: #5F6368; }
-  .topbar .logo { display: flex; align-items: center; gap: 0.5rem; margin-right: 2rem; }
-  .topbar .logo span { font-size: 1.3rem; color: #5F6368; font-weight: 400; }
-  .topbar .today-btn { padding: 0.4rem 1rem; border: 1px solid #DADCE0; border-radius: 4px; background: #fff; cursor: pointer; font-family: inherit; font-size: 0.82rem; font-weight: 500; color: #3C4043; margin-right: 1rem; }
-  .topbar .today-btn:hover { background: #F1F3F4; }
-  .topbar .nav-arrows { display: flex; gap: 0.25rem; margin-right: 1rem; }
-  .topbar .nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #DADCE0; background: #fff; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; color: #5F6368; }
-  .topbar .nav-btn:hover { background: #F1F3F4; }
-  .topbar .period { font-size: 1.1rem; font-weight: 500; flex: 1; }
-  .topbar .teacher-dropdown { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border: 1px solid #DADCE0; border-radius: 4px; cursor: pointer; font-size: 0.82rem; min-width: 220px; }
-  .topbar .teacher-dropdown .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .topbar .room-dropdown { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; border: 1px solid #DADCE0; border-radius: 4px; cursor: pointer; font-size: 0.82rem; margin-left: 0.5rem; }
+/* EVENT COLORS */
+.ev-blue{background:#C2D9FC;border-left:4px solid #1A73E8;color:#174EA6;}
+.ev-green{background:#CEEAD6;border-left:4px solid #34A853;color:#137333;}
+.ev-purple{background:#D7C4ED;border-left:4px solid #7C3AED;color:#4A148C;}
+.ev-red{background:#FACFC7;border-left:4px solid #EA4335;color:#B31412;}
+.ev-yellow{background:#FEF1C7;border-left:4px solid #F9AB00;color:#7F6003;}
+.ev-teal{background:#C4EDE5;border-left:4px solid #0D9488;color:#0D6E64;}
+.ev-pink{background:#F8C8DC;border-left:4px solid #E91E63;color:#880E4F;}
+.ev-indigo{background:#C5CAE9;border-left:4px solid #3F51B5;color:#1A237E;}
+.ev-orange{background:#FDDCB5;border-left:4px solid #E8710A;color:#8B4513;}
+.ev-grey{background:#E8EAED;border-left:4px solid #9E9E9E;color:#5F6368;}
 
-  /* LAYOUT */
-  .layout { display: flex; height: calc(100vh - 56px); }
+/* TOP BAR */
+.topbar{display:flex;align-items:center;height:64px;padding:0 16px;border-bottom:1px solid #DADCE0;flex-shrink:0;background:#fff;z-index:50;}
+.topbar .menu-btn{width:48px;height:48px;border:none;background:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#5F6368;font-size:24px;}
+.topbar .menu-btn:hover{background:#F1F3F4;}
+.topbar .logo{display:flex;align-items:center;gap:8px;margin-left:4px;margin-right:24px;}
+.topbar .logo-icon{width:40px;height:40px;background:#1A73E8;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;}
+.topbar .logo-text{font-size:22px;color:#3C4043;font-weight:400;}
+.topbar .nav-group{display:flex;align-items:center;gap:8px;margin-right:24px;}
+.topbar .btn-today{padding:6px 16px;border:1px solid #DADCE0;border-radius:4px;background:#fff;color:#3C4043;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;}
+.topbar .btn-today:hover{background:#F1F3F4;}
+.topbar .nav-arrow{width:36px;height:36px;border:none;background:none;border-radius:50%;cursor:pointer;color:#5F6368;font-size:20px;display:flex;align-items:center;justify-content:center;}
+.topbar .nav-arrow:hover{background:#F1F3F4;}
+.topbar .period-label{font-size:22px;font-weight:400;color:#3C4043;white-space:nowrap;}
+.topbar .spacer{flex:1;}
+.topbar select{padding:6px 28px 6px 12px;border:1px solid #DADCE0;border-radius:4px;font-size:14px;font-family:inherit;color:#3C4043;background:#fff;cursor:pointer;appearance:auto;min-width:130px;}
+.topbar select:hover{background:#F1F3F4;}
 
-  /* TEACHER SIDEBAR */
-  .teacher-sidebar { width: 220px; border-right: 1px solid #DADCE0; padding: 1rem 0; overflow-y: auto; flex-shrink: 0; }
-  .teacher-sidebar h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #5F6368; padding: 0 1rem; margin-bottom: 0.5rem; }
-  .teacher-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; cursor: pointer; font-size: 0.78rem; transition: background 0.1s; border-left: 3px solid transparent; }
-  .teacher-item:hover { background: #F1F3F4; }
-  .teacher-item.active { background: #E8F0FE; border-left-color: #1A73E8; }
-  .teacher-item .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .teacher-item .info { flex: 1; min-width: 0; }
-  .teacher-item .tname { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .teacher-item .thrs { font-size: 0.65rem; color: #5F6368; }
-  .teacher-sidebar .add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; color: #1A73E8; font-size: 0.78rem; font-weight: 500; cursor: pointer; margin-top: 0.5rem; }
-  .section { margin-bottom: 1.5rem; }
+/* TABS BAR */
+.tabbar{display:flex;gap:0;border-bottom:1px solid #DADCE0;background:#fff;flex-shrink:0;padding:0 16px;}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:#5F6368;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;user-select:none;}
+.tab:hover{color:#1A73E8;background:#F1F3F4;}
+.tab.active{color:#1A73E8;border-bottom-color:#1A73E8;}
+.tab .badge{background:#E8EAED;color:#5F6368;font-size:11px;padding:1px 6px;border-radius:10px;margin-left:6px;}
+.tab.active .badge{background:#E8F0FE;color:#1A73E8;}
 
-  /* LEGEND */
-  .legend { padding: 1rem; border-top: 1px solid #DADCE0; }
-  .legend h3 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: #5F6368; margin-bottom: 0.5rem; }
-  .legend .item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #5F6368; margin-bottom: 0.25rem; }
-  .legend .swatch { width: 12px; height: 12px; border-radius: 2px; }
+/* LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden;}
 
-  /* STATS */
-  .stats { padding: 0.75rem 1rem; border-top: 1px solid #DADCE0; }
-  .stats .stat-row { display: flex; justify-content: space-between; font-size: 0.72rem; color: #5F6368; margin-bottom: 0.2rem; }
-  .stats .stat-row .val { font-weight: 600; color: #3C4043; }
+/* SIDEBAR */
+.sidebar{width:220px;border-right:1px solid #DADCE0;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;background:#fff;padding:12px 0;}
+.sidebar.collapsed{width:0;padding:0;border:none;overflow:hidden;}
+.sidebar h3{font-size:11px;font-weight:500;text-transform:uppercase;color:#70757A;padding:8px 16px 4px;letter-spacing:.8px;}
+.teacher-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;font-size:13px;color:#3C4043;border-radius:0 16px 16px 0;margin-right:8px;transition:background .1s;}
+.teacher-item:hover{background:#F1F3F4;}
+.teacher-item.active{background:#E8F0FE;font-weight:500;color:#1A73E8;}
+.teacher-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.teacher-hours{font-size:11px;color:#70757A;margin-left:auto;}
+.legend-section{padding:8px 16px;margin-top:8px;border-top:1px solid #DADCE0;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#5F6368;padding:2px 0;}
+.legend-swatch{width:12px;height:12px;border-radius:2px;}
+.stats-section{padding:12px 16px;margin-top:auto;border-top:1px solid #DADCE0;}
+.stat-row{display:flex;justify-content:space-between;font-size:12px;color:#5F6368;padding:2px 0;}
+.stat-val{font-weight:500;color:#3C4043;}
 
-  /* CALENDAR */
-  .calendar { flex: 1; overflow: auto; }
-  .cal-grid { display: grid; grid-template-columns: 56px repeat(6, 1fr); min-width: 700px; }
-  .cal-header { padding: 0.75rem 0.5rem; text-align: center; font-size: 0.72rem; font-weight: 500; color: #5F6368; border-bottom: 1px solid #DADCE0; background: #fff; position: sticky; top: 0; z-index: 5; }
-  .cal-header .day-label { font-size: 0.68rem; text-transform: uppercase; }
-  .cal-time-col { font-size: 0.62rem; color: #70757A; text-align: right; padding-right: 8px; border-right: 1px solid #DADCE0; height: 48px; display: flex; align-items: flex-start; justify-content: flex-end; margin-top: -6px; }
-  .cal-cell { border-right: 1px solid #F1F3F4; border-bottom: 1px solid #DADCE0; height: 48px; position: relative; }
-  .cal-cell:hover { background: #F8F9FA; }
+/* MAIN CONTENT */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.tab-panel{display:none;flex:1;overflow:auto;padding:20px;}
+.tab-panel.active{display:flex;flex-direction:column;}
 
-  /* EVENTS */
-  .event { position: absolute; left: 1px; right: 1px; border-radius: 4px; padding: 2px 6px; font-size: 0.68rem; overflow: hidden; cursor: pointer; z-index: 2; border-left: 4px solid; }
-  .event .ev-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .event .ev-teacher { opacity: 0.8; font-size: 0.62rem; }
-  .event .ev-room { opacity: 0.6; font-size: 0.58rem; }
-  .ev-blue { background: #C2D9FC; border-color: #1A73E8; color: #174EA6; }
-  .ev-green { background: #CEEAD6; border-color: #188038; color: #137333; }
-  .ev-purple { background: #D7C4ED; border-color: #7B1FA2; color: #5B2D8E; }
-  .ev-red { background: #FACFC7; border-color: #D93025; color: #B31412; }
-  .ev-yellow { background: #FEF1C7; border-color: #F9AB00; color: #8A6D00; }
-  .ev-teal { background: #C4EDE5; border-color: #0D9488; color: #065F46; }
-  .ev-pink { background: #F8C8DC; border-color: #D81B60; color: #AD1457; }
-  .ev-grey { background: #E8EAED; border-color: #5F6368; color: #3C4043; }
-  .ev-orange { background: #FDDCB5; border-color: #E8710A; color: #8A4B08; }
-  .ev-indigo { background: #C5CAE9; border-color: #3F51B5; color: #1A237E; }
+/* CALENDAR GRID */
+.cal-scroll{flex:1;overflow:auto;}
+.cal-header{display:flex;position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #DADCE0;flex-shrink:0;}
+.cal-header .time-gutter-h{width:56px;flex-shrink:0;}
+.cal-header .day-hdr{flex:1;text-align:center;padding:8px 0;border-left:1px solid #DADCE0;}
+.cal-header .day-name{font-size:11px;font-weight:500;text-transform:uppercase;color:#70757A;}
+.cal-body{display:flex;}
+.time-gutter{width:56px;flex-shrink:0;}
+.time-gutter .time-label{height:48px;display:flex;align-items:flex-start;justify-content:flex-end;padding-right:8px;font-size:10px;color:#70757A;position:relative;top:-5px;}
+.day-column{flex:1;border-left:1px solid #DADCE0;position:relative;}
+.day-column .slot{height:48px;border-bottom:1px solid #F1F3F4;cursor:pointer;position:relative;}
+.day-column .slot:hover{background:#F1F3F4;}
+.day-column .slot.hour-line{border-bottom:1px solid #DADCE0;}
 
-  /* CONFLICT */
-  .event.conflict { outline: 2px solid #D93025; outline-offset: -1px; }
-  .event.conflict::after { content: '!!!'; position: absolute; top: 2px; right: 4px; font-size: 0.6rem; color: #D93025; font-weight: 700; }
+/* EVENT BLOCKS */
+.event-block{position:absolute;border-radius:4px;padding:3px 6px;font-size:11px;cursor:pointer;overflow:hidden;z-index:5;min-height:24px;transition:box-shadow .15s;line-height:1.3;}
+.event-block:hover{box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:6;}
+.event-block .ev-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-block .ev-meta{font-size:10px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-block.conflict{outline:2px solid #EA4335;outline-offset:-2px;}
+.event-block.conflict::after{content:'!!!';position:absolute;top:2px;right:4px;font-size:9px;font-weight:700;color:#EA4335;}
+.event-block.col-left{width:48%!important;left:2px!important;}
+.event-block.col-right{width:48%!important;left:50%!important;}
 
-  /* SIDE-BY-SIDE EVENTS */
-  .event.col-left { right: 51%; }
-  .event.col-right { left: 51%; }
+/* FAB */
+.fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#fff;border:none;box-shadow:0 2px 10px rgba(0,0,0,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:40;transition:box-shadow .2s;}
+.fab:hover{box-shadow:0 4px 16px rgba(0,0,0,.35);}
+.fab .material-icons{color:#1A73E8;font-size:28px;}
 
-  /* FAB */
-  .fab { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #fff; border: 1px solid #DADCE0; border-radius: 24px; padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08); font-size: 0.85rem; font-weight: 500; color: #3C4043; z-index: 100; }
-  .fab:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.16), 0 6px 12px rgba(0,0,0,0.12); }
-  .fab .plus { font-size: 1.5rem; color: #1A73E8; font-weight: 300; line-height: 1; }
+/* UNASSIGNED PANEL */
+.unassigned-panel{width:260px;border-left:1px solid #DADCE0;display:flex;flex-direction:column;flex-shrink:0;background:#fff;overflow:hidden;transition:width .2s;}
+.unassigned-panel.collapsed{width:0;border:none;}
+.unassigned-panel .panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #DADCE0;flex-shrink:0;}
+.unassigned-panel .panel-header h3{font-size:14px;font-weight:500;color:#3C4043;}
+.unassigned-panel .panel-toggle{width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#5F6368;}
+.unassigned-panel .panel-toggle:hover{background:#F1F3F4;}
+.unassigned-panel .search-box{margin:8px 12px;padding:8px 12px;border:1px solid #DADCE0;border-radius:4px;font-size:13px;font-family:inherit;outline:none;}
+.unassigned-panel .search-box:focus{border-color:#1A73E8;}
+.unassigned-list{flex:1;overflow-y:auto;padding:4px 12px;}
+.unassigned-item{padding:6px 8px;margin-bottom:4px;border-radius:4px;font-size:12px;cursor:grab;border-left:4px solid #DADCE0;background:#F8F9FA;transition:background .1s;}
+.unassigned-item:hover{background:#E8F0FE;}
+.unassigned-item .ui-name{font-weight:500;}
+.unassigned-item .ui-meta{font-size:11px;color:#70757A;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:8px;width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DADCE0;}
+.modal-header h2{font-size:18px;font-weight:500;color:#3C4043;}
+.modal-close{width:36px;height:36px;border:none;background:none;border-radius:50%;cursor:pointer;color:#5F6368;font-size:20px;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:#F1F3F4;}
+.modal-body{padding:16px 24px;}
+.modal-body label{display:block;font-size:12px;font-weight:500;color:#5F6368;margin-bottom:4px;margin-top:12px;}
+.modal-body label:first-child{margin-top:0;}
+.modal-body select,.modal-body input{width:100%;padding:10px 12px;border:1px solid #DADCE0;border-radius:4px;font-size:14px;font-family:inherit;color:#3C4043;background:#fff;outline:none;}
+.modal-body select:focus,.modal-body input:focus{border-color:#1A73E8;box-shadow:0 0 0 2px #E8F0FE;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid #DADCE0;}
+.modal-footer .btn{padding:8px 20px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:inherit;}
+.btn-flat{background:none;color:#1A73E8;}
+.btn-flat:hover{background:#E8F0FE;}
+.btn-blue{background:#1A73E8;color:#fff;}
+.btn-blue:hover{background:#1765CC;}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{text-align:left;padding:10px 12px;font-weight:500;color:#5F6368;border-bottom:2px solid #DADCE0;font-size:12px;text-transform:uppercase;letter-spacing:.5px;}
+.data-table td{padding:10px 12px;border-bottom:1px solid #F1F3F4;color:#3C4043;}
+.data-table tr:hover td{background:#F8F9FA;}
+.style-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
+.status-assigned{color:#137333;font-weight:500;}
+.status-unassigned{color:#EA4335;font-weight:500;}
+
+/* TEACHER CARDS */
+.teacher-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.teacher-card{border:1px solid #DADCE0;border-radius:8px;padding:16px;transition:box-shadow .15s;}
+.teacher-card:hover{box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.teacher-card .tc-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.teacher-card .tc-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;font-size:14px;flex-shrink:0;}
+.teacher-card .tc-name{font-weight:500;font-size:14px;}
+.teacher-card .tc-styles{font-size:12px;color:#70757A;}
+.teacher-card .tc-stats{display:flex;gap:16px;font-size:13px;color:#5F6368;margin-top:8px;padding-top:8px;border-top:1px solid #F1F3F4;}
+.teacher-card .tc-stat-val{font-weight:500;color:#3C4043;}
+
+/* AVAILABILITY GRID */
+.avail-controls{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.avail-grid{display:grid;grid-template-columns:80px repeat(6,1fr);border:1px solid #DADCE0;border-radius:4px;overflow:hidden;}
+.avail-cell{height:24px;border-right:1px solid #F1F3F4;border-bottom:1px solid #F1F3F4;cursor:pointer;transition:background .1s;}
+.avail-cell.available{background:#C2D9FC;}
+.avail-cell:hover{opacity:.7;}
+.avail-header{background:#F8F9FA;font-size:11px;font-weight:500;color:#5F6368;display:flex;align-items:center;justify-content:center;padding:4px;border-right:1px solid #DADCE0;border-bottom:1px solid #DADCE0;}
+.avail-time{background:#F8F9FA;font-size:10px;color:#70757A;display:flex;align-items:center;justify-content:flex-end;padding:0 6px;border-right:1px solid #DADCE0;border-bottom:1px solid #F1F3F4;}
+
+/* CONFLICT LIST */
+.conflict-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border:1px solid #DADCE0;border-radius:8px;margin-bottom:8px;}
+.conflict-icon{color:#EA4335;flex-shrink:0;margin-top:2px;}
+.conflict-msg{font-size:13px;font-weight:500;color:#3C4043;}
+.conflict-detail{font-size:12px;color:#70757A;margin-top:2px;}
+.success-msg{text-align:center;padding:48px;color:#137333;font-size:16px;}
+
+/* EXPORT */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.export-card{border:1px solid #DADCE0;border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;}
+.export-card:hover{background:#F1F3F4;box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.export-card .material-icons{font-size:36px;color:#1A73E8;margin-bottom:8px;}
+.export-card h4{font-size:14px;font-weight:500;color:#3C4043;margin-bottom:4px;}
+.export-card p{font-size:12px;color:#70757A;}
+
+/* CONTEXT MENU */
+.ctx-menu{position:fixed;background:#fff;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.25);z-index:200;min-width:160px;padding:4px 0;display:none;}
+.ctx-menu .ctx-item{padding:8px 16px;font-size:13px;cursor:pointer;color:#3C4043;}
+.ctx-menu .ctx-item:hover{background:#F1F3F4;}
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <span class="menu">&#9776;</span>
-    <div class="logo">
-      <span>Encore Schedule</span>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button class="menu-btn" onclick="toggleSidebar()" title="Toggle sidebar"><span class="material-icons">menu</span></button>
+  <div class="logo">
+    <div class="logo-icon">E</div>
+    <span class="logo-text">Encore Schedule</span>
+  </div>
+  <div class="nav-group">
+    <button class="btn-today" onclick="renderAll()">Today</button>
+    <button class="nav-arrow" title="Previous"><span class="material-icons">chevron_left</span></button>
+    <button class="nav-arrow" title="Next"><span class="material-icons">chevron_right</span></button>
+    <span class="period-label">Weekly View -- 2026-2027</span>
+  </div>
+  <div class="spacer"></div>
+  <select id="filterTeacher" onchange="renderAll()" title="Filter by teacher">
+    <option value="">All Teachers</option>
+  </select>
+  <select id="filterRoom" onchange="renderAll()" style="margin-left:8px" title="Filter by room">
+    <option value="">All Rooms</option>
+    <option value="1">Room 1</option><option value="2">Room 2</option><option value="3">Room 3</option>
+    <option value="4">Room 4</option><option value="5">Room 5</option><option value="6">Room 6</option>
+  </select>
+</div>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <div class="tab active" data-tab="schedule" onclick="switchTab('schedule')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">calendar_today</span>Schedule</div>
+  <div class="tab" data-tab="classes" onclick="switchTab('classes')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">school</span>Classes <span class="badge" id="classCount"></span></div>
+  <div class="tab" data-tab="teachers" onclick="switchTab('teachers')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">people</span>Teachers</div>
+  <div class="tab" data-tab="availability" onclick="switchTab('availability')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">event_available</span>Availability</div>
+  <div class="tab" data-tab="conflicts" onclick="switchTab('conflicts')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">warning</span>Conflicts <span class="badge" id="conflictCount"></span></div>
+  <div class="tab" data-tab="export" onclick="switchTab('export')"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:4px">download</span>Export</div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <h3>Teachers</h3>
+    <div id="teacherList"></div>
+    <div class="legend-section">
+      <h3 style="padding:0 0 6px">Styles</h3>
+      <div id="legendList"></div>
     </div>
-    <button class="today-btn">Today</button>
-    <div class="nav-arrows">
-      <button class="nav-btn">&#8249;</button>
-      <button class="nav-btn">&#8250;</button>
-    </div>
-    <div class="period">Weekly View -- 2026-2027 Season</div>
-    <div class="teacher-dropdown">
-      <span class="dot" style="background:#1A73E8;"></span>
-      All Teachers (14)
-      <span style="color:#5F6368;">&#x25BE;</span>
-    </div>
-    <div class="room-dropdown">
-      All Rooms (6)
-      <span style="color:#5F6368;">&#x25BE;</span>
-    </div>
+    <div class="stats-section" id="sidebarStats"></div>
   </div>
 
-  <div class="layout">
-    <!-- TEACHER SIDEBAR -->
-    <aside class="teacher-sidebar">
-      <div class="section">
-        <h3>Teachers</h3>
-        <div class="teacher-item active">
-          <span class="dot" style="background:#1A73E8;"></span>
-          <div class="info"><div class="tname">All Teachers</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#D93025;"></span>
-          <div class="info"><div class="tname">Raynor vdM</div><div class="thrs">8 cls &middot; 10h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#188038;"></span>
-          <div class="info"><div class="tname">Courtney R.</div><div class="thrs">14 cls &middot; 16h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#7B1FA2;"></span>
-          <div class="info"><div class="tname">Vadim B.</div><div class="thrs">8 cls &middot; 14h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#F9AB00;"></span>
-          <div class="info"><div class="tname">Luke Spring</div><div class="thrs">10 cls &middot; 12h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#0D9488;"></span>
-          <div class="info"><div class="tname">Jessy Dawson</div><div class="thrs">14 cls &middot; 15h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#E91E63;"></span>
-          <div class="info"><div class="tname">Paige W.</div><div class="thrs">12 cls &middot; 14h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#FF6F00;"></span>
-          <div class="info"><div class="tname">Nicole C.</div><div class="thrs">7 cls &middot; 8h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#5C6BC0;"></span>
-          <div class="info"><div class="tname">Ashleigh W.</div><div class="thrs">7 cls &middot; 8h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#00838F;"></span>
-          <div class="info"><div class="tname">Gaby A.R.</div><div class="thrs">4 cls &middot; 5h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#4E342E;"></span>
-          <div class="info"><div class="tname">Cami S.</div><div class="thrs">5 cls &middot; 6h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#37474F;"></span>
-          <div class="info"><div class="tname">Liesl B.</div><div class="thrs">3 cls &middot; 3h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#C62828;"></span>
-          <div class="info"><div class="tname">Anastasiia B.</div><div class="thrs">3 cls &middot; 3h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#616161;"></span>
-          <div class="info"><div class="tname">Lorraine M.</div><div class="thrs">2 cls &middot; 2h</div></div>
-        </div>
-        <div class="teacher-item">
-          <span class="dot" style="background:#9E9E9E;"></span>
-          <div class="info"><div class="tname">Voice Teacher</div><div class="thrs">2 cls &middot; 2h</div></div>
-        </div>
-        <div class="add-btn">+ Add teacher</div>
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Schedule Tab -->
+    <div class="tab-panel active" id="panel-schedule" style="padding:0;display:flex;flex-direction:column;">
+      <div class="cal-header" id="calHeader"></div>
+      <div class="cal-scroll" id="calScroll">
+        <div class="cal-body" id="calBody"></div>
       </div>
+    </div>
 
-      <div class="stats">
-        <div class="stat-row"><span>Total classes</span><span class="val">107</span></div>
-        <div class="stat-row"><span>Scheduled</span><span class="val" style="color:#188038;">95</span></div>
-        <div class="stat-row"><span>Unassigned</span><span class="val" style="color:#D93025;">12</span></div>
-        <div class="stat-row"><span>Conflicts</span><span class="val" style="color:#D93025;">3</span></div>
+    <!-- Classes Tab -->
+    <div class="tab-panel" id="panel-classes">
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
+        <input type="text" id="classSearch" placeholder="Search classes..." style="padding:8px 12px;border:1px solid #DADCE0;border-radius:4px;font-size:13px;width:260px;font-family:inherit;" oninput="renderClasses()">
       </div>
+      <table class="data-table"><thead><tr>
+        <th>Name</th><th>Style</th><th>Duration</th><th>Day</th><th>Time</th><th>Teacher</th><th>Room</th><th>Status</th>
+      </tr></thead><tbody id="classTableBody"></tbody></table>
+    </div>
 
-      <div class="legend">
-        <h3>Style Colors</h3>
-        <div class="item"><span class="swatch" style="background:#C2D9FC;"></span> Jazz</div>
-        <div class="item"><span class="swatch" style="background:#F8C8DC;"></span> Tap</div>
-        <div class="item"><span class="swatch" style="background:#D7C4ED;"></span> Ballet</div>
-        <div class="item"><span class="swatch" style="background:#CEEAD6;"></span> Hip Hop</div>
-        <div class="item"><span class="swatch" style="background:#FEF1C7;"></span> Contemporary</div>
-        <div class="item"><span class="swatch" style="background:#C4EDE5;"></span> Ballroom/Broadway</div>
-        <div class="item"><span class="swatch" style="background:#FACFC7;"></span> Combo</div>
-        <div class="item"><span class="swatch" style="background:#E8EAED;"></span> Acting/Voice</div>
-        <div class="item"><span class="swatch" style="background:#C5CAE9;"></span> Team Rehearsal</div>
+    <!-- Teachers Tab -->
+    <div class="tab-panel" id="panel-teachers">
+      <div class="teacher-grid" id="teacherGrid"></div>
+    </div>
+
+    <!-- Availability Tab -->
+    <div class="tab-panel" id="panel-availability">
+      <div class="avail-controls">
+        <label style="font-size:13px;font-weight:500;margin:0">Teacher:</label>
+        <select id="availTeacher" onchange="renderAvailability()" style="padding:6px 12px;border:1px solid #DADCE0;border-radius:4px;font-size:13px;min-width:180px;font-family:inherit;"></select>
+        <span style="font-size:12px;color:#70757A;margin-left:8px;">Click/drag cells to toggle availability</span>
       </div>
-    </aside>
+      <div class="avail-grid" id="availGrid"></div>
+    </div>
 
-    <!-- CALENDAR -->
-    <div class="calendar">
-      <div class="cal-grid">
-        <div class="cal-header"></div>
-        <div class="cal-header"><div class="day-label">Mon</div></div>
-        <div class="cal-header"><div class="day-label">Tue</div></div>
-        <div class="cal-header"><div class="day-label">Wed</div></div>
-        <div class="cal-header"><div class="day-label">Thu</div></div>
-        <div class="cal-header"><div class="day-label">Fri</div></div>
-        <div class="cal-header"><div class="day-label">Sat</div></div>
+    <!-- Conflicts Tab -->
+    <div class="tab-panel" id="panel-conflicts">
+      <div id="conflictList"></div>
+    </div>
 
-        <!-- 4:00 PM -->
-        <div class="cal-time-col">4 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-grey col-left" style="top:0;height:94px;"><div class="ev-name">ETAP A/B/C Acting</div><div class="ev-teacher">Lorraine M. &middot; 60m</div><div class="ev-room">Rm 1</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Jr 1 HH M</div><div class="ev-teacher">Jessy D.</div></div>
+    <!-- Export Tab -->
+    <div class="tab-panel" id="panel-export">
+      <h2 style="font-size:18px;font-weight:500;margin-bottom:16px;">Export &amp; Import</h2>
+      <div class="export-grid">
+        <div class="export-card" onclick="exportCSV()">
+          <span class="material-icons">description</span>
+          <h4>Export CSV</h4>
+          <p>Download schedule as spreadsheet</p>
         </div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ITP D Jazz</div><div class="ev-teacher">Courtney R.</div></div>
-          <div class="event ev-red col-right" style="top:0;height:34px;"><div class="ev-name">Munchkin Combo</div><div class="ev-teacher">Paige W. &middot; 45m</div></div>
+        <div class="export-card" onclick="exportJSON()">
+          <span class="material-icons">data_object</span>
+          <h4>Export JSON</h4>
+          <p>Full state backup</p>
         </div>
-        <div class="cal-cell">
-          <div class="event ev-red col-left" style="top:12px;height:46px;"><div class="ev-name">Mini 5&6 Jazz/Tap</div><div class="ev-teacher">Paige W.</div></div>
-          <div class="event ev-yellow col-right" style="top:12px;height:46px;"><div class="ev-name">Jr 3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
+        <div class="export-card" onclick="importJSON()">
+          <span class="material-icons">upload_file</span>
+          <h4>Import JSON</h4>
+          <p>Restore from backup</p>
         </div>
-        <div class="cal-cell">
-          <div class="event ev-purple col-left" style="top:12px;height:46px;"><div class="ev-name">ITP C Ballet</div><div class="ev-teacher">Vadim B.</div></div>
-          <div class="event ev-pink col-right" style="top:12px;height:46px;"><div class="ev-name">Mini 5&6 Ballet</div><div class="ev-teacher">Paige W.</div></div>
+        <div class="export-card" onclick="resetSchedule()">
+          <span class="material-icons">delete_forever</span>
+          <h4>Reset All</h4>
+          <p>Clear schedule &amp; start over</p>
         </div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:12px;height:46px;"><div class="ev-name">ITP C Jazz</div><div class="ev-teacher">Courtney R.</div></div>
-          <div class="event ev-purple col-right" style="top:12px;height:46px;"><div class="ev-name">ITP D Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-red col-left" style="top:0;height:34px;"><div class="ev-name">Munchkin Combo</div><div class="ev-teacher">Cami S. &middot; 45m</div></div>
-          <div class="event ev-green col-right" style="top:0;height:34px;"><div class="ev-name">Mini HH</div><div class="ev-teacher">Jessy D. &middot; 45m</div></div>
-        </div>
-
-        <!-- 5:00 PM -->
-        <div class="cal-time-col">5 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-grey col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Acting</div><div class="ev-teacher">Lorraine M.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Tw 1 Hip Hop</div><div class="ev-teacher">Jessy D.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-          <div class="event ev-purple col-right" style="top:0;height:46px;"><div class="ev-name">ITP B Ballet</div><div class="ev-teacher">Ashleigh W.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-yellow col-left" style="top:24px;height:46px;"><div class="ev-name">Jr 1 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Jr 3 HH</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-blue conflict col-left" style="top:0;height:70px;"><div class="ev-name">ETAP C/D Jazz 90m</div><div class="ev-teacher">Raynor vdM</div></div>
-          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 2&3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">ITP C Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:34px;"><div class="ev-name">Mini HH F</div><div class="ev-teacher">Jessy D. &middot; 45m</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-indigo col-left" style="top:0;height:24px;"><div class="ev-name">TM: Jazz Red</div></div>
-          <div class="event ev-indigo col-right" style="top:0;height:24px;"><div class="ev-name">TM: HH Green</div></div>
-        </div>
-
-        <!-- 6:00 PM -->
-        <div class="cal-time-col">6 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">Jr 2 Contemp</div><div class="ev-teacher">Cami S.</div></div>
-          <div class="event ev-purple col-right" style="top:0;height:46px;"><div class="ev-name">Jr 2&3 Ballet</div><div class="ev-teacher">Liesl B.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-pink col-left" style="top:0;height:46px;"><div class="ev-name">ITP D Tap</div><div class="ev-teacher">Courtney R.</div></div>
-          <div class="event ev-yellow col-right" style="top:0;height:46px;"><div class="ev-name">Tw 1 Contemp</div><div class="ev-teacher">Ashleigh W.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ITP A&B Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
-          <div class="event ev-pink col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 1 Tap</div><div class="ev-teacher">Courtney R.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:24px;height:70px;"><div class="ev-name">ETAP A/B Jazz 90m</div><div class="ev-teacher">Raynor vdM</div></div>
-          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 1&2 HH</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-pink col-left" style="top:24px;height:46px;"><div class="ev-name">ITP C Tap</div><div class="ev-teacher">Paige W.</div></div>
-          <div class="event ev-blue col-right" style="top:24px;height:46px;"><div class="ev-name">ITP D Jazz</div><div class="ev-teacher">Courtney R.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-indigo col-left" style="top:0;height:24px;"><div class="ev-name">TM: Contemp Blue</div></div>
-          <div class="event ev-indigo col-right" style="top:0;height:24px;"><div class="ev-name">TM: Mini Jazz</div></div>
-        </div>
-
-        <!-- 7:00 PM -->
-        <div class="cal-time-col">7 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:24px;height:46px;"><div class="ev-name">ETAP A/B Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
-          <div class="event ev-purple col-right" style="top:24px;height:70px;"><div class="ev-name">ETAP A/B Ballet+Pt</div><div class="ev-teacher">Vadim B. &middot; 90m</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-teal col-left" style="top:24px;height:46px;"><div class="ev-name">ETAP A/B Ballroom</div><div class="ev-teacher">Anastasiia B.</div></div>
-          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Teen 1&2 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">Jr 1 Ballet</div><div class="ev-teacher">Ashleigh W.</div></div>
-          <div class="event ev-green col-right" style="top:24px;height:46px;"><div class="ev-name">Tw 2&3 Tap</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-purple col-left" style="top:24px;height:46px;"><div class="ev-name">Teen 1&2 Ballet</div><div class="ev-teacher">Gaby A.R.</div></div>
-          <div class="event ev-yellow col-right" style="top:24px;height:46px;"><div class="ev-name">Teen 2&3 Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-red" style="top:24px;height:46px;"><div class="ev-name">Mini 6 Lv2 Jazz/Tap</div><div class="ev-teacher">Paige W.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-indigo" style="top:0;height:24px;"><div class="ev-name">TM: Jazz Yellow</div></div>
-        </div>
-
-        <!-- 8:00 PM -->
-        <div class="cal-time-col">8 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-blue col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Jazz</div><div class="ev-teacher">Raynor vdM</div></div>
-          <div class="event ev-pink col-right" style="top:24px;height:46px;"><div class="ev-name">ETAP C/D Tap</div><div class="ev-teacher">Courtney R.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-yellow col-left" style="top:0;height:46px;"><div class="ev-name">ETAP A/B Contemp</div><div class="ev-teacher">Nicole C.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Teen 1&2 HH</div><div class="ev-teacher">Jessy D.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-pink col-left" style="top:0;height:46px;"><div class="ev-name">ITP A&B Tap</div><div class="ev-teacher">Courtney R.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Tw 2 HH</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-purple col-left" style="top:0;height:70px;"><div class="ev-name">ETAP A/B Ballet 90m</div><div class="ev-teacher">Vadim B.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">Teen 3&4 HH</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell"></div>
-        <div class="cal-cell">
-          <div class="event ev-indigo" style="top:12px;height:24px;"><div class="ev-name">TM: HH Yellow</div></div>
-        </div>
-
-        <!-- 9:00 PM -->
-        <div class="cal-time-col">9 PM</div>
-        <div class="cal-cell">
-          <div class="event ev-blue" style="top:0;height:46px;"><div class="ev-name">Teen 2 Jazz</div><div class="ev-teacher">Jessy D.</div></div>
-        </div>
-        <div class="cal-cell">
-          <div class="event ev-teal conflict col-left" style="top:0;height:46px;"><div class="ev-name">ETAP C/D Ballroom</div><div class="ev-teacher">Anastasiia B.</div></div>
-          <div class="event ev-green col-right" style="top:0;height:46px;"><div class="ev-name">ETAP C/D HH</div><div class="ev-teacher">Luke S.</div></div>
-        </div>
-        <div class="cal-cell"></div>
-        <div class="cal-cell"></div>
-        <div class="cal-cell"></div>
-        <div class="cal-cell"></div>
       </div>
     </div>
   </div>
 
-  <!-- FAB -->
-  <div class="fab">
-    <span class="plus">+</span>
-    Assign Class
+  <!-- UNASSIGNED PANEL (schedule tab only) -->
+  <div class="unassigned-panel" id="unassignedPanel">
+    <div class="panel-header">
+      <h3>Unassigned <span id="unassignedCount" style="font-size:12px;color:#70757A;font-weight:400"></span></h3>
+      <button class="panel-toggle" onclick="toggleUnassigned()" title="Close"><span class="material-icons" style="font-size:18px">close</span></button>
+    </div>
+    <input type="text" class="search-box" id="unassignedSearch" placeholder="Search..." oninput="renderUnassigned()">
+    <div class="unassigned-list" id="unassignedList"></div>
   </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAssignModal()" title="Add class"><span class="material-icons">add</span></button>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Assign Class</h2>
+      <button class="modal-close" onclick="closeModal()"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <label>Class</label>
+      <select id="modalClass"></select>
+      <label>Teacher</label>
+      <select id="modalTeacher"></select>
+      <label>Day</label>
+      <select id="modalDay"></select>
+      <label>Start Time</label>
+      <select id="modalTime"></select>
+      <label>Room</label>
+      <select id="modalRoom">
+        <option value="1">Room 1</option><option value="2">Room 2</option><option value="3">Room 3</option>
+        <option value="4">Room 4</option><option value="5">Room 5</option><option value="6">Room 6</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-flat" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-blue" onclick="saveAssignment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="ctxEdit()"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:8px">edit</span>Edit</div>
+  <div class="ctx-item" onclick="ctxRemove()"><span class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:8px;color:#EA4335">delete</span>Remove</div>
+</div>
+
+<script src="core.js"></script>
+<script>
+/* ========== STYLE MAP ========== */
+const STYLE_COLOR = {
+  jazz:'ev-blue', tap:'ev-pink', ballet:'ev-purple', hiphop:'ev-green',
+  contemp:'ev-yellow', combo:'ev-indigo', broadway:'ev-red', acting:'ev-grey',
+  leaps:'ev-orange', ballroom:'ev-pink', team:'ev-teal', voice:'ev-grey'
+};
+function evColor(style){ return STYLE_COLOR[style]||'ev-blue'; }
+
+const STYLE_HEX = {
+  jazz:'#C2D9FC', tap:'#F8C8DC', ballet:'#D7C4ED', hiphop:'#CEEAD6',
+  contemp:'#FEF1C7', combo:'#C5CAE9', broadway:'#FACFC7', acting:'#E8EAED',
+  leaps:'#FDDCB5', ballroom:'#F8C8DC', team:'#C4EDE5', voice:'#E8EAED'
+};
+
+/* ========== TAB SWITCHING ========== */
+let activeTab = 'schedule';
+function switchTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  const up = document.getElementById('unassignedPanel');
+  up.style.display = tab==='schedule'?'':'none';
+  document.querySelector('.fab').style.display = tab==='schedule'?'':'none';
+  renderAll();
+}
+
+/* ========== SIDEBAR ========== */
+let sidebarOpen = true;
+function toggleSidebar(){
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+}
+
+let selectedTeacher = '';
+function selectTeacher(id){
+  selectedTeacher = selectedTeacher===id?'':id;
+  renderAll();
+}
+
+function renderSidebar(){
+  const tl = document.getElementById('teacherList');
+  tl.innerHTML = TEACHERS.map(t=>{
+    const hrs = getTeacherHours(t.id);
+    const cls = selectedTeacher===t.id?'teacher-item active':'teacher-item';
+    return `<div class="${cls}" onclick="selectTeacher('${t.id}')">
+      <span class="teacher-dot" style="background:${t.color}"></span>
+      <span>${t.short}</span>
+      <span class="teacher-hours">${hrs}h</span>
+    </div>`;
+  }).join('');
+
+  const ll = document.getElementById('legendList');
+  ll.innerHTML = STYLE_KEYS.map(k=>
+    `<div class="legend-item"><span class="legend-swatch" style="background:${STYLE_HEX[k]||'#E8EAED'}"></span>${STYLES[k]}</div>`
+  ).join('');
+
+  const assigned = state.schedule.length;
+  const total = CLASSES.length;
+  const conflicts = getConflicts().length;
+  document.getElementById('sidebarStats').innerHTML = `
+    <div class="stat-row"><span>Assigned</span><span class="stat-val">${assigned}/${total}</span></div>
+    <div class="stat-row"><span>Unassigned</span><span class="stat-val">${total-assigned}</span></div>
+    <div class="stat-row"><span>Conflicts</span><span class="stat-val" style="color:${conflicts?'#EA4335':'#137333'}">${conflicts}</span></div>`;
+}
+
+function getTeacherHours(tid){
+  let mins = 0;
+  state.schedule.forEach(s=>{
+    if(s.teacherId!==tid) return;
+    const c = CLASSES.find(cc=>cc.id===s.classId);
+    if(c) mins += c.duration;
+  });
+  return (mins/60).toFixed(1);
+}
+
+/* ========== CALENDAR GRID ========== */
+function renderCalendar(){
+  const filterT = document.getElementById('filterTeacher').value;
+  const filterR = document.getElementById('filterRoom').value;
+
+  // Header
+  document.getElementById('calHeader').innerHTML =
+    '<div class="time-gutter-h"></div>' +
+    DAYS.map((d,i)=>`<div class="day-hdr"><div class="day-name">${DAY_SHORT[i]}</div></div>`).join('');
+
+  // Body
+  const body = document.getElementById('calBody');
+  let gutterHtml = '<div class="time-gutter">';
+  TIME_SLOTS.forEach(t=>{
+    gutterHtml += `<div class="time-label">${t%60===0?minutesToTimeShort(t):''}</div>`;
+  });
+  gutterHtml += '</div>';
+
+  let colsHtml = '';
+  for(let d=0;d<6;d++){
+    colsHtml += `<div class="day-column" data-day="${d}">`;
+    TIME_SLOTS.forEach(t=>{
+      const inDay = isTimeInDay(t,d);
+      const hourLine = t%60===0?'hour-line':'';
+      if(inDay){
+        colsHtml += `<div class="slot ${hourLine}" data-day="${d}" data-time="${t}" ondblclick="cellDblClick(${d},${t})" ondragover="event.preventDefault()" ondrop="dropOnCell(event,${d},${t})"></div>`;
+      } else {
+        colsHtml += `<div class="slot" style="background:#F8F9FA;cursor:default;"></div>`;
+      }
+    });
+    colsHtml += '</div>';
+  }
+  body.innerHTML = gutterHtml + colsHtml;
+
+  // Gather events by day
+  const evByDay = {};
+  for(let d=0;d<6;d++) evByDay[d]=[];
+  state.schedule.forEach((s,idx)=>{
+    if(filterT && s.teacherId!==filterT) return;
+    if(filterR && s.room!==parseInt(filterR)) return;
+    if(selectedTeacher && s.teacherId!==selectedTeacher) return;
+    const c = CLASSES.find(cc=>cc.id===s.classId);
+    if(!c) return;
+    evByDay[s.day].push({s,c,idx});
+  });
+
+  const columns = body.querySelectorAll('.day-column');
+  for(let d=0;d<6;d++){
+    const col = columns[d];
+    if(!col) continue;
+    const events = evByDay[d];
+    const overlaps = detectOverlaps(events);
+
+    events.forEach(({s,c,idx})=>{
+      const slotIdx = TIME_SLOTS.indexOf(s.startTime);
+      if(slotIdx<0) return;
+      const topPx = slotIdx * 48;
+      const heightPx = (c.duration / SLOT_MINUTES) * 48 - 2;
+      const conflict = isConflict(idx);
+      const colorCls = evColor(c.style);
+      const teacher = teacherById(s.teacherId);
+      const overlapInfo = overlaps.get(idx);
+      let posClass = '';
+      if(overlapInfo && overlapInfo.total > 1){
+        posClass = overlapInfo.pos === 0 ? 'col-left' : 'col-right';
+      }
+
+      const el = document.createElement('div');
+      el.className = `event-block ${colorCls} ${conflict?'conflict':''} ${posClass}`;
+      el.style.cssText = `top:${topPx}px;height:${heightPx}px;left:2px;right:2px;`;
+      el.innerHTML = `<div class="ev-name">${c.name}</div><div class="ev-meta">${teacher?teacher.short:''} - Rm ${s.room}</div>`;
+      el.dataset.idx = idx;
+      el.setAttribute('draggable','true');
+      el.addEventListener('contextmenu', e=>showCtxMenu(e,idx));
+      el.addEventListener('dragstart', e=>dragStartEvent(e,idx));
+      col.appendChild(el);
+    });
+  }
+}
+
+function detectOverlaps(events){
+  const map = new Map();
+  for(let i=0;i<events.length;i++){
+    const a = events[i];
+    const aEnd = a.s.startTime + a.c.duration;
+    let group = [i];
+    for(let j=0;j<events.length;j++){
+      if(i===j) continue;
+      const b = events[j];
+      const bEnd = b.s.startTime + b.c.duration;
+      if(a.s.startTime < bEnd && b.s.startTime < aEnd) group.push(j);
+    }
+    if(group.length>1){
+      const sorted = [...new Set(group)].sort((x,y)=>events[x].s.startTime-events[y].s.startTime||x-y);
+      const pos = sorted.indexOf(i);
+      map.set(events[i].idx,{total:sorted.length,pos:pos%2});
+    }
+  }
+  return map;
+}
+
+/* ========== DRAG & DROP ========== */
+let dragIdx = -1;
+function dragStartEvent(e, idx){
+  dragIdx = idx;
+  e.dataTransfer.setData('text/plain', String(idx));
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dropOnCell(e, day, time){
+  e.preventDefault();
+  const fromUnassigned = e.dataTransfer.getData('classId');
+  if(fromUnassigned){
+    openAssignModal(parseInt(fromUnassigned), day, time);
+    return;
+  }
+  if(dragIdx < 0) return;
+  pushUndo();
+  state.schedule[dragIdx].day = day;
+  state.schedule[dragIdx].startTime = time;
+  dragIdx = -1;
+  saveState(); renderAll();
+  toast('Class moved');
+}
+
+function cellDblClick(day, time){
+  openAssignModal(null, day, time);
+}
+
+/* ========== UNASSIGNED PANEL ========== */
+let unassignedOpen = true;
+function toggleUnassigned(){
+  unassignedOpen = !unassignedOpen;
+  document.getElementById('unassignedPanel').classList.toggle('collapsed', !unassignedOpen);
+}
+
+function renderUnassigned(){
+  const list = document.getElementById('unassignedList');
+  const search = (document.getElementById('unassignedSearch').value||'').toLowerCase();
+  const unassigned = getUnassigned();
+  const items = unassigned.filter(c=>!search||c.name.toLowerCase().includes(search));
+  document.getElementById('unassignedCount').textContent = `(${unassigned.length})`;
+  list.innerHTML = items.map(c=>{
+    const colorCls = evColor(c.style);
+    return `<div class="unassigned-item ${colorCls}" draggable="true" ondragstart="dragUnassigned(event,${c.id})" ondblclick="openAssignModal(${c.id})">
+      <div class="ui-name">${c.name}</div>
+      <div class="ui-meta">${STYLES[c.style]} - ${c.duration}min</div>
+    </div>`;
+  }).join('');
+}
+
+function dragUnassigned(e, classId){
+  e.dataTransfer.setData('classId', String(classId));
+  e.dataTransfer.effectAllowed = 'copy';
+  dragIdx = -1;
+}
+
+/* ========== CONTEXT MENU ========== */
+let ctxIdx = -1;
+function showCtxMenu(e, idx){
+  e.preventDefault();
+  ctxIdx = idx;
+  const menu = document.getElementById('ctxMenu');
+  menu.style.display = 'block';
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+}
+function hideCtxMenu(){ document.getElementById('ctxMenu').style.display='none'; ctxIdx=-1; }
+function ctxEdit(){
+  hideCtxMenu();
+  if(ctxIdx<0) return;
+  openEditModal(ctxIdx);
+}
+function ctxRemove(){
+  hideCtxMenu();
+  if(ctxIdx<0) return;
+  pushUndo();
+  state.schedule.splice(ctxIdx,1);
+  saveState(); renderAll();
+  toast('Class removed');
+}
+document.addEventListener('click', hideCtxMenu);
+
+/* ========== MODAL ========== */
+let editingIdx = -1;
+
+function openAssignModal(classId, day, time){
+  editingIdx = -1;
+  document.getElementById('modalTitle').textContent = 'Assign Class';
+  populateModalClass(getUnassigned());
+  if(classId){
+    const sel = document.getElementById('modalClass');
+    sel.value = classId;
+  }
+  populateModalTeacher();
+  populateModalDay();
+  populateModalTime();
+  if(day!==undefined && day!==null) document.getElementById('modalDay').value = day;
+  if(time!==undefined && time!==null) document.getElementById('modalTime').value = time;
+  document.getElementById('assignModal').classList.add('open');
+}
+
+function openEditModal(idx){
+  editingIdx = idx;
+  const s = state.schedule[idx];
+  const c = CLASSES.find(cc=>cc.id===s.classId);
+  document.getElementById('modalTitle').textContent = 'Edit Assignment';
+  const sel = document.getElementById('modalClass');
+  sel.innerHTML = `<option value="${c.id}">${c.name}</option>`;
+  populateModalTeacher();
+  populateModalDay();
+  populateModalTime();
+  document.getElementById('modalTeacher').value = s.teacherId;
+  document.getElementById('modalDay').value = s.day;
+  document.getElementById('modalTime').value = s.startTime;
+  document.getElementById('modalRoom').value = s.room;
+  document.getElementById('assignModal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('assignModal').classList.remove('open'); editingIdx=-1; }
+
+function populateModalClass(list){
+  document.getElementById('modalClass').innerHTML = list.map(c=>
+    `<option value="${c.id}">${c.name} (${STYLES[c.style]}, ${c.duration}min)</option>`
+  ).join('');
+}
+
+function populateModalTeacher(){
+  document.getElementById('modalTeacher').innerHTML = TEACHERS.map(t=>
+    `<option value="${t.id}">${t.name}</option>`
+  ).join('');
+}
+
+function populateModalDay(){
+  document.getElementById('modalDay').innerHTML = DAYS.map((d,i)=>
+    `<option value="${i}">${d}</option>`
+  ).join('');
+}
+
+function populateModalTime(){
+  document.getElementById('modalTime').innerHTML = TIME_SLOTS.map(t=>
+    `<option value="${t}">${minutesToTime(t)}</option>`
+  ).join('');
+}
+
+function saveAssignment(){
+  const classId = parseInt(document.getElementById('modalClass').value);
+  const teacherId = document.getElementById('modalTeacher').value;
+  const day = parseInt(document.getElementById('modalDay').value);
+  const startTime = parseInt(document.getElementById('modalTime').value);
+  const room = parseInt(document.getElementById('modalRoom').value);
+  if(!classId) return;
+  pushUndo();
+  if(editingIdx >= 0){
+    state.schedule[editingIdx] = {...state.schedule[editingIdx], teacherId, day, startTime, room};
+    toast('Assignment updated');
+  } else {
+    state.schedule.push({classId, teacherId, day, startTime, room});
+    toast('Class assigned');
+  }
+  closeModal();
+  saveState(); renderAll();
+}
+
+/* ========== CLASSES TABLE ========== */
+function renderClasses(){
+  const search = (document.getElementById('classSearch').value||'').toLowerCase();
+  const tbody = document.getElementById('classTableBody');
+  const rows = CLASSES.filter(c=>!search||c.name.toLowerCase().includes(search)).map(c=>{
+    const s = state.schedule.find(ss=>ss.classId===c.id);
+    const t = s ? teacherById(s.teacherId) : null;
+    return `<tr>
+      <td>${c.name}</td>
+      <td><span class="style-chip" style="background:${STYLE_HEX[c.style]||'#E8EAED'}">${STYLES[c.style]}</span></td>
+      <td>${c.duration}min</td>
+      <td>${s?DAYS[s.day]:'-'}</td>
+      <td>${s?minutesToTime(s.startTime):'-'}</td>
+      <td>${t?t.short:'-'}</td>
+      <td>${s?'Room '+s.room:'-'}</td>
+      <td>${s?'<span class="status-assigned">Assigned</span>':'<span class="status-unassigned">Unassigned</span>'}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = rows.join('');
+  document.getElementById('classCount').textContent = CLASSES.length;
+}
+
+/* ========== TEACHERS TAB ========== */
+function renderTeachers(){
+  document.getElementById('teacherGrid').innerHTML = TEACHERS.map(t=>{
+    const hrs = getTeacherHours(t.id);
+    const count = state.schedule.filter(s=>s.teacherId===t.id).length;
+    return `<div class="teacher-card">
+      <div class="tc-header">
+        <div class="tc-avatar" style="background:${t.color}">${teacherInitials(t.id)}</div>
+        <div>
+          <div class="tc-name">${t.name}</div>
+          <div class="tc-styles">${t.styles.map(s=>STYLES[s]).join(', ')}</div>
+        </div>
+      </div>
+      <div class="tc-stats">
+        <div><span class="tc-stat-val">${count}</span> classes</div>
+        <div><span class="tc-stat-val">${hrs}</span> hours/week</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ========== AVAILABILITY TAB ========== */
+let availPainting = false, availPaintVal = false;
+function renderAvailability(){
+  const tid = document.getElementById('availTeacher').value;
+  const grid = document.getElementById('availGrid');
+  let html = '<div class="avail-header"></div>';
+  DAYS.forEach(d=>{ html += `<div class="avail-header">${d.substring(0,3)}</div>`; });
+  TIME_SLOTS.forEach(t=>{
+    html += `<div class="avail-time">${t%60===0?minutesToTimeShort(t):''}</div>`;
+    for(let d=0;d<6;d++){
+      const avail = isAvailable(tid,d,t);
+      const inDay = isTimeInDay(t,d);
+      if(inDay){
+        html += `<div class="avail-cell${avail?' available':''}" data-t="${tid}" data-d="${d}" data-time="${t}"
+          onmousedown="availStart(event,this)" onmouseenter="availMove(this)"></div>`;
+      } else {
+        html += `<div class="avail-cell" style="background:#F8F9FA;cursor:default;"></div>`;
+      }
+    }
+  });
+  grid.innerHTML = html;
+}
+
+function availStart(e, el){
+  e.preventDefault();
+  availPainting = true;
+  const tid=el.dataset.t, d=parseInt(el.dataset.d), t=parseInt(el.dataset.time);
+  availPaintVal = !isAvailable(tid,d,t);
+  toggleAvailSlot(tid,d,t,availPaintVal);
+  el.classList.toggle('available', availPaintVal);
+}
+function availMove(el){
+  if(!availPainting) return;
+  const tid=el.dataset.t, d=parseInt(el.dataset.d), t=parseInt(el.dataset.time);
+  if(!isTimeInDay(t,d)) return;
+  toggleAvailSlot(tid,d,t,availPaintVal);
+  el.classList.toggle('available', availPaintVal);
+}
+document.addEventListener('mouseup',()=>{ if(availPainting){ availPainting=false; saveState(); }});
+
+function toggleAvailSlot(tid, day, time, val){
+  if(!state.availability[tid]) state.availability[tid]={};
+  if(!state.availability[tid][day]) state.availability[tid][day]=[];
+  const slots = state.availability[tid][day];
+  if(val){
+    if(!slots.some(s=>time>=s.start && time<s.end)){
+      slots.push({start:time, end:time+SLOT_MINUTES});
+      mergeSlots(slots);
+    }
+  } else {
+    for(let i=slots.length-1;i>=0;i--){
+      const s=slots[i];
+      if(time>=s.start && time<s.end){
+        const parts=[];
+        if(s.start<time) parts.push({start:s.start,end:time});
+        if(time+SLOT_MINUTES<s.end) parts.push({start:time+SLOT_MINUTES,end:s.end});
+        slots.splice(i,1,...parts);
+      }
+    }
+  }
+}
+function mergeSlots(slots){
+  slots.sort((a,b)=>a.start-b.start);
+  for(let i=0;i<slots.length-1;){
+    if(slots[i].end>=slots[i+1].start){
+      slots[i].end=Math.max(slots[i].end,slots[i+1].end);
+      slots.splice(i+1,1);
+    } else i++;
+  }
+}
+
+/* ========== CONFLICTS TAB ========== */
+function renderConflicts(){
+  const conflicts = getConflicts();
+  const el = document.getElementById('conflictList');
+  document.getElementById('conflictCount').textContent = conflicts.length||'';
+  if(!conflicts.length){
+    el.innerHTML = '<div class="success-msg"><span class="material-icons" style="font-size:48px;display:block;margin-bottom:8px">check_circle</span>No conflicts found!</div>';
+    return;
+  }
+  el.innerHTML = conflicts.map(cf=>{
+    const a = state.schedule[cf.a], b = state.schedule[cf.b];
+    const ca = CLASSES.find(c=>c.id===a.classId), cb = CLASSES.find(c=>c.id===b.classId);
+    return `<div class="conflict-item">
+      <span class="material-icons conflict-icon">error</span>
+      <div>
+        <div class="conflict-msg">${cf.msg}</div>
+        <div class="conflict-detail">${ca?ca.name:'?'} vs ${cb?cb.name:'?'} -- ${DAYS[a.day]} ${minutesToTime(a.startTime)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ========== IMPORT ========== */
+function importJSON(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if(data.schedule){ pushUndo(); state.schedule=data.schedule; if(data.availability) state.availability=data.availability; saveState(); renderAll(); toast('Imported!'); }
+      } catch(err){ toast('Invalid file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* ========== INIT DROPDOWNS ========== */
+function initDropdowns(){
+  document.getElementById('filterTeacher').innerHTML =
+    '<option value="">All Teachers</option>' +
+    TEACHERS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+
+  document.getElementById('availTeacher').innerHTML =
+    TEACHERS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+}
+
+/* ========== RENDER ALL ========== */
+function renderAll(){
+  renderSidebar();
+  renderCalendar();
+  renderUnassigned();
+  renderClasses();
+  renderTeachers();
+  if(activeTab==='availability') renderAvailability();
+  renderConflicts();
+}
+
+/* ========== KEYBOARD ========== */
+document.addEventListener('keydown', e=>{
+  if(e.ctrlKey && e.key==='z'){ e.preventDefault(); undo(); }
+  if(e.ctrlKey && e.key==='y'){ e.preventDefault(); redo(); }
+  if(e.key==='Escape') closeModal();
+});
+
+/* ========== INIT ========== */
+loadState();
+seedFromTab3();
+initDropdowns();
+renderAll();
+</script>
 </body>
 </html>
