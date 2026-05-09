@@ -771,9 +771,9 @@ function renderUnassignedPage(){
 
   let html = '<h3 style="margin-bottom:.75rem;">' + unassigned.length + ' Unassigned Class' + (unassigned.length!==1?'es':'') + '</h3>';
   html += '<input type="text" id="unassigned-search-page" placeholder="Search classes..." oninput="filterUnassignedPage()" style="padding:.4rem .6rem;border:1px solid var(--border);border-radius:5px;font-size:.78rem;width:300px;margin-bottom:.75rem;">';
-  html += '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Eligible Teachers</th><th>Action</th></tr></thead><tbody id="unassigned-tbody">';
+  html += '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Room</th><th>Eligible Teachers</th><th>Action</th></tr></thead><tbody id="unassigned-tbody">';
   unassigned.forEach((c,i) => {
-    html += '<tr data-name="' + c.name.toLowerCase() + '"><td>' + (i+1) + '</td><td style="font-weight:600;">' + c.name + '</td><td><span class="style-tag style-' + c.style + '" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">' + (STYLES[c.style]||c.style) + '</span></td><td>' + c.duration + 'm</td><td style="font-size:.68rem;color:var(--text-secondary);">' + c.eligibleTeachers.map(id=>teacherShort(id)).join(', ') + '</td><td><button class="btn btn-sm btn-primary" onclick="showAssignModal(' + c.id + ')">Assign</button></td></tr>';
+    html += '<tr data-name="' + c.name.toLowerCase() + '"><td>' + (i+1) + '</td><td style="font-weight:600;">' + c.name + '</td><td><span class="style-tag style-' + c.style + '" style="font-size:.65rem;padding:.12rem .35rem;border-radius:3px;">' + (STYLES[c.style]||c.style) + '</span></td><td>' + c.duration + 'm</td><td>--</td><td style="font-size:.68rem;color:var(--text-secondary);">' + c.eligibleTeachers.map(id=>teacherShort(id)).join(', ') + '</td><td><button class="btn btn-sm btn-primary" onclick="showAssignModal(' + c.id + ')">Assign</button></td></tr>';
   });
   html += '</tbody></table>';
   view.innerHTML = html;
@@ -790,46 +790,75 @@ function filterUnassignedPage(){
 // RENDER: SCHEDULE CALENDAR
 // =============================================
 let focusDay = -1; // -1 = show all days equally, 0-5 = expanded day
+let satCollapsed = true; // Saturday starts collapsed
 
 function renderCalendar(){
   const wrap = document.getElementById('calendar-wrap');
   const filterTeacher = document.getElementById('filter-teacher').value;
   const filterRoom = document.getElementById('filter-room').value;
 
+  // Determine which days to show (5 if Saturday collapsed, 6 if expanded)
+  const showSat = !satCollapsed || focusDay === 5;
+  const numDays = showSat ? 6 : 5;
+
+  // Filter time slots: skip Saturday-only morning hours when Saturday is collapsed
+  const visibleSlots = satCollapsed && focusDay !== 5
+    ? TIME_SLOTS.filter(t => t >= WEEKDAY_START)
+    : TIME_SLOTS;
+
   // Build grid columns based on focus day
   let colTemplate;
   if(focusDay >= 0){
     const cols = [];
-    for(let d=0; d<6; d++){
+    for(let d=0; d<numDays; d++){
       cols.push(d === focusDay ? '4fr' : '0.5fr');
     }
     colTemplate = '56px ' + cols.join(' ');
   } else {
-    colTemplate = '56px repeat(6,1fr)';
+    colTemplate = '56px repeat(' + numDays + ',1fr)';
+  }
+
+  // Saturday toggle column when collapsed
+  if(satCollapsed && focusDay !== 5){
+    colTemplate += ' 28px';
   }
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
   html += '<div class="cal-header"></div>';
-  DAY_SHORT.forEach((d, idx) => {
+  const dayCount = showSat ? 6 : 5;
+  for(let idx=0; idx<dayCount; idx++){
     const isExpanded = focusDay === idx;
     const expandedStyle = isExpanded ? 'background:#DBEAFE;color:var(--primary);' : '';
-    const dayLabel = focusDay >= 0 && !isExpanded ? d.charAt(0) : (isExpanded ? DAYS[idx] : d);
-    html += '<div class="cal-header" style="cursor:pointer;' + expandedStyle + '" data-day-header="' + idx + '">' + dayLabel + '</div>';
-  });
+    const arrow = isExpanded ? ' &#9664;' : ' &#9654;';
+    let dayLabel;
+    if(isExpanded) dayLabel = DAYS[idx];
+    else if(focusDay >= 0) dayLabel = DAY_SHORT[idx].charAt(0);
+    else dayLabel = DAY_SHORT[idx];
+    html += '<div class="cal-header" style="cursor:pointer;user-select:none;' + expandedStyle + '" data-day-header="' + idx + '">' + dayLabel + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;">' + arrow + '</span></div>';
+  }
+  // Saturday toggle header when collapsed
+  if(satCollapsed && focusDay !== 5){
+    html += '<div class="cal-header" style="cursor:pointer;writing-mode:vertical-lr;padding:.3rem .1rem;font-size:.55rem;line-height:1;letter-spacing:1px;user-select:none;" data-sat-toggle="1" title="Show Saturday">+ Sat</div>';
+  }
 
-  TIME_SLOTS.forEach(time => {
+  const gridCols = dayCount + (satCollapsed && focusDay !== 5 ? 1 : 0);
+
+  visibleSlots.forEach(time => {
     const isHour = time % 60 === 0;
     html += '<div class="cal-time' + (isHour?' hour-mark':'') + '">' + (isHour?minutesToTime(time):'') + '</div>';
-    for(let d=0; d<6; d++){
+    for(let d=0; d<dayCount; d++){
       const valid = isTimeInDay(time, d);
       html += '<div class="cal-cell' + (valid?'':' unavailable') + '" data-day="' + d + '" data-time="' + time + '"></div>';
+    }
+    // Empty cell for Saturday toggle column
+    if(satCollapsed && focusDay !== 5){
+      html += '<div style="height:28px;background:#F5F5F5;border-bottom:1px solid var(--border-light);"></div>';
     }
   });
   html += '</div>';
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const headerCells = 7;
 
   state.schedule.forEach((sched, idx) => {
     if(filterTeacher && sched.teacherId !== filterTeacher) return;
@@ -839,10 +868,13 @@ function renderCalendar(){
     if(!cls) return;
 
     const dayCol = sched.day;
-    const timeRow = TIME_SLOTS.indexOf(sched.startTime);
-    if(timeRow < 0) return;
 
-    const cellIdx = headerCells + timeRow * 7 + 1 + dayCol;
+    const dayCount = showSat ? 6 : 5;
+    const totalGridCols = 1 + dayCount + (satCollapsed && focusDay !== 5 ? 1 : 0);
+    if(dayCol >= dayCount) return; // Saturday collapsed, skip
+    const timeRowInVisible = visibleSlots.indexOf(sched.startTime);
+    if(timeRowInVisible < 0) return;
+    const cellIdx = totalGridCols + timeRowInVisible * totalGridCols + 1 + dayCol;
     const cell = grid.children[cellIdx];
     if(!cell) return;
 
@@ -956,7 +988,26 @@ function renderCalendar(){
   grid.querySelectorAll('[data-day-header]').forEach(hdr => {
     hdr.addEventListener('click', () => {
       const d = parseInt(hdr.dataset.dayHeader);
-      focusDay = (focusDay === d) ? -1 : d;
+      if(d === 5){
+        // Saturday: toggle between expanded-focus and collapsed
+        if(focusDay === 5){
+          focusDay = -1;
+          satCollapsed = true; // collapse Saturday back
+        } else {
+          satCollapsed = false;
+          focusDay = 5;
+        }
+      } else {
+        focusDay = (focusDay === d) ? -1 : d;
+      }
+      renderCalendar();
+    });
+  });
+
+  // Saturday toggle (collapsed column)
+  grid.querySelectorAll('[data-sat-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      satCollapsed = false;
       renderCalendar();
     });
   });
@@ -1687,6 +1738,37 @@ function runOptimizer(strategy){
   return optimizerProposals[strategy];
 }
 
+function getStrategySummary(strategy, teacherChanges, levelChanges, bundleChanges){
+  let bullets = [];
+  const tc = teacherChanges.length, lc = levelChanges.length, bc = bundleChanges.length;
+  if(strategy === 'recommended'){
+    bullets.push('Balanced approach: applies all rules with standard bundling groups');
+    if(tc) bullets.push('Fixes ' + tc + ' teacher assignment' + (tc!==1?'s':'') + ' to match studio policies (e.g. Paige/Cami for minis, Luke for upper hip hop)');
+    if(lc) bullets.push('Resolves ' + lc + ' same-level conflict' + (lc!==1?'s':'') + ' -- students won\'t have to choose between classes at their level');
+    if(bc) bullets.push('Bundles ' + bc + ' class' + (bc!==1?'es':'') + ' back-to-back (Tap+Jazz, Ballet+Contemporary) so families make fewer trips');
+    if(!tc && !lc && !bc) bullets.push('No issues found -- schedule already follows all rules');
+    bullets.push('Recommended for most situations -- good balance of convenience and minimal disruption');
+  } else if(strategy === 'minimal'){
+    bullets.push('Conservative approach: only fixes rule violations, no schedule rearranging');
+    if(tc) bullets.push('Fixes ' + tc + ' teacher assignment' + (tc!==1?'s':'') + ' that violate studio policies');
+    if(lc) bullets.push('Resolves ' + lc + ' same-level scheduling conflict' + (lc!==1?'s':''));
+    bullets.push('Does NOT rearrange classes for bundling -- keeps current time slots');
+    bullets.push('Best when you want the fewest possible changes to the existing schedule');
+  } else if(strategy === 'maxbundle'){
+    bullets.push('Aggressive approach: maximizes back-to-back bundling with extra style pairings');
+    if(tc) bullets.push('Fixes ' + tc + ' teacher assignment' + (tc!==1?'s':'') + ' to match studio policies');
+    if(lc) bullets.push('Resolves ' + lc + ' same-level conflict' + (lc!==1?'s':''));
+    if(bc) bullets.push('Bundles ' + bc + ' class' + (bc!==1?'es':'') + ' including extra pairs: Jazz+Contemporary, Tap+Hip Hop, Ballet+Jazz');
+    bullets.push('More changes but maximizes family convenience -- fewer separate trips per week');
+  }
+  let html = '<div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem;margin-bottom:1rem;">';
+  html += '<h4 style="font-size:.78rem;font-weight:600;margin-bottom:.4rem;">Strategy Summary</h4>';
+  html += '<ul style="font-size:.72rem;color:var(--text-secondary);margin:0;padding-left:1.1rem;line-height:1.9;">';
+  bullets.forEach(b => html += '<li>' + b + '</li>');
+  html += '</ul></div>';
+  return html;
+}
+
 function renderOptimize(){
   const view = document.getElementById('optimize-view');
 
@@ -1719,6 +1801,9 @@ function renderOptimize(){
     '</div>';
   });
   html += '</div>';
+
+  // Strategy summary bullets
+  html += getStrategySummary(activeStrategy, teacherChanges, levelChanges, bundleChanges);
 
   if(!changes.length){
     html += '<div class="opt-hero">' +
