@@ -219,7 +219,7 @@ select, input { font-family:inherit; }
 .opt-sub-tab:hover { background:#E2E8F0; }
 .opt-sub-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
 .opt-findings-wrap { flex:1; overflow:auto; padding:1rem; }
-.opt-calendar-wrap { flex:1; overflow:auto; padding:.75rem; }
+.opt-calendar-wrap { flex:1; overflow:auto; padding:.75rem; min-height:0; }
 
 /* Findings stat cards */
 .findings-stats { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem; }
@@ -305,7 +305,7 @@ select, input { font-family:inherit; }
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
   <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
-  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~14M</span>
+  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~15M</span>
 </div>
 
 <!-- CONTENT -->
@@ -367,7 +367,7 @@ select, input { font-family:inherit; }
       </div>
     </div>
     <div id="sched-a-findings" class="opt-findings-wrap"></div>
-    <div id="sched-a-calendar" class="opt-calendar-wrap" style="display:none;"></div>
+    <div id="sched-a-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
   </div>
 
   <!-- SCHEDULE B TAB -->
@@ -383,7 +383,7 @@ select, input { font-family:inherit; }
       </div>
     </div>
     <div id="sched-b-findings" class="opt-findings-wrap"></div>
-    <div id="sched-b-calendar" class="opt-calendar-wrap" style="display:none;"></div>
+    <div id="sched-b-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
   </div>
 
   <!-- SCHEDULE C TAB -->
@@ -399,7 +399,7 @@ select, input { font-family:inherit; }
       </div>
     </div>
     <div id="sched-c-findings" class="opt-findings-wrap"></div>
-    <div id="sched-c-calendar" class="opt-calendar-wrap" style="display:none;"></div>
+    <div id="sched-c-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
   </div>
 
 </div>
