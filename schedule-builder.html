@@ -843,8 +843,8 @@ function getConflicts(){
       if(a.teacherId === b.teacherId){
         conflicts.push({ type:'teacher', a:i, b:j, msg:teacherShort(a.teacherId) + ' double-booked', ignored });
       }
-      // Same room
-      if(a.room === b.room){
+      // Same room (skip if either room is unassigned)
+      if(a.room && b.room && a.room === b.room){
         conflicts.push({ type:'room', a:i, b:j, msg:roomName(a.room) + ' overlap', ignored });
       }
       // Same level in same age group (Raynor's rule)
