@@ -237,8 +237,8 @@ select, input { font-family:inherit; }
   </div>
   <nav id="nav">
     <div class="nav-item active" data-tab="schedule"><span>&#128197;</span> Schedule</div>
-    <div class="nav-item" data-tab="classes"><span>&#128218;</span> Classes <span class="count" id="nav-class-count">107</span></div>
-    <div class="nav-item" data-tab="teachers"><span>&#128105;&#8205;&#127891;</span> Teachers <span class="count">13</span></div>
+    <div class="nav-item" data-tab="classes"><span>&#128218;</span> Classes <span class="count" id="nav-class-count">113</span></div>
+    <div class="nav-item" data-tab="teachers"><span>&#128105;&#8205;&#127891;</span> Teachers <span class="count">14</span></div>
     <div class="nav-item" data-tab="availability"><span>&#128338;</span> Availability</div>
     <div class="nav-item" data-tab="conflicts"><span>&#9888;&#65039;</span> Conflicts <span class="badge" id="nav-conflict-count">0</span></div>
     <div class="nav-item" data-tab="optimize"><span>&#10024;</span> AI Optimize <span class="badge" id="nav-opt-count" style="background:#3B82F6;">0</span></div>
@@ -418,6 +418,7 @@ const TEACHERS = [
   { id:'gaby', name:'Gaby Antunano Rodriguez', short:'Gaby A.R.', color:'#0891B2', styles:['ballet'] },
   { id:'liesl', name:'Liesl Balatsenko', short:'Liesl B.', color:'#57534E', styles:['ballet'] },
   { id:'cami', name:'Cami Stockman', short:'Cami S.', color:'#6D4C41', styles:['contemp','jazz','combo'] },
+  { id:'nicole', name:'Nicole Coleman', short:'Nicole C.', color:'#8B5CF6', styles:['contemp'] },
   { id:'lorraine', name:'Lorraine Magee', short:'Lorraine M.', color:'#546E7A', styles:['acting'] },
   { id:'voice', name:'Voice Teacher', short:'Voice T.', color:'#9E9E9E', styles:['voice'] },
 ];
@@ -526,61 +527,148 @@ function extractLevel(name){
   return null;
 }
 
-// Build class list
-const CLASS_NAMES = [
-  'Munchkin Age 3 & 4 Combo','Munchkin Age 3 & 4 Combo','Munchkin Age 3 & 4 Combo',
-  'Mini Age 4 & 5 Combo Jazz/Tap','Mini Age 4 & 5 Combo Hip Hop/Jazz',
-  'Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop','Mini Age 4-6 Hip Hop',
-  'Mini Age 5 & 6 Jazz/Tap','Mini Age 5 & 6 Jazz/Tap','Mini Age 5 & 6 Jazz/Tap',
-  'Mini Age 5 & 6 Ballet','Mini Age 5 & 6 Ballet',
-  'Junior Level 1 Ballet','Junior Level 1 Contemporary',
-  'Junior Level 1 Hip Hop','Junior Level 1 Hip Hop','Junior Level 1 Hip Hop','Junior Level 1 Hip Hop',
-  'Junior Level 1a Hip Hop',
-  'Junior Level 1 Jazz/Tap','Junior Level 1 Jazz/Tap','Junior Level 1 Jazz/Tap',
-  'Junior Level 2 Ballet','Junior Level 3 Ballet',
-  'Junior Level 2 Jazz','Junior Level 3 Jazz',
-  'Junior Level 2 Tap','Junior Level 3 Tap',
-  'Junior Level 2 Contemporary',
-  'Junior Level 2 Hip Hop','Junior Level 2 Hip Hop',
-  'Junior Level 3 Contemporary','Junior Level 3 Hip Hop',
-  'Junior Broadway Bound',
-  'Tween Level 1 Ballet','Tween Level 1 Hip Hop','Tween Level 1 & 2 Hip Hop',
-  'Tween Level 2 Hip Hop','Tween Level 2 Hip Hop',
-  'Tween Level 1 Contemporary','Tween Level 2 Contemporary','Tween Level 3 Contemporary',
-  'Tween Level 1 Tap','Tween Level 2 & 3 Tap',
-  'Tween Level 1 Jazz','Tween Level 2 Jazz',
-  'Tween/Teen Level 1 Jazz',
-  'Teen Level 1 & 2 Ballet','Teen Level 2 & 3 Ballet',
-  'Teen Level 1 & 2 Contemporary','Teen Level 1 & 2 Hip Hop','Teen Level 1 & 2 Hip Hop',
-  'Teen Level 1 Jazz','Teen Level 1 Tap','Teen Level 2 & 3 Tap',
-  'Teen Level 2 Contemporary','Teen Level 3 Contemporary',
-  'Teen Level 2 & 3 Hip Hop','Teen Level 2 Jazz',
-  'Teen Level 3 & 4 Hip Hop','Teen Level 3 Jazz',
-  'Tween/Teen Broadway Bound',
-  'ITP A Jazz','ITP A Jazz','ITP A Tap','ITP A Tap','ITP A Ballet','ITP A Ballet',
-  'ITP B & C Jazz','ITP B & C Jazz','ITP B & C Tap','ITP B & C Tap','ITP B & C Ballet','ITP B & C Ballet',
-  'ITP D Jazz','ITP D Jazz','ITP D Tap','ITP D Ballet',
-  'ITP E Jazz/Tap - 90 min','ITP E Jazz/Ballet - 90 min',
-  'ETAP A Jazz - 90 min','ETAP A Jazz - 60 min','ETAP A Tap','ETAP A Tap',
-  'ETAP A Ballet - 90 min','ETAP A Ballet - 90 min','ETAP A Ballet - 90 min with pointe after',
-  'ETAP A Hip Hop','ETAP A Contemporary','ETAP A Acting',
-  'ETAP B&C Jazz - 90 min','ETAP B&C Jazz - 60 min','ETAP B&C Tap','ETAP B&C Tap',
-  'ETAP B&C Ballet - 90 min','ETAP B&C Ballet - 90 min','ETAP B&C Ballet - 90 min with pointe after',
-  'ETAP B&C Hip Hop','ETAP B&C Contemporary','ETAP B&C Acting',
-  'ETAP D Jazz','ETAP D Jazz','ETAP D Tap','ETAP D Tap',
-  'ETAP D Ballet','ETAP D Ballet','ETAP D Hip Hop','ETAP D Contemporary',
-  'ETAP Company Leaps & Turns',
+// Authoritative schedule data (2026-2027)
+const SCHEDULE_DATA = [
+  // Adult
+  {name:'Adult Latin Jazz',day:1,start:1170,dur:60,teacher:'anastasiia'},
+  // ETAP C&D / ITP A crossover
+  {name:'ETAP C & D / ITP A Jazz',day:0,start:1170,dur:60,teacher:'raynor'},
+  {name:'ETAP C & D / ITP A Tap',day:0,start:1230,dur:60,teacher:'courtney'},
+  {name:'ETAP C&D / ITP A Ballet',day:0,start:1110,dur:60,teacher:'vadim'},
+  // ETAP Company
+  {name:'ETAP Company Leaps & Turns',day:5,start:780,dur:60,teacher:'raynor'},
+  // ETAP Level A/B
+  {name:'ETAP Level A/B Ballet',day:5,start:600,dur:90,teacher:'vadim'},
+  {name:'ETAP Level A/B Ballet',day:3,start:1200,dur:90,teacher:'vadim'},
+  {name:'ETAP Level A/B Ballet & Pointe',day:0,start:1170,dur:90,teacher:'vadim'},
+  {name:'ETAP Level A/B Ballroom',day:1,start:1110,dur:60,teacher:'anastasiia'},
+  {name:'ETAP Level A/B Contemporary',day:1,start:1170,dur:60,teacher:'nicole'},
+  {name:'ETAP Level A/B Hip Hop',day:1,start:1230,dur:60,teacher:'luke'},
+  {name:'ETAP Level A/B Jazz',day:0,start:1110,dur:60,teacher:'raynor'},
+  {name:'ETAP Level A/B Jazz',day:3,start:1110,dur:90,teacher:'raynor'},
+  {name:'ETAP Level A/B Tap',day:5,start:720,dur:60,teacher:'courtney'},
+  {name:'ETAP Level A/B Tap',day:1,start:1050,dur:60,teacher:'luke'},
+  {name:'ETAP Level A/B VOICE',day:0,start:1050,dur:60,teacher:'voice'},
+  {name:'ETAP Level A/B/C ACTING',day:0,start:990,dur:60,teacher:'lorraine'},
+  // ETAP Level C/D
+  {name:'ETAP Level C/D ACTING',day:0,start:1050,dur:60,teacher:'lorraine'},
+  {name:'ETAP Level C/D Ballet',day:5,start:690,dur:90,teacher:'vadim'},
+  {name:'ETAP Level C/D Ballet & Pre-Pointe',day:3,start:1110,dur:90,teacher:'vadim'},
+  {name:'ETAP Level C/D Ballroom',day:1,start:1230,dur:60,teacher:'anastasiia'},
+  {name:'ETAP Level C/D Contemporary',day:1,start:1050,dur:60,teacher:'nicole'},
+  {name:'ETAP Level C/D Hip Hop',day:1,start:1170,dur:60,teacher:'luke'},
+  {name:'ETAP Level C/D Jazz',day:3,start:1020,dur:90,teacher:'raynor'},
+  {name:'ETAP Level C/D Tap',day:1,start:1110,dur:60,teacher:'luke'},
+  {name:'ETAP Level C/D VOICE',day:0,start:990,dur:60,teacher:'voice'},
+  // ITP
+  {name:'ITP A & B / Teen 4 Ballet',day:3,start:1050,dur:60,teacher:'gaby'},
+  {name:'ITP A&B / Teen 4 Jazz',day:2,start:1110,dur:60,teacher:'raynor'},
+  {name:'ITP A&B / Teen 4 Tap',day:2,start:1170,dur:60,teacher:'courtney'},
+  {name:'ITP B Ballet',day:1,start:1050,dur:60,teacher:'ashleigh'},
+  {name:'ITP B/C Jazz',day:1,start:1170,dur:60,teacher:'courtney'},
+  {name:'ITP B/C Tap',day:1,start:1110,dur:60,teacher:'courtney'},
+  {name:'ITP C Ballet',day:3,start:990,dur:60,teacher:'vadim'},
+  {name:'ITP C Ballet',day:4,start:1050,dur:60,teacher:'gaby'},
+  {name:'ITP C Jazz',day:4,start:990,dur:60,teacher:'courtney'},
+  {name:'ITP C Tap',day:4,start:1110,dur:60,teacher:'paige'},
+  {name:'ITP D Ballet',day:4,start:990,dur:60,teacher:'gaby'},
+  {name:'ITP D Jazz',day:1,start:990,dur:60,teacher:'courtney'},
+  {name:'ITP D Jazz',day:4,start:1050,dur:60,teacher:'courtney'},
+  {name:'ITP D Tap',day:1,start:1050,dur:60,teacher:'courtney'},
+  // Junior
+  {name:'Junior Broadway Bound',day:2,start:990,dur:60,teacher:'courtney'},
+  {name:'Junior Level 1 Ballet',day:0,start:1050,dur:60,teacher:'liesl'},
+  {name:'Junior Level 1 Ballet',day:2,start:1110,dur:60,teacher:'ashleigh'},
+  {name:'Junior Level 1 Contemporary',day:2,start:1050,dur:60,teacher:'nicole'},
+  {name:'Junior Level 1 Hip Hop F*',day:4,start:1050,dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop M*',day:0,start:990,dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop R*',day:3,start:1050,dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop W*',day:2,start:990,dur:60,teacher:'luke'},
+  {name:'Junior Level 1 Jazz/Tap',day:5,start:600,dur:90,teacher:'paige'},
+  {name:'Junior Level 1 Jazz/Tap',day:0,start:1050,dur:90,teacher:'paige'},
+  {name:'Junior Level 1A Hip Hop',day:1,start:1110,dur:60,teacher:'jessy'},
+  {name:'Junior Level 1a Jazz/Tap',day:4,start:1005,dur:90,teacher:'paige'},
+  {name:'Junior Level 2 & 3 Ballet',day:0,start:1110,dur:60,teacher:'liesl'},
+  {name:'Junior Level 2 & 3 Jazz',day:3,start:990,dur:60,teacher:'courtney'},
+  {name:'Junior Level 2 & 3 Tap',day:3,start:1050,dur:60,teacher:'luke'},
+  {name:'Junior Level 2 Contemporary',day:0,start:1050,dur:60,teacher:'cami'},
+  {name:'Junior Level 2 Hip Hop',day:5,start:690,dur:60,teacher:'jessy'},
+  {name:'Junior Level 2 Hip Hop',day:1,start:990,dur:60,teacher:'luke'},
+  {name:'Junior Level 3 Contemporary',day:2,start:990,dur:60,teacher:'nicole'},
+  {name:'Junior Level 3 Hip Hop',day:2,start:1050,dur:60,teacher:'luke'},
+  // Mini
+  {name:'Mini Age 4 & 5 Combo',day:0,start:1005,dur:45,teacher:'cami'},
+  {name:'Mini Age 4 & 5 Combo Hip Hop/Jazz',day:1,start:1050,dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop F*',day:4,start:1005,dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop S*',day:5,start:615,dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop T*',day:1,start:1005,dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop W*',day:2,start:1050,dur:45,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Ballet',day:3,start:990,dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Ballet',day:1,start:1050,dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Jazz/Tap',day:5,start:660,dur:60,teacher:'cami'},
+  {name:'Mini Age 5 & 6 Jazz/Tap',day:2,start:990,dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Jazz/Tap R*',day:3,start:1050,dur:60,teacher:'paige'},
+  {name:'Mini Age 6 Level 2 Jazz/Tap',day:3,start:1110,dur:60,teacher:'paige'},
+  // Munchkin
+  {name:'Munchkin Age 3 & 4 Combo',day:5,start:600,dur:45,teacher:'cami'},
+  {name:'Munchkin Age 3 & 4 Combo',day:0,start:1005,dur:45,teacher:'paige'},
+  {name:'Munchkin Age 3 & 4 Combo',day:1,start:1005,dur:45,teacher:'paige'},
+  // Team Rehearsals
+  {name:'TEAM REHEARSAL: CONTEMPORARY BLUE',day:5,start:720,dur:30,teacher:'cami'},
+  {name:'TEAM REHEARSAL: CONTEMPORARY YELLOW',day:5,start:750,dur:30,teacher:'cami'},
+  {name:'TEAM REHEARSAL: GREEN HIP HOP',day:5,start:660,dur:30,teacher:'jessy'},
+  {name:'TEAM REHEARSAL: HIP HOP BLUE',day:5,start:750,dur:30,teacher:'jessy'},
+  {name:'TEAM REHEARSAL: HIP HOP YELLOW',day:5,start:810,dur:30,teacher:'jessy'},
+  {name:'TEAM REHEARSAL: JAZZ BLUE',day:5,start:690,dur:30,teacher:'courtney'},
+  {name:'TEAM REHEARSAL: JAZZ GREEN',day:5,start:690,dur:30,teacher:'paige'},
+  {name:'TEAM REHEARSAL: JAZZ RED',day:5,start:660,dur:30,teacher:'courtney'},
+  {name:'TEAM REHEARSAL: JAZZ YELLOW',day:5,start:780,dur:30,teacher:'courtney'},
+  {name:'TEAM REHEARSAL: MINI JAZZ',day:5,start:720,dur:30,teacher:'paige'},
+  {name:'TEAM REHEARSAL: TAP BLUE',day:5,start:630,dur:30,teacher:'courtney'},
+  // Teen
+  {name:'Teen Level 1 & 2 Ballet',day:3,start:1110,dur:60,teacher:'gaby'},
+  {name:'Teen Level 1 & 2 Contemporary',day:1,start:1110,dur:60,teacher:'nicole'},
+  {name:'Teen Level 1 & 2 Hip Hop',day:1,start:1170,dur:60,teacher:'jessy'},
+  {name:'Teen Level 1 Jazz',day:2,start:1170,dur:60,teacher:'paige'},
+  {name:'Teen Level 1 Tap',day:2,start:1110,dur:60,teacher:'paige'},
+  {name:'Teen Level 2 & 3 Ballet',day:3,start:1170,dur:60,teacher:'gaby'},
+  {name:'Teen Level 2 & 3 Contemporary',day:3,start:1110,dur:60,teacher:'nicole'},
+  {name:'Teen Level 2 & 3 Hip Hop',day:3,start:990,dur:60,teacher:'jessy'},
+  {name:'Teen Level 2 & 3 Tap',day:0,start:1110,dur:60,teacher:'cami'},
+  {name:'Teen Level 2 Jazz',day:0,start:1170,dur:60,teacher:'jessy'},
+  {name:'Teen Level 3 & 4 Hip Hop',day:3,start:1170,dur:60,teacher:'luke'},
+  {name:'Teen Level 3 Jazz',day:0,start:1170,dur:60,teacher:'cami'},
+  // Tween
+  {name:'Tween Level 1 & 2 Hip Hop',day:3,start:1110,dur:60,teacher:'luke'},
+  {name:'Tween Level 1 Ballet',day:1,start:1170,dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 1 Contemporary',day:1,start:1110,dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 1 Hip Hop',day:0,start:1050,dur:60,teacher:'jessy'},
+  {name:'Tween Level 1 Jazz',day:2,start:990,dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 1 Tap',day:2,start:1050,dur:60,teacher:'courtney'},
+  {name:'Tween Level 2 & 3 Contemporary',day:3,start:1050,dur:60,teacher:'nicole'},
+  {name:'Tween Level 2 & 3 Tap',day:2,start:1110,dur:60,teacher:'luke'},
+  {name:'Tween Level 2 Ballet',day:0,start:1170,dur:60,teacher:'liesl'},
+  {name:'Tween Level 2 Hip Hop',day:0,start:1110,dur:60,teacher:'jessy'},
+  {name:'Tween Level 2 Hip Hop',day:2,start:1170,dur:60,teacher:'luke'},
+  {name:'Tween Level 2 Jazz',day:2,start:1050,dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 3 Jazz',day:2,start:1170,dur:60,teacher:'ashleigh'},
+  {name:'Tween/Teen Broadway Bound',day:2,start:1110,dur:60,teacher:'courtney'},
+  {name:'Tween/Teen Level 1 Jazz',day:0,start:1170,dur:60,teacher:'paige'},
 ];
 
+// Build class list from schedule data
 let nextClassId = 1;
-const CLASSES = CLASS_NAMES.map(name => ({
-  id: nextClassId++,
-  name,
-  style: detectStyle(name),
-  duration: detectDuration(name),
-  eligibleTeachers: detectTeachers(name),
-  level: extractLevel(name),
-}));
+const CLASSES = SCHEDULE_DATA.map(d => {
+  const sameNameTeachers = [...new Set(SCHEDULE_DATA.filter(x=>x.name===d.name).map(x=>x.teacher))];
+  return {
+    id: nextClassId++,
+    name: d.name,
+    style: detectStyle(d.name),
+    duration: d.dur,
+    eligibleTeachers: sameNameTeachers,
+    level: extractLevel(d.name),
+  };
+});
 
 // =============================================
 // STATE
@@ -645,8 +733,9 @@ function redo(){
 }
 
 // localStorage
+const SCHEDULE_VERSION = 2;
 function save(){
-  const data = { ...state, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
+  const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
   document.getElementById('sidebar-footer').innerHTML = 'Auto-saved just now<br>' + ROOMS.length + ' rooms &middot; ' + TEACHERS.length + ' teachers &middot; ' + CLASSES.length + ' classes';
 }
@@ -655,6 +744,8 @@ function load(){
     const d = localStorage.getItem('encore-schedule-v1');
     if(d) {
       const parsed = JSON.parse(d);
+      // If data is from an older version, discard to re-seed with new class structure
+      if((parsed.version||1) < SCHEDULE_VERSION){ localStorage.removeItem('encore-schedule-v1'); return; }
       state.schedule = parsed.schedule || [];
       if(parsed.ignoredConflicts) state.ignoredConflicts = parsed.ignoredConflicts;
       // Migrate old integer room IDs to string IDs
@@ -2433,129 +2524,17 @@ document.addEventListener('keydown', e => {
 });
 
 // =============================================
-// SEED SCHEDULE FROM TAB 3 (2025-2026 data)
+// SEED SCHEDULE FROM AUTHORITATIVE DATA (2026-2027)
 // =============================================
 function seedFromTab3(){
   if(state.schedule.length > 0) return;
-
-  const tab3 = [
-    { name:'ETAP A Acting', teacher:'lorraine', day:0, time:990, room:'fosse' },
-    { name:'ETAP B&C Acting', teacher:'lorraine', day:0, time:1050, room:'fosse' },
-    { name:'ETAP A Jazz - 60 min', teacher:'raynor', day:0, time:1110, room:'fosse' },
-    { name:'ETAP B&C Jazz - 60 min', teacher:'raynor', day:0, time:1170, room:'fosse' },
-    { name:'ETAP A Ballet - 90 min with pointe after', teacher:'vadim', day:0, time:1170, room:'newyork' },
-    { name:'ETAP B&C Tap', teacher:'courtney', day:0, time:1230, room:'fosse' },
-    { name:'ETAP B&C Contemporary', teacher:'cami', day:1, time:1050, room:'fosse' },
-    { name:'ETAP A Tap', teacher:'luke', day:1, time:1050, room:'newyork' },
-    { name:'ETAP A Contemporary', teacher:'cami', day:1, time:1170, room:'fosse' },
-    { name:'ETAP B&C Hip Hop', teacher:'luke', day:1, time:1170, room:'newyork' },
-    { name:'ETAP A Hip Hop', teacher:'luke', day:1, time:1230, room:'fosse' },
-    { name:'ETAP A Tap', teacher:'courtney', day:5, time:720, room:'fosse' },
-    { name:'ETAP A Ballet - 90 min', teacher:'vadim', day:5, time:600, room:'fosse' },
-    { name:'ETAP A Ballet - 90 min', teacher:'vadim', day:3, time:1200, room:'fosse' },
-    { name:'ETAP A Jazz - 90 min', teacher:'raynor', day:3, time:1110, room:'newyork' },
-    { name:'ETAP B&C Jazz - 90 min', teacher:'raynor', day:3, time:1020, room:'newyork' },
-    { name:'ETAP B&C Ballet - 90 min', teacher:'vadim', day:3, time:1110, room:'fosse' },
-    { name:'ETAP B&C Ballet - 90 min', teacher:'vadim', day:5, time:690, room:'fosse' },
-    { name:'ETAP B&C Tap', teacher:'luke', day:1, time:1110, room:'newyork' },
-    { name:'ETAP D Jazz', teacher:'courtney', day:1, time:990, room:'fosse' },
-    { name:'ETAP D Jazz', teacher:'courtney', day:4, time:1050, room:'newyork' },
-    { name:'ETAP D Tap', teacher:'courtney', day:1, time:1050, room:'majestic' },
-    { name:'ETAP D Ballet', teacher:'gaby', day:3, time:1050, room:'newyork' },
-    { name:'ETAP D Ballet', teacher:'gaby', day:4, time:990, room:'newyork' },
-    { name:'ETAP Company Leaps & Turns', teacher:'raynor', day:5, time:780, room:'fosse' },
-    { name:'ITP A Jazz', teacher:'raynor', day:2, time:1110, room:'fosse' },
-    { name:'ITP A Tap', teacher:'courtney', day:2, time:1170, room:'fosse' },
-    { name:'ITP A Ballet', teacher:'gaby', day:3, time:1050, room:'majestic' },
-    { name:'ITP B & C Jazz', teacher:'courtney', day:1, time:1170, room:'majestic' },
-    { name:'ITP B & C Tap', teacher:'courtney', day:1, time:1110, room:'majestic' },
-    { name:'ITP B & C Ballet', teacher:'ashleigh', day:1, time:1050, room:'company' },
-    { name:'ITP D Jazz', teacher:'courtney', day:1, time:990, room:'newyork' },
-    { name:'ITP D Tap', teacher:'courtney', day:1, time:1050, room:'broadway' },
-    { name:'ITP D Ballet', teacher:'gaby', day:4, time:990, room:'majestic' },
-    { name:'ITP A Jazz', teacher:'raynor', day:2, time:1110, room:'newyork' },
-    { name:'ITP A Tap', teacher:'courtney', day:2, time:1170, room:'newyork' },
-    { name:'ITP A Ballet', teacher:'gaby', day:3, time:1110, room:'majestic' },
-    { name:'ITP B & C Jazz', teacher:'courtney', day:4, time:1110, room:'fosse' },
-    { name:'ITP B & C Tap', teacher:'paige', day:4, time:1110, room:'newyork' },
-    { name:'ITP B & C Ballet', teacher:'ashleigh', day:4, time:1050, room:'company' },
-    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:0, time:990, room:'newyork' },
-    { name:'Junior Level 1 Hip Hop', teacher:'luke', day:2, time:990, room:'newyork' },
-    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:3, time:1050, room:'majestic' },
-    { name:'Junior Level 1 Hip Hop', teacher:'jessy', day:4, time:1050, room:'majestic' },
-    { name:'Junior Level 1a Hip Hop', teacher:'jessy', day:1, time:1110, room:'company' },
-    { name:'Junior Level 1 Ballet', teacher:'liesl', day:0, time:1050, room:'majestic' },
-    { name:'Junior Level 1 Contemporary', teacher:'cami', day:2, time:1050, room:'majestic' },
-    { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:0, time:1050, room:'company' },
-    { name:'Junior Level 1 Jazz/Tap', teacher:'paige', day:2, time:1050, room:'company' },
-    { name:'Junior Level 1 Jazz/Tap', teacher:'courtney', day:3, time:990, room:'fosse' },
-    { name:'Junior Level 2 Ballet', teacher:'liesl', day:2, time:1110, room:'majestic' },
-    { name:'Junior Level 2 Jazz', teacher:'paige', day:2, time:1170, room:'majestic' },
-    { name:'Junior Level 2 Tap', teacher:'courtney', day:3, time:1050, room:'company' },
-    { name:'Junior Level 2 Contemporary', teacher:'cami', day:3, time:1110, room:'majestic' },
-    { name:'Junior Level 2 Hip Hop', teacher:'jessy', day:2, time:1110, room:'company' },
-    { name:'Junior Level 2 Hip Hop', teacher:'luke', day:4, time:990, room:'company' },
-    { name:'Junior Level 3 Ballet', teacher:'ashleigh', day:0, time:1110, room:'majestic' },
-    { name:'Junior Level 3 Jazz', teacher:'paige', day:0, time:1170, room:'majestic' },
-    { name:'Junior Level 3 Tap', teacher:'courtney', day:0, time:1230, room:'newyork' },
-    { name:'Junior Level 3 Contemporary', teacher:'cami', day:0, time:990, room:'majestic' },
-    { name:'Junior Level 3 Hip Hop', teacher:'jessy', day:0, time:1170, room:'company' },
-    { name:'Junior Broadway Bound', teacher:'courtney', day:5, time:600, room:'newyork' },
-    { name:'Tween Level 1 Ballet', teacher:'liesl', day:1, time:990, room:'company' },
-    { name:'Tween Level 1 Hip Hop', teacher:'jessy', day:1, time:990, room:'newyork' },
-    { name:'Tween Level 1 Contemporary', teacher:'ashleigh', day:3, time:990, room:'newyork' },
-    { name:'Tween Level 1 Tap', teacher:'courtney', day:3, time:1110, room:'newyork' },
-    { name:'Tween Level 1 Jazz', teacher:'ashleigh', day:3, time:1170, room:'newyork' },
-    { name:'Tween Level 1 & 2 Hip Hop', teacher:'jessy', day:3, time:990, room:'majestic' },
-    { name:'Tween Level 2 Hip Hop', teacher:'luke', day:0, time:990, room:'company' },
-    { name:'Tween Level 2 Hip Hop', teacher:'jessy', day:2, time:990, room:'majestic' },
-    { name:'Tween Level 2 Contemporary', teacher:'cami', day:2, time:1050, room:'newyork' },
-    { name:'Tween Level 2 Jazz', teacher:'paige', day:2, time:990, room:'company' },
-    { name:'Tween Level 2 & 3 Tap', teacher:'courtney', day:2, time:1110, room:'company' },
-    { name:'Tween Level 3 Contemporary', teacher:'ashleigh', day:4, time:1050, room:'newyork' },
-    { name:'Tween/Teen Level 1 Jazz', teacher:'cami', day:4, time:990, room:'fosse' },
-    { name:'Teen Level 1 & 2 Ballet', teacher:'gaby', day:4, time:1050, room:'company' },
-    { name:'Teen Level 1 & 2 Contemporary', teacher:'ashleigh', day:4, time:1110, room:'majestic' },
-    { name:'Teen Level 1 & 2 Hip Hop', teacher:'jessy', day:4, time:1110, room:'company' },
-    { name:'Teen Level 1 & 2 Hip Hop', teacher:'luke', day:3, time:1170, room:'company' },
-    { name:'Teen Level 1 Jazz', teacher:'cami', day:4, time:1170, room:'fosse' },
-    { name:'Teen Level 1 Tap', teacher:'paige', day:4, time:1170, room:'newyork' },
-    { name:'Teen Level 2 & 3 Ballet', teacher:'gaby', day:3, time:1170, room:'newyork' },
-    { name:'Teen Level 2 Contemporary', teacher:'ashleigh', day:3, time:1230, room:'newyork' },
-    { name:'Teen Level 2 Jazz', teacher:'cami', day:3, time:1230, room:'majestic' },
-    { name:'Teen Level 2 & 3 Tap', teacher:'courtney', day:4, time:1170, room:'majestic' },
-    { name:'Teen Level 2 & 3 Hip Hop', teacher:'luke', day:4, time:1230, room:'company' },
-    { name:'Teen Level 3 Contemporary', teacher:'ashleigh', day:2, time:1170, room:'company' },
-    { name:'Teen Level 3 Jazz', teacher:'cami', day:2, time:1230, room:'company' },
-    { name:'Teen Level 3 & 4 Hip Hop', teacher:'luke', day:2, time:1230, room:'majestic' },
-    { name:'Tween/Teen Broadway Bound', teacher:'courtney', day:5, time:660, room:'newyork' },
-    { name:'Munchkin Age 3 & 4 Combo', teacher:'paige', day:0, time:960, room:'company' },
-    { name:'Munchkin Age 3 & 4 Combo', teacher:'cami', day:2, time:960, room:'fosse' },
-    { name:'Munchkin Age 3 & 4 Combo', teacher:'paige', day:5, time:540, room:'newyork' },
-    { name:'Mini Age 4 & 5 Combo Jazz/Tap', teacher:'paige', day:1, time:960, room:'fosse' },
-    { name:'Mini Age 4 & 5 Combo Hip Hop/Jazz', teacher:'jessy', day:3, time:960, room:'company' },
-    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:0, time:960, room:'newyork' },
-    { name:'Mini Age 4-6 Hip Hop', teacher:'paige', day:1, time:960, room:'newyork' },
-    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:2, time:960, room:'newyork' },
-    { name:'Mini Age 4-6 Hip Hop', teacher:'jessy', day:5, time:540, room:'majestic' },
-    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'paige', day:0, time:960, room:'broadway' },
-    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'cami', day:1, time:960, room:'majestic' },
-    { name:'Mini Age 5 & 6 Jazz/Tap', teacher:'paige', day:3, time:960, room:'newyork' },
-    { name:'Mini Age 5 & 6 Ballet', teacher:'paige', day:2, time:960, room:'company' },
-    { name:'Mini Age 5 & 6 Ballet', teacher:'paige', day:5, time:540, room:'company' },
-  ];
-
-  const usedClassIds = new Set();
-  tab3.forEach(entry => {
-    const cls = CLASSES.find(c => c.name === entry.name && !usedClassIds.has(c.id));
-    if(!cls) return;
-    usedClassIds.add(cls.id);
+  SCHEDULE_DATA.forEach((d, i) => {
     state.schedule.push({
-      classId: cls.id,
-      teacherId: entry.teacher,
-      day: entry.day,
-      startTime: entry.time,
-      room: entry.room,
+      classId: i + 1,
+      teacherId: d.teacher,
+      day: d.day,
+      startTime: d.start,
+      room: '',
     });
   });
   save();
