@@ -305,7 +305,7 @@ select, input { font-family:inherit; }
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
   <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
-  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~12M</span>
+  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~13M</span>
 </div>
 
 <!-- CONTENT -->
@@ -1895,20 +1895,51 @@ function renderOptionFindings(key){
 // =============================================
 // READ-ONLY CALENDAR FOR SCHEDULE OPTIONS
 // =============================================
+// Per-option calendar focus state (mirrors main calendar's focusDay/satCollapsed)
+let optFocusDay = { a:-1, b:-1, c:-1 };
+let optSatCollapsed = { a:true, b:true, c:true };
+
 function renderOptionCalendarView(key){
   const r = autoScheduleResults[key];
   const meta = OPTION_META[key];
   const wrap = document.getElementById('sched-' + key + '-calendar');
+  const fd = optFocusDay[key];
+  const sc = optSatCollapsed[key];
 
-  const visibleSlots = TIME_SLOTS;
-  const numDays = 6;
-  const colTemplate = '56px repeat(6,1fr)';
+  const showSat = !sc || fd === 5;
+  const numDays = showSat ? 6 : 5;
+
+  const visibleSlots = sc && fd !== 5
+    ? TIME_SLOTS.filter(t => t >= WEEKDAY_START)
+    : TIME_SLOTS;
+
+  let colTemplate;
+  if(fd >= 0){
+    const cols = [];
+    for(let d = 0; d < numDays; d++) cols.push(d === fd ? '4fr' : '0.5fr');
+    colTemplate = '56px ' + cols.join(' ');
+  } else {
+    colTemplate = '56px repeat(' + numDays + ',1fr)';
+  }
+  if(sc && fd !== 5) colTemplate += ' 28px';
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
   html += '<div class="cal-header"></div>';
   for(let d = 0; d < numDays; d++){
-    html += '<div class="cal-header">' + DAY_SHORT[d] + '</div>';
+    const isExpanded = fd === d;
+    const expandedStyle = isExpanded ? 'background:#DBEAFE;color:var(--primary);' : '';
+    const arrow = isExpanded ? ' &#9664;' : ' &#9654;';
+    let dayLabel;
+    if(isExpanded) dayLabel = DAYS[d];
+    else if(fd >= 0) dayLabel = DAY_SHORT[d].charAt(0);
+    else dayLabel = DAY_SHORT[d];
+    html += '<div class="cal-header" style="cursor:pointer;user-select:none;' + expandedStyle + '" data-opt-day-header="' + d + '" data-opt-key="' + key + '">' + dayLabel + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;">' + arrow + '</span></div>';
   }
+  if(sc && fd !== 5){
+    html += '<div class="cal-header" style="cursor:pointer;writing-mode:vertical-lr;padding:.3rem .1rem;font-size:.55rem;line-height:1;letter-spacing:1px;user-select:none;" data-opt-sat-toggle="' + key + '" title="Show Saturday">+ Sat</div>';
+  }
+
+  const gridCols = numDays + (sc && fd !== 5 ? 1 : 0);
 
   visibleSlots.forEach(time => {
     const isHour = time % 60 === 0;
@@ -1917,18 +1948,22 @@ function renderOptionCalendarView(key){
       const valid = isTimeInDay(time, d);
       html += '<div class="cal-cell' + (valid ? '' : ' unavailable') + '" data-day="' + d + '" data-time="' + time + '"></div>';
     }
+    if(sc && fd !== 5){
+      html += '<div style="height:28px;background:#F5F5F5;border-bottom:1px solid var(--border-light);"></div>';
+    }
   });
   html += '</div>';
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const totalGridCols = 1 + numDays;
+  const totalGridCols = 1 + numDays + (sc && fd !== 5 ? 1 : 0);
 
   // Render ALL assignments (existing + auto-placed)
   r.allAssignments.forEach(a => {
     const cls = CLASSES.find(c => c.id === a.classId);
     if(!cls) return;
 
+    if(a.day >= numDays) return; // Saturday collapsed, skip
     const timeRowInVisible = visibleSlots.indexOf(a.startTime);
     if(timeRowInVisible < 0) return;
     const cellIdx = totalGridCols + timeRowInVisible * totalGridCols + 1 + a.day;
@@ -1959,6 +1994,7 @@ function renderOptionCalendarView(key){
 
     const teacher = teacherById(a.teacherId);
     const isNew = !state.schedule.some(s => s.classId === a.classId);
+    const isCollapsedDay = fd >= 0 && a.day !== fd;
 
     const block = document.createElement('div');
     block.className = 'class-block style-' + style + colClass;
@@ -1966,10 +2002,45 @@ function renderOptionCalendarView(key){
     block.style.top = '0px';
     block.style.height = height + 'px';
     block.style.cursor = 'default';
-    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + roomName(a.room) + ' &middot; ' + a.dur + 'm</div>';
+    if(isCollapsedDay){
+      block.innerHTML = '';
+      block.style.padding = '0';
+      block.style.fontSize = '0';
+    } else {
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + roomName(a.room) + ' &middot; ' + a.dur + 'm</div>';
+    }
     block.title = cls.name + '\n' + (teacher ? teacher.name : '?') + '\n' + DAYS[a.day] + ' ' + minutesToTime(a.startTime) + '-' + minutesToTime(a.startTime + a.dur) + '\n' + roomName(a.room) + (isNew ? '\n(NEW - auto-placed)' : '');
 
     cell.appendChild(block);
+  });
+
+  // Day header click to expand/collapse
+  grid.querySelectorAll('[data-opt-day-header]').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const d = parseInt(hdr.dataset.optDayHeader);
+      const k = hdr.dataset.optKey;
+      if(d === 5){
+        if(optFocusDay[k] === 5){
+          optFocusDay[k] = -1;
+          optSatCollapsed[k] = true;
+        } else {
+          optSatCollapsed[k] = false;
+          optFocusDay[k] = 5;
+        }
+      } else {
+        optFocusDay[k] = (optFocusDay[k] === d) ? -1 : d;
+      }
+      renderOptionCalendarView(k);
+    });
+  });
+
+  // Saturday toggle (collapsed column)
+  grid.querySelectorAll('[data-opt-sat-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const k = btn.dataset.optSatToggle;
+      optSatCollapsed[k] = false;
+      renderOptionCalendarView(k);
+    });
   });
 }
 
