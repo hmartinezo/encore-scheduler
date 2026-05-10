@@ -305,7 +305,7 @@ select, input { font-family:inherit; }
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
   <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
-  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~13M</span>
+  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~14M</span>
 </div>
 
 <!-- CONTENT -->
@@ -3460,6 +3460,23 @@ function seedFromTab3(){
 // =============================================
 load();
 seedFromTab3();
+// Auto-apply Schedule A (min-days) to fill unassigned classes
+(function applyScheduleA(){
+  const assignedIds = new Set(state.schedule.map(s => s.classId));
+  if(CLASSES.some(c => !assignedIds.has(c.id))){
+    const result = generateScheduleOption('min-days');
+    result.assignments.forEach(a => {
+      state.schedule.push({
+        classId: a.classId,
+        teacherId: a.teacherId,
+        day: a.day,
+        startTime: a.startTime,
+        room: a.room,
+      });
+    });
+    save();
+  }
+})();
 buildAvailabilityFromSchedule();
 populateFilters();
 renderAll();
