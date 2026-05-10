@@ -378,6 +378,21 @@ select, input { font-family:inherit; }
   </div>
 </div>
 
+<!-- IMPORT SCHEDULE MODAL -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal" style="max-width:720px;">
+    <h3>Import Schedule</h3>
+    <p style="font-size:.75rem;color:var(--text-secondary);margin:0 0 .5rem;">Paste CSV data from your spreadsheet. Required columns: <strong>Class Name, Day, Start Time, End Time, Teacher</strong></p>
+    <textarea id="import-paste" rows="12" style="width:100%;font-family:monospace;font-size:.72rem;border:1px solid var(--border-light);border-radius:6px;padding:.5rem;resize:vertical;" placeholder="Class Name,Day,Start Time,End Time,Teacher&#10;Junior Level 1 Ballet,Monday,5:30 PM,6:30 PM,Liesl Balatsenko&#10;ETAP Level A/B Jazz,Thursday,6:30 PM,8:00 PM,Raynor van der Merwe"></textarea>
+    <div id="import-preview" style="font-size:.72rem;color:var(--text-secondary);margin:.5rem 0;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="previewImport()" style="margin-right:auto;">Preview</button>
+      <button class="btn btn-outline" onclick="closeImportModal()">Cancel</button>
+      <button class="btn btn-primary" id="import-apply-btn" onclick="applyImport()" disabled>Replace All &amp; Import</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1293,7 +1308,7 @@ function renderClasses(){
     });
   }
 
-  let html = '<div style="margin-bottom:.75rem;"><button class="btn btn-primary" onclick="showAddClassModal()" style="font-size:.78rem;">+ Add Class</button></div>';
+  let html = '<div style="margin-bottom:.75rem;display:flex;gap:.5rem;"><button class="btn btn-primary" onclick="showAddClassModal()" style="font-size:.78rem;">+ Add Class</button><button class="btn btn-outline" onclick="showImportModal()" style="font-size:.78rem;">Import Schedule</button></div>';
   html += '<table class="classes-table"><thead><tr><th>#</th><th>Class Name</th><th>Style</th><th>Duration</th><th>Room</th><th>Eligible Teachers</th><th>Status</th></tr></thead><tbody>';
   classesToShow.forEach((c,i) => {
     const sched = assignedMap[c.id];
@@ -1342,6 +1357,199 @@ function doAddClass(){
   renderAll();
   save();
   toast('Class added: ' + name);
+}
+
+// =============================================
+// IMPORT SCHEDULE
+// =============================================
+let importParsed = null;
+
+function showImportModal(){
+  document.getElementById('import-paste').value = '';
+  document.getElementById('import-preview').innerHTML = '';
+  document.getElementById('import-apply-btn').disabled = true;
+  importParsed = null;
+  document.getElementById('import-modal').classList.add('show');
+}
+function closeImportModal(){
+  document.getElementById('import-modal').classList.remove('show');
+  importParsed = null;
+}
+
+function parseTimeToMinutes(timeStr){
+  const m = timeStr.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if(!m) return null;
+  let h = parseInt(m[1]);
+  const mm = parseInt(m[2]);
+  const ampm = m[3].toUpperCase();
+  if(ampm === 'PM' && h !== 12) h += 12;
+  if(ampm === 'AM' && h === 12) h = 0;
+  return h * 60 + mm;
+}
+
+function matchTeacher(name){
+  if(!name || !name.trim()) return null;
+  const n = name.trim().toLowerCase();
+  // Exact match
+  let t = TEACHERS.find(t => t.name.toLowerCase() === n);
+  if(t) return t.id;
+  // Partial match (last name)
+  t = TEACHERS.find(t => n.includes(t.name.split(' ').pop().toLowerCase()));
+  if(t) return t.id;
+  return null;
+}
+
+function parseImportCSV(text){
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l);
+  if(lines.length < 2) return { error: 'Need at least a header row and one data row' };
+
+  // Detect separator: tab or comma
+  const sep = lines[0].includes('\t') ? '\t' : ',';
+  const header = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/[^a-z ]/g,''));
+
+  // Find column indices
+  const nameIdx = header.findIndex(h => h.includes('class') || h.includes('name'));
+  const dayIdx = header.findIndex(h => h.includes('day'));
+  const startIdx = header.findIndex(h => h.includes('start'));
+  const endIdx = header.findIndex(h => h.includes('end'));
+  const teacherIdx = header.findIndex(h => h.includes('teacher'));
+
+  if(nameIdx < 0 || dayIdx < 0 || startIdx < 0 || endIdx < 0 || teacherIdx < 0){
+    return { error: 'Missing columns. Need: Class Name, Day, Start Time, End Time, Teacher. Found: ' + lines[0] };
+  }
+
+  const dayMap = {monday:0,tuesday:1,wednesday:2,thursday:3,friday:4,saturday:5,
+    mon:0,tue:1,wed:2,thu:3,fri:4,sat:5};
+
+  const results = [];
+  const errors = [];
+  const unknownTeachers = new Set();
+
+  for(let i = 1; i < lines.length; i++){
+    const cols = lines[i].split(sep).map(c => c.trim());
+    const className = cols[nameIdx];
+    const dayStr = (cols[dayIdx]||'').toLowerCase();
+    const startStr = cols[startIdx];
+    const endStr = cols[endIdx];
+    const teacherName = cols[teacherIdx];
+
+    if(!className){ errors.push('Row ' + (i+1) + ': missing class name'); continue; }
+
+    const day = dayMap[dayStr];
+    if(day === undefined){ errors.push('Row ' + (i+1) + ': invalid day "' + cols[dayIdx] + '"'); continue; }
+
+    const startMin = parseTimeToMinutes(startStr);
+    const endMin = parseTimeToMinutes(endStr);
+    if(startMin === null){ errors.push('Row ' + (i+1) + ': invalid start time "' + startStr + '"'); continue; }
+    if(endMin === null){ errors.push('Row ' + (i+1) + ': invalid end time "' + endStr + '"'); continue; }
+
+    const dur = endMin - startMin;
+    if(dur <= 0){ errors.push('Row ' + (i+1) + ': end time must be after start time'); continue; }
+
+    let teacherId = matchTeacher(teacherName);
+    if(!teacherId && teacherName && teacherName.trim()){
+      unknownTeachers.add(teacherName.trim());
+      // Auto-create teacher
+      const tn = teacherName.trim();
+      const id = tn.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12) + '_' + Date.now().toString(36) + i;
+      const short = tn.split(' ')[0] + ' ' + (tn.split(' ').pop()||'').charAt(0) + '.';
+      const colors = ['#DC2626','#16A34A','#7C3AED','#E11D48','#CA8A04','#0D9488','#DB2777','#4F46E5','#0891B2','#57534E','#8B5CF6','#6D4C41','#546E7A'];
+      const color = colors[TEACHERS.length % colors.length];
+      const newT = { id, name: tn, short, color, styles: [detectStyle(className)] };
+      TEACHERS.push(newT);
+      TEACHERS.sort((a,b) => a.name.localeCompare(b.name));
+      if(!state.customTeachers) state.customTeachers = [];
+      state.customTeachers.push(newT);
+      teacherId = id;
+    }
+
+    results.push({ name: className, day, start: startMin, dur, teacher: teacherId || '' });
+  }
+
+  return { results, errors, unknownTeachers: [...unknownTeachers], count: results.length };
+}
+
+function previewImport(){
+  const text = document.getElementById('import-paste').value;
+  if(!text.trim()){ toast('Paste your schedule data first'); return; }
+
+  const parsed = parseImportCSV(text);
+  if(parsed.error){
+    document.getElementById('import-preview').innerHTML = '<span style="color:var(--danger);">' + parsed.error + '</span>';
+    document.getElementById('import-apply-btn').disabled = true;
+    importParsed = null;
+    return;
+  }
+
+  let html = '<strong style="color:var(--success);">' + parsed.count + ' classes parsed</strong>';
+  if(parsed.unknownTeachers.length){
+    html += '<br><span style="color:var(--warning);">New teachers will be created: ' + parsed.unknownTeachers.join(', ') + '</span>';
+  }
+  if(parsed.errors.length){
+    html += '<br><span style="color:var(--danger);">' + parsed.errors.length + ' errors:</span><ul style="margin:.25rem 0;padding-left:1.2rem;">';
+    parsed.errors.slice(0,5).forEach(e => html += '<li>' + e + '</li>');
+    if(parsed.errors.length > 5) html += '<li>...and ' + (parsed.errors.length-5) + ' more</li>';
+    html += '</ul>';
+  }
+  // Show first few rows
+  if(parsed.count > 0){
+    html += '<table style="font-size:.68rem;margin-top:.5rem;border-collapse:collapse;width:100%;">';
+    html += '<tr style="border-bottom:1px solid var(--border-light);"><th style="text-align:left;padding:.2rem .4rem;">#</th><th style="text-align:left;padding:.2rem .4rem;">Class</th><th style="text-align:left;padding:.2rem .4rem;">Day</th><th style="text-align:left;padding:.2rem .4rem;">Time</th><th style="text-align:left;padding:.2rem .4rem;">Dur</th><th style="text-align:left;padding:.2rem .4rem;">Teacher</th></tr>';
+    parsed.results.slice(0,8).forEach((r,i) => {
+      html += '<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:.2rem .4rem;">' + (i+1) + '</td><td style="padding:.2rem .4rem;">' + r.name + '</td><td style="padding:.2rem .4rem;">' + DAY_SHORT[r.day] + '</td><td style="padding:.2rem .4rem;">' + minutesToTime(r.start) + '</td><td style="padding:.2rem .4rem;">' + r.dur + 'm</td><td style="padding:.2rem .4rem;">' + teacherShort(r.teacher) + '</td></tr>';
+    });
+    if(parsed.count > 8) html += '<tr><td colspan="6" style="padding:.2rem .4rem;color:var(--text-muted);">...and ' + (parsed.count-8) + ' more</td></tr>';
+    html += '</table>';
+  }
+
+  document.getElementById('import-preview').innerHTML = html;
+  importParsed = parsed;
+  document.getElementById('import-apply-btn').disabled = parsed.count === 0;
+}
+
+function applyImport(){
+  if(!importParsed || !importParsed.results.length) return;
+  if(!confirm('This will REPLACE all ' + CLASSES.length + ' current classes and schedule assignments with ' + importParsed.count + ' imported classes. This cannot be undone. Continue?')) return;
+
+  // Rebuild CLASSES array
+  CLASSES.length = 0;
+  nextClassId = 1;
+  importParsed.results.forEach(d => {
+    const sameNameTeachers = [...new Set(importParsed.results.filter(x=>x.name===d.name).map(x=>x.teacher).filter(Boolean))];
+    CLASSES.push({
+      id: nextClassId++,
+      name: d.name,
+      style: detectStyle(d.name),
+      duration: d.dur,
+      eligibleTeachers: sameNameTeachers.length ? sameNameTeachers : [d.teacher],
+      level: extractLevel(d.name),
+    });
+  });
+
+  // Rebuild schedule
+  state.schedule = [];
+  importParsed.results.forEach((d, i) => {
+    state.schedule.push({
+      classId: i + 1,
+      teacherId: d.teacher,
+      day: d.day,
+      startTime: d.start,
+      room: '',
+    });
+  });
+
+  // Reset availability and conflicts
+  state.availability = {};
+  state.ignoredConflicts = [];
+  state.customClasses = [];
+
+  closeImportModal();
+  buildAvailabilityFromSchedule();
+  populateFilters();
+  renderAll();
+  save();
+  toast(importParsed.count + ' classes imported successfully');
+  importParsed = null;
 }
 
 // =============================================
