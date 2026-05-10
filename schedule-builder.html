@@ -211,6 +211,44 @@ select, input { font-family:inherit; }
 .toast.show { display:block; animation:fadeInUp .3s; }
 @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
+/* ===== SCHEDULE OPTION TABS (A/B/C) ===== */
+.opt-tab-bar { display:flex; align-items:center; justify-content:space-between; padding:.4rem .75rem; border-bottom:1px solid var(--border); flex-shrink:0; background:#FAFBFC; }
+.opt-tab-bar-left { display:flex; gap:.25rem; }
+.opt-tab-bar-right { display:flex; gap:.4rem; align-items:center; }
+.opt-sub-tab { padding:.3rem .65rem; font-size:.75rem; font-weight:600; border:1px solid transparent; border-radius:5px; background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .12s; }
+.opt-sub-tab:hover { background:#E2E8F0; }
+.opt-sub-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.opt-findings-wrap { flex:1; overflow:auto; padding:1rem; }
+.opt-calendar-wrap { flex:1; overflow:auto; padding:.75rem; }
+
+/* Findings stat cards */
+.findings-stats { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem; }
+.findings-stat { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:.65rem .85rem; min-width:120px; text-align:center; }
+.findings-stat .fs-num { font-size:1.3rem; font-weight:700; }
+.findings-stat .fs-label { font-size:.62rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; margin-top:.15rem; }
+.findings-stat.green .fs-num { color:var(--success); }
+.findings-stat.red .fs-num { color:var(--danger); }
+.findings-stat.blue .fs-num { color:var(--primary); }
+.findings-stat.amber .fs-num { color:var(--warning); }
+
+/* Teacher day spread table */
+.findings-teacher-table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:1rem; }
+.findings-teacher-table th { background:#F8FAFC; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); padding:.4rem .5rem; text-align:left; border-bottom:1px solid var(--border); }
+.findings-teacher-table td { padding:.3rem .5rem; border-bottom:1px solid var(--border-light); font-size:.72rem; }
+.findings-teacher-table tr:hover { background:#F0F9FF; }
+
+/* Unplaced classes list */
+.findings-unplaced { background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:.75rem; margin-bottom:1rem; }
+.findings-unplaced h4 { font-size:.78rem; color:var(--danger); margin:0 0 .4rem; }
+.findings-unplaced li { font-size:.72rem; color:#991B1B; margin-bottom:.2rem; }
+
+/* Accepted button state */
+.btn.accepted { background:var(--success); color:#fff; border-color:var(--success); }
+.btn.accepted:hover { background:#16A34A; }
+
+/* Nav item accepted checkmark */
+.nav-item .accepted-check { color:var(--success); font-size:.7rem; margin-left:auto; font-weight:700; }
+
 /* ===== PRINT STYLES ===== */
 @media print {
   .sidebar, .topbar, .toast, .modal-overlay { display:none !important; }
@@ -244,6 +282,10 @@ select, input { font-family:inherit; }
     <div class="nav-item" data-tab="optimize"><span>&#10024;</span> AI Optimize <span class="badge" id="nav-opt-count" style="background:#3B82F6;">0</span></div>
     <div class="nav-item" data-tab="export"><span>&#128228;</span> Export</div>
     <div class="nav-item" data-tab="unassigned"><span>&#128203;</span> Unassigned <span class="badge" id="nav-unassigned-count" style="background:var(--danger);">0</span></div>
+    <div style="border-top:1px solid #1E293B;margin:.4rem 0;"></div>
+    <div class="nav-item" data-tab="sched-a" id="nav-sched-a"><span style="color:#3B82F6;">&#9632;</span> Schedule A <span class="count" id="nav-sched-a-check" style="display:none;">&#10003;</span></div>
+    <div class="nav-item" data-tab="sched-b" id="nav-sched-b"><span style="color:#10B981;">&#9632;</span> Schedule B <span class="count" id="nav-sched-b-check" style="display:none;">&#10003;</span></div>
+    <div class="nav-item" data-tab="sched-c" id="nav-sched-c"><span style="color:#F59E0B;">&#9632;</span> Schedule C <span class="count" id="nav-sched-c-check" style="display:none;">&#10003;</span></div>
   </nav>
 
   <div class="sidebar-footer" id="sidebar-footer">
@@ -263,6 +305,7 @@ select, input { font-family:inherit; }
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
   <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
+  <span id="token-counter" style="margin-left:auto;font-size:.65rem;color:var(--text-muted);white-space:nowrap;">Tokens Used: ~12M</span>
 </div>
 
 <!-- CONTENT -->
@@ -271,7 +314,6 @@ select, input { font-family:inherit; }
   <!-- SCHEDULE TAB -->
   <div id="tab-schedule" class="tab-content" style="display:flex;flex:1;overflow:hidden;flex-direction:column;">
     <div style="padding:.5rem .75rem;display:flex;gap:.5rem;align-items:center;border-bottom:1px solid var(--border-light);flex-shrink:0;">
-      <button class="btn btn-primary" onclick="runAutoScheduler()" style="font-size:.78rem;">Auto-Schedule Suggestions</button>
       <span id="unassigned-count" style="font-size:.72rem;color:var(--text-muted);"></span>
     </div>
     <div class="calendar-wrap" id="calendar-wrap" style="flex:1;overflow:hidden;"></div>
@@ -310,6 +352,54 @@ select, input { font-family:inherit; }
   <!-- UNASSIGNED TAB -->
   <div id="tab-unassigned" class="tab-content" style="display:none;flex:1;overflow:hidden;">
     <div class="classes-view" id="unassigned-view"></div>
+  </div>
+
+  <!-- SCHEDULE A TAB -->
+  <div id="tab-sched-a" class="tab-content" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="opt-tab-bar">
+      <div class="opt-tab-bar-left">
+        <button class="opt-sub-tab active" data-subtab="findings" data-option="a" onclick="switchSubTab('a','findings')">Findings</button>
+        <button class="opt-sub-tab" data-subtab="calendar" data-option="a" onclick="switchSubTab('a','calendar')">Calendar</button>
+      </div>
+      <div class="opt-tab-bar-right">
+        <button class="btn btn-sm btn-outline" id="accept-btn-a" onclick="markPreferred('a')">&#10003; Accept</button>
+        <button class="btn btn-sm btn-outline" onclick="regenerateOption('a')">&#8635; Regenerate</button>
+      </div>
+    </div>
+    <div id="sched-a-findings" class="opt-findings-wrap"></div>
+    <div id="sched-a-calendar" class="opt-calendar-wrap" style="display:none;"></div>
+  </div>
+
+  <!-- SCHEDULE B TAB -->
+  <div id="tab-sched-b" class="tab-content" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="opt-tab-bar">
+      <div class="opt-tab-bar-left">
+        <button class="opt-sub-tab active" data-subtab="findings" data-option="b" onclick="switchSubTab('b','findings')">Findings</button>
+        <button class="opt-sub-tab" data-subtab="calendar" data-option="b" onclick="switchSubTab('b','calendar')">Calendar</button>
+      </div>
+      <div class="opt-tab-bar-right">
+        <button class="btn btn-sm btn-outline" id="accept-btn-b" onclick="markPreferred('b')">&#10003; Accept</button>
+        <button class="btn btn-sm btn-outline" onclick="regenerateOption('b')">&#8635; Regenerate</button>
+      </div>
+    </div>
+    <div id="sched-b-findings" class="opt-findings-wrap"></div>
+    <div id="sched-b-calendar" class="opt-calendar-wrap" style="display:none;"></div>
+  </div>
+
+  <!-- SCHEDULE C TAB -->
+  <div id="tab-sched-c" class="tab-content" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="opt-tab-bar">
+      <div class="opt-tab-bar-left">
+        <button class="opt-sub-tab active" data-subtab="findings" data-option="c" onclick="switchSubTab('c','findings')">Findings</button>
+        <button class="opt-sub-tab" data-subtab="calendar" data-option="c" onclick="switchSubTab('c','calendar')">Calendar</button>
+      </div>
+      <div class="opt-tab-bar-right">
+        <button class="btn btn-sm btn-outline" id="accept-btn-c" onclick="markPreferred('c')">&#10003; Accept</button>
+        <button class="btn btn-sm btn-outline" onclick="regenerateOption('c')">&#8635; Regenerate</button>
+      </div>
+    </div>
+    <div id="sched-c-findings" class="opt-findings-wrap"></div>
+    <div id="sched-c-calendar" class="opt-calendar-wrap" style="display:none;"></div>
   </div>
 
 </div>
@@ -379,12 +469,6 @@ select, input { font-family:inherit; }
       <button class="btn btn-outline" onclick="closeAddClassModal()">Cancel</button>
       <button class="btn btn-primary" onclick="doAddClass()">Add Class</button>
     </div>
-  </div>
-</div>
-
-<!-- AUTO-SCHEDULE MODAL -->
-<div class="modal-overlay" id="auto-schedule-modal">
-  <div class="modal" style="max-width:900px;" id="auto-schedule-content">
   </div>
 </div>
 
@@ -1618,120 +1702,275 @@ function generateScheduleOption(strategy){
 }
 
 function runAutoScheduler(){
-  const options = [
-    { key:'min-days', label:'Option A: Minimum Teacher Days', desc:'Packs each teacher into the fewest days possible' },
-    { key:'balanced', label:'Option B: Balanced Rooms', desc:'Spreads classes evenly across days and rooms' },
-    { key:'last-year', label:'Option C: Closest to Last Year', desc:'Keeps teachers on familiar day patterns' },
-  ];
-
-  const results = options.map(opt => {
-    const result = generateScheduleOption(opt.key);
-    return { ...opt, ...result };
+  const strategies = { a:'min-days', b:'balanced', c:'last-year' };
+  Object.keys(strategies).forEach(key => {
+    autoScheduleResults[key] = generateScheduleOption(strategies[key]);
+    autoScheduleResults[key].key = strategies[key];
   });
-
-  showAutoScheduleResults(results);
+  // Switch to Schedule A tab
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-sched-a').classList.add('active');
+  activeTab = 'sched-a';
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById('tab-sched-a').style.display = 'flex';
+  renderScheduleOption('a');
+  updateTopbarForOption('a');
+  toast('3 schedule options generated -- review A, B, C in sidebar');
 }
 
-function showAutoScheduleResults(results){
-  let html = '<div style="padding:1.5rem;max-height:80vh;overflow-y:auto;">';
-  html += '<h3 style="margin:0 0 1rem;">Auto-Schedule Suggestions</h3>';
-  html += '<p style="font-size:.75rem;color:var(--text-secondary);margin:0 0 1rem;">Three options generated based on different priorities. Review and accept one as your starting point.</p>';
+// =============================================
+// AUTO-SCHEDULE OPTION STATE
+// =============================================
+let autoScheduleResults = { a:null, b:null, c:null };
+let preferredSchedule = null;
+let activeSubTabs = { a:'findings', b:'findings', c:'findings' };
 
-  results.forEach((r, idx) => {
-    const color = idx === 0 ? '#3B82F6' : idx === 1 ? '#10B981' : '#F59E0B';
-    html += '<div style="border:2px solid ' + color + ';border-radius:10px;padding:1rem;margin-bottom:1rem;background:var(--bg-card);">';
-    html += '<h4 style="margin:0 0 .25rem;color:' + color + ';">' + r.label + '</h4>';
-    html += '<p style="font-size:.72rem;color:var(--text-secondary);margin:0 0 .75rem;">' + r.desc + '</p>';
+const OPTION_META = {
+  a: { strategy:'min-days', label:'Schedule A: Minimum Teacher Days', desc:'Packs each teacher into the fewest days possible', color:'#3B82F6' },
+  b: { strategy:'balanced', label:'Schedule B: Balanced Rooms', desc:'Spreads classes evenly across days and rooms', color:'#10B981' },
+  c: { strategy:'last-year', label:'Schedule C: Closest to Last Year', desc:'Keeps teachers on familiar day patterns', color:'#F59E0B' },
+};
 
-    // Stats
-    html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem;">';
-    html += '<div style="font-size:.72rem;"><strong style="color:var(--success);">' + r.stats.placed + '</strong> / ' + r.stats.total + ' placed</div>';
-    if(r.stats.unplacedCount > 0) html += '<div style="font-size:.72rem;color:var(--danger);"><strong>' + r.stats.unplacedCount + '</strong> could not fit</div>';
-    html += '<div style="font-size:.72rem;">TBD Contemp: <strong>' + r.stats.tbdDays + ' days</strong></div>';
-    html += '<div style="font-size:.72rem;">Max room load: <strong>' + r.stats.maxRoomLoad + ' classes</strong></div>';
-    html += '</div>';
+function ensureOptionGenerated(key){
+  if(autoScheduleResults[key]) return;
+  autoScheduleResults[key] = generateScheduleOption(OPTION_META[key].strategy);
+  autoScheduleResults[key].key = OPTION_META[key].strategy;
+}
 
-    // Pros
-    html += '<div style="font-size:.72rem;margin-bottom:.5rem;">';
-    if(r.key === 'min-days'){
-      const teacherSummary = Object.entries(r.stats.teacherDayCounts)
-        .filter(([id]) => id !== 'kathy')
-        .map(([id, days]) => teacherShort(id) + ': ' + days.size + 'd')
-        .join(', ');
-      html += '<span style="color:var(--success);">&#10003;</span> Teacher day spread: ' + teacherSummary;
-    } else if(r.key === 'balanced'){
-      html += '<span style="color:var(--success);">&#10003;</span> Even room distribution (max ' + r.stats.maxRoomLoad + ' per room/day)';
-    } else {
-      html += '<span style="color:var(--success);">&#10003;</span> Familiar patterns preserved for returning families';
-    }
-    html += '</div>';
+function regenerateOption(key){
+  autoScheduleResults[key] = generateScheduleOption(OPTION_META[key].strategy);
+  autoScheduleResults[key].key = OPTION_META[key].strategy;
+  renderScheduleOption(key);
+  toast(OPTION_META[key].label + ' regenerated');
+}
 
-    // Unplaced
-    if(r.unplaced.length > 0){
-      html += '<details style="font-size:.7rem;margin-bottom:.5rem;"><summary style="cursor:pointer;color:var(--danger);">' + r.unplaced.length + ' class(es) could not be placed</summary><ul style="margin:.25rem 0;padding-left:1.2rem;">';
-      r.unplaced.forEach(u => {
-        html += '<li><strong>' + u.className + '</strong> (' + teacherShort(u.teacher) + '): ' + u.reason + '</li>';
-      });
-      html += '</ul></details>';
-    }
+function updateTopbarForOption(key){
+  const meta = OPTION_META[key];
+  document.getElementById('topbar-title').textContent = meta.label;
+}
 
-    // Preview table (first 10)
-    html += '<details style="font-size:.68rem;margin-bottom:.5rem;"><summary style="cursor:pointer;">Preview placements (' + r.assignments.length + ' classes)</summary>';
-    html += '<table style="font-size:.66rem;margin-top:.25rem;border-collapse:collapse;width:100%;">';
-    html += '<tr style="border-bottom:1px solid var(--border-light);"><th style="text-align:left;padding:.15rem .3rem;">Class</th><th style="text-align:left;padding:.15rem .3rem;">Day</th><th style="text-align:left;padding:.15rem .3rem;">Time</th><th style="text-align:left;padding:.15rem .3rem;">Room</th><th style="text-align:left;padding:.15rem .3rem;">Teacher</th></tr>';
-    r.assignments.slice(0, 12).forEach(a => {
-      html += '<tr style="border-bottom:1px solid var(--border-light);">';
-      html += '<td style="padding:.15rem .3rem;">' + a.className + '</td>';
-      html += '<td style="padding:.15rem .3rem;">' + DAY_SHORT[a.day] + '</td>';
-      html += '<td style="padding:.15rem .3rem;">' + minutesToTime(a.startTime) + '</td>';
-      html += '<td style="padding:.15rem .3rem;">' + roomName(a.room) + '</td>';
-      html += '<td style="padding:.15rem .3rem;">' + teacherShort(a.teacherId) + '</td>';
-      html += '</tr>';
-    });
-    if(r.assignments.length > 12) html += '<tr><td colspan="5" style="padding:.15rem .3rem;color:var(--text-muted);">...and ' + (r.assignments.length - 12) + ' more</td></tr>';
-    html += '</table></details>';
-
-    html += '<button class="btn btn-primary" style="font-size:.75rem;margin-top:.5rem;" onclick="applyAutoSchedule(\'' + r.key + '\')">Accept ' + r.label.split(':')[0] + '</button>';
-    html += '</div>';
+function switchSubTab(optKey, subTab){
+  activeSubTabs[optKey] = subTab;
+  // Toggle button active states
+  document.querySelectorAll('#tab-sched-' + optKey + ' .opt-sub-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.subtab === subTab);
   });
+  // Toggle content visibility
+  document.getElementById('sched-' + optKey + '-findings').style.display = subTab === 'findings' ? '' : 'none';
+  document.getElementById('sched-' + optKey + '-calendar').style.display = subTab === 'calendar' ? '' : 'none';
+  renderScheduleOption(optKey);
+}
 
-  html += '<div style="text-align:right;margin-top:.5rem;"><button class="btn btn-outline" onclick="closeAutoScheduleModal()">Cancel</button></div>';
+function markPreferred(key){
+  if(preferredSchedule === key){
+    preferredSchedule = null; // toggle off
+  } else {
+    preferredSchedule = key;
+  }
+  // Update sidebar checkmarks
+  ['a','b','c'].forEach(k => {
+    const el = document.getElementById('nav-sched-' + k + '-check');
+    if(k === preferredSchedule){
+      el.style.display = '';
+      el.style.color = '#22C55E';
+    } else {
+      el.style.display = 'none';
+    }
+    // Update accept buttons
+    const btn = document.getElementById('accept-btn-' + k);
+    if(k === preferredSchedule){
+      btn.classList.add('accepted');
+      btn.innerHTML = '&#10003; Accepted';
+    } else {
+      btn.classList.remove('accepted');
+      btn.innerHTML = '&#10003; Accept';
+    }
+  });
+  if(preferredSchedule){
+    toast(OPTION_META[preferredSchedule].label + ' marked as preferred');
+  }
+}
+
+// =============================================
+// RENDER SCHEDULE OPTION (Findings or Calendar)
+// =============================================
+function renderScheduleOption(key){
+  ensureOptionGenerated(key);
+  const sub = activeSubTabs[key];
+  if(sub === 'findings') renderOptionFindings(key);
+  else renderOptionCalendarView(key);
+}
+
+function renderOptionFindings(key){
+  const r = autoScheduleResults[key];
+  const meta = OPTION_META[key];
+  const container = document.getElementById('sched-' + key + '-findings');
+
+  let html = '';
+
+  // Header
+  html += '<div style="margin-bottom:1rem;">';
+  html += '<h3 style="margin:0 0 .25rem;color:' + meta.color + ';">' + meta.label + '</h3>';
+  html += '<p style="font-size:.75rem;color:var(--text-secondary);margin:0;">' + meta.desc + '</p>';
   html += '</div>';
 
-  document.getElementById('auto-schedule-content').innerHTML = html;
-  document.getElementById('auto-schedule-modal').classList.add('show');
-}
-
-function closeAutoScheduleModal(){
-  document.getElementById('auto-schedule-modal').classList.remove('show');
-}
-
-function applyAutoSchedule(strategy){
-  const result = generateScheduleOption(strategy);
-  if(!confirm('This will place ' + result.stats.placed + ' classes into the schedule' + (result.stats.unplacedCount > 0 ? ' (' + result.stats.unplacedCount + ' could not fit)' : '') + '. You can undo with Ctrl+Z. Continue?')) return;
-
-  pushUndo();
-  result.assignments.forEach(a => {
-    state.schedule.push({
-      classId: a.classId,
-      teacherId: a.teacherId,
-      day: a.day,
-      startTime: a.startTime,
-      room: a.room,
-    });
-  });
-
-  closeAutoScheduleModal();
-  buildAvailabilityFromSchedule();
-  populateFilters();
-  renderAll();
-  save();
-
-  if(result.stats.unplacedCount > 0){
-    toast(result.stats.placed + ' placed, ' + result.stats.unplacedCount + ' need manual placement');
-  } else {
-    toast('All ' + result.stats.placed + ' classes placed successfully!');
+  // Stat cards
+  html += '<div class="findings-stats">';
+  html += '<div class="findings-stat green"><div class="fs-num">' + r.stats.placed + '/' + r.stats.total + '</div><div class="fs-label">Classes Placed</div></div>';
+  if(r.stats.unplacedCount > 0){
+    html += '<div class="findings-stat red"><div class="fs-num">' + r.stats.unplacedCount + '</div><div class="fs-label">Could Not Fit</div></div>';
   }
+  html += '<div class="findings-stat blue"><div class="fs-num">' + r.stats.tbdDays + '</div><div class="fs-label">TBD Contemp Days</div></div>';
+  html += '<div class="findings-stat amber"><div class="fs-num">' + r.stats.maxRoomLoad + '</div><div class="fs-label">Max Room Load</div></div>';
+
+  // Total assigned (existing + new)
+  const totalAssigned = r.allAssignments.length;
+  html += '<div class="findings-stat"><div class="fs-num">' + totalAssigned + '</div><div class="fs-label">Total Scheduled</div></div>';
+  html += '</div>';
+
+  // Unplaced classes
+  if(r.unplaced.length > 0){
+    html += '<div class="findings-unplaced">';
+    html += '<h4>&#9888; ' + r.unplaced.length + ' Class' + (r.unplaced.length !== 1 ? 'es' : '') + ' Could Not Be Placed</h4>';
+    html += '<ul style="padding-left:1.2rem;margin:0;">';
+    r.unplaced.forEach(u => {
+      html += '<li><strong>' + u.className + '</strong> (' + teacherShort(u.teacher) + '): ' + u.reason + '</li>';
+    });
+    html += '</ul></div>';
+  }
+
+  // Teacher day spread
+  html += '<h4 style="font-size:.82rem;font-weight:600;margin:0 0 .5rem;">Teacher Day Spread</h4>';
+  html += '<table class="findings-teacher-table"><thead><tr><th>Teacher</th><th>Days Used</th><th>Days</th><th>Classes</th></tr></thead><tbody>';
+  const teacherClassCounts = {};
+  r.allAssignments.forEach(a => {
+    teacherClassCounts[a.teacherId] = (teacherClassCounts[a.teacherId] || 0) + 1;
+  });
+  Object.entries(r.stats.teacherDayCounts)
+    .sort((a, b) => b[1].size - a[1].size)
+    .forEach(([id, days]) => {
+      const t = teacherById(id);
+      if(!t) return;
+      const dayNames = [...days].sort().map(d => DAY_SHORT[d]).join(', ');
+      html += '<tr><td style="font-weight:600;">' + t.short + '</td><td>' + days.size + '</td><td style="font-size:.68rem;color:var(--text-secondary);">' + dayNames + '</td><td>' + (teacherClassCounts[id] || 0) + '</td></tr>';
+    });
+  html += '</tbody></table>';
+
+  // Room load by day
+  html += '<h4 style="font-size:.82rem;font-weight:600;margin:1rem 0 .5rem;">Room Load by Day</h4>';
+  html += '<table class="findings-teacher-table"><thead><tr><th>Room</th>';
+  DAY_SHORT.forEach(d => html += '<th style="text-align:center;">' + d + '</th>');
+  html += '<th style="text-align:center;">Total</th></tr></thead><tbody>';
+  ROOMS.forEach(room => {
+    html += '<tr><td style="font-weight:600;">' + room.name + '</td>';
+    let total = 0;
+    for(let d = 0; d < 6; d++){
+      const count = r.allAssignments.filter(a => a.room === room.id && a.day === d).length;
+      total += count;
+      const bg = count >= 8 ? '#FEE2E2' : count >= 5 ? '#FEF3C7' : '';
+      html += '<td style="text-align:center;' + (bg ? 'background:' + bg + ';' : '') + '">' + (count || '-') + '</td>';
+    }
+    html += '<td style="text-align:center;font-weight:600;">' + total + '</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  // Full placement table
+  html += '<h4 style="font-size:.82rem;font-weight:600;margin:1rem 0 .5rem;">All Placements (' + r.assignments.length + ' new)</h4>';
+  html += '<div style="overflow-x:auto;"><table class="findings-teacher-table"><thead><tr><th>#</th><th>Class</th><th>Teacher</th><th>Day</th><th>Time</th><th>Room</th></tr></thead><tbody>';
+  r.assignments
+    .sort((a, b) => a.day - b.day || a.startTime - b.startTime)
+    .forEach((a, i) => {
+      html += '<tr><td>' + (i + 1) + '</td>';
+      html += '<td style="font-weight:500;">' + a.className + '</td>';
+      html += '<td>' + teacherShort(a.teacherId) + '</td>';
+      html += '<td>' + DAY_SHORT[a.day] + '</td>';
+      html += '<td>' + minutesToTime(a.startTime) + '-' + minutesToTime(a.startTime + a.dur) + '</td>';
+      html += '<td>' + roomName(a.room) + '</td></tr>';
+    });
+  html += '</tbody></table></div>';
+
+  container.innerHTML = html;
+}
+
+// =============================================
+// READ-ONLY CALENDAR FOR SCHEDULE OPTIONS
+// =============================================
+function renderOptionCalendarView(key){
+  const r = autoScheduleResults[key];
+  const meta = OPTION_META[key];
+  const wrap = document.getElementById('sched-' + key + '-calendar');
+
+  const visibleSlots = TIME_SLOTS;
+  const numDays = 6;
+  const colTemplate = '56px repeat(6,1fr)';
+
+  let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
+  html += '<div class="cal-header"></div>';
+  for(let d = 0; d < numDays; d++){
+    html += '<div class="cal-header">' + DAY_SHORT[d] + '</div>';
+  }
+
+  visibleSlots.forEach(time => {
+    const isHour = time % 60 === 0;
+    html += '<div class="cal-time' + (isHour ? ' hour-mark' : '') + '">' + (isHour ? minutesToTime(time) : '') + '</div>';
+    for(let d = 0; d < numDays; d++){
+      const valid = isTimeInDay(time, d);
+      html += '<div class="cal-cell' + (valid ? '' : ' unavailable') + '" data-day="' + d + '" data-time="' + time + '"></div>';
+    }
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  const grid = wrap.querySelector('.cal-grid');
+  const totalGridCols = 1 + numDays;
+
+  // Render ALL assignments (existing + auto-placed)
+  r.allAssignments.forEach(a => {
+    const cls = CLASSES.find(c => c.id === a.classId);
+    if(!cls) return;
+
+    const timeRowInVisible = visibleSlots.indexOf(a.startTime);
+    if(timeRowInVisible < 0) return;
+    const cellIdx = totalGridCols + timeRowInVisible * totalGridCols + 1 + a.day;
+    const cell = grid.children[cellIdx];
+    if(!cell) return;
+
+    const slots = a.dur / SLOT_MINUTES;
+    const height = slots * SLOT_HEIGHT - 2;
+    const style = cls.style;
+
+    // Detect overlaps for column layout
+    const overlapping = r.allAssignments.filter(a2 => {
+      if(a2 === a) return false;
+      if(a2.day !== a.day) return false;
+      return a2.startTime < a.startTime + a.dur && a.startTime < a2.startTime + a2.dur;
+    });
+
+    let colClass = '';
+    if(overlapping.length === 1){
+      const myIdx = r.allAssignments.indexOf(a);
+      const otherIdx = r.allAssignments.indexOf(overlapping[0]);
+      colClass = myIdx < otherIdx ? ' col-left' : ' col-right';
+    } else if(overlapping.length >= 2){
+      const allOverlap = [a, ...overlapping].sort((x, y) => r.allAssignments.indexOf(x) - r.allAssignments.indexOf(y));
+      const myPos = allOverlap.indexOf(a);
+      colClass = myPos === 0 ? ' col-third-1' : myPos === 1 ? ' col-third-2' : ' col-third-3';
+    }
+
+    const teacher = teacherById(a.teacherId);
+    const isNew = !state.schedule.some(s => s.classId === a.classId);
+
+    const block = document.createElement('div');
+    block.className = 'class-block style-' + style + colClass;
+    if(isNew) block.style.outline = '2px dashed ' + meta.color;
+    block.style.top = '0px';
+    block.style.height = height + 'px';
+    block.style.cursor = 'default';
+    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + roomName(a.room) + ' &middot; ' + a.dur + 'm</div>';
+    block.title = cls.name + '\n' + (teacher ? teacher.name : '?') + '\n' + DAYS[a.day] + ' ' + minutesToTime(a.startTime) + '-' + minutesToTime(a.startTime + a.dur) + '\n' + roomName(a.room) + (isNew ? '\n(NEW - auto-placed)' : '');
+
+    cell.appendChild(block);
+  });
 }
 
 // =============================================
@@ -3059,7 +3298,19 @@ document.querySelectorAll('.nav-item').forEach(item => {
     document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
     const tabEl = document.getElementById('tab-'+activeTab);
     if(tabEl) tabEl.style.display = 'flex';
-    renderAll();
+
+    // Handle schedule option tabs
+    const optMatch = activeTab.match(/^sched-(a|b|c)$/);
+    if(optMatch){
+      const key = optMatch[1];
+      ensureOptionGenerated(key);
+      updateTopbarForOption(key);
+      renderScheduleOption(key);
+    } else {
+      const titles = { schedule:'Weekly Schedule', classes:'Classes', teachers:'Teachers', availability:'Availability', conflicts:'Conflicts', optimize:'AI Optimize', export:'Export', unassigned:'Unassigned' };
+      document.getElementById('topbar-title').textContent = titles[activeTab] || 'Weekly Schedule';
+      renderAll();
+    }
   });
 });
 
@@ -3100,6 +3351,9 @@ function renderAll(){
   if(activeTab === 'optimize'){ optimizerProposals = {}; renderOptimize(); }
   if(activeTab === 'export') renderExport();
   if(activeTab === 'unassigned') renderUnassignedPage();
+  // Schedule option tabs
+  const optMatch = activeTab.match(/^sched-(a|b|c)$/);
+  if(optMatch) renderScheduleOption(optMatch[1]);
 }
 
 // =============================================
