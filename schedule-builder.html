@@ -269,8 +269,12 @@ select, input { font-family:inherit; }
 <div class="content">
 
   <!-- SCHEDULE TAB -->
-  <div id="tab-schedule" class="tab-content" style="display:flex;flex:1;overflow:hidden;">
-    <div class="calendar-wrap" id="calendar-wrap"></div>
+  <div id="tab-schedule" class="tab-content" style="display:flex;flex:1;overflow:hidden;flex-direction:column;">
+    <div style="padding:.5rem .75rem;display:flex;gap:.5rem;align-items:center;border-bottom:1px solid var(--border-light);flex-shrink:0;">
+      <button class="btn btn-primary" onclick="runAutoScheduler()" style="font-size:.78rem;">Auto-Schedule Suggestions</button>
+      <span id="unassigned-count" style="font-size:.72rem;color:var(--text-muted);"></span>
+    </div>
+    <div class="calendar-wrap" id="calendar-wrap" style="flex:1;overflow:hidden;"></div>
   </div>
 
   <!-- CLASSES TAB -->
@@ -380,6 +384,12 @@ select, input { font-family:inherit; }
 
 <!-- IMPORT SCHEDULE MODAL -->
 <div class="modal-overlay" id="import-modal">
+
+<!-- AUTO-SCHEDULE MODAL -->
+<div class="modal-overlay" id="auto-schedule-modal">
+  <div class="modal" style="max-width:900px;" id="auto-schedule-content">
+  </div>
+</div>
   <div class="modal" style="max-width:720px;">
     <h3>Import Schedule</h3>
     <p style="font-size:.75rem;color:var(--text-secondary);margin:0 0 .5rem;">Paste CSV data from your spreadsheet. Required columns: <strong>Class Name, Day, Start Time, End Time, Teacher</strong></p>
@@ -427,19 +437,51 @@ const TEACHERS = [
   { id:'vadim', name:'Vadim Bogomolov', short:'Vadim B.', color:'#7C3AED', styles:['ballet'] },
   { id:'anastasiia', name:'Anastasiia Bengard', short:'Anastasiia B.', color:'#E11D48', styles:['ballroom'] },
   { id:'luke', name:'Luke Spring', short:'Luke S.', color:'#CA8A04', styles:['hiphop','tap'] },
-  { id:'jessy', name:'Jessy Dawson', short:'Jessy D.', color:'#0D9488', styles:['hiphop'] },
-  { id:'paige', name:'Paige Williams', short:'Paige W.', color:'#DB2777', styles:['jazz','tap','combo','ballet'] },
+  { id:'jessy', name:'Jessy Dawson', short:'Jessy D.', color:'#0D9488', styles:['hiphop','jazz'] },
+  { id:'paige', name:'Paige Williams', short:'Paige W.', color:'#DB2777', styles:['jazz','tap','combo','ballet','hiphop'] },
   { id:'ashleigh', name:'Ashleigh Wood', short:'Ashleigh W.', color:'#4F46E5', styles:['ballet','contemp','jazz'] },
   { id:'gaby', name:'Gaby Antunano Rodriguez', short:'Gaby A.R.', color:'#0891B2', styles:['ballet'] },
   { id:'liesl', name:'Liesl Balatsenko', short:'Liesl B.', color:'#57534E', styles:['ballet'] },
-  { id:'cami', name:'Cami Stockman', short:'Cami S.', color:'#6D4C41', styles:['contemp','jazz','combo'] },
-  { id:'nicole', name:'Nicole Coleman', short:'Nicole C.', color:'#8B5CF6', styles:['contemp'] },
+  { id:'cami', name:'Cami Stockman', short:'Cami S.', color:'#6D4C41', styles:['contemp','jazz','tap','combo'] },
   { id:'lorraine', name:'Lorraine Magee', short:'Lorraine M.', color:'#546E7A', styles:['acting'] },
-  { id:'voice', name:'Voice Teacher', short:'Voice T.', color:'#9E9E9E', styles:['voice'] },
+  { id:'kathy', name:'Kathy Ahearn', short:'Kathy A.', color:'#9E9E9E', styles:['voice'] },
+  { id:'tbd_contemp', name:'TBD Contemporary', short:'TBD Contemp.', color:'#8B5CF6', styles:['contemp'] },
 ];
 
 // Sort teachers alphabetically
 TEACHERS.sort((a,b) => a.name.localeCompare(b.name));
+
+// =============================================
+// TEACHER AVAILABILITY & CONSTRAINTS
+// =============================================
+const TEACHER_AVAIL = {
+  raynor:      { days:[0,2,3,5] },                                      // Mon,Wed,Thu,Sat
+  courtney:    { days:[0,1,2,3,4,5], constraints:{ 0:{after:1200} } },  // Mon after 8PM
+  vadim:       { days:[0,3,5] },                                        // Mon,Thu,Sat
+  anastasiia:  { days:[1] },                                            // Tue
+  luke:        { days:[1,2,3] },                                        // Tue,Wed,Thu
+  jessy:       { days:[0,1,3,4,5] },                                    // Mon,Tue,Thu,Fri,Sat
+  paige:       { days:[0,1,2,3,4,5], constraints:{ 1:{after:990,before:1110} } }, // Tue 4:30-6:30
+  ashleigh:    { days:[1,2] },                                          // Tue,Wed
+  gaby:        { days:[3,4] },                                          // Thu,Fri
+  liesl:       { days:[0], constraints:{ 0:{after:1050} } },            // Mon after 5:30
+  cami:        { days:[0,5] },                                          // Mon,Sat
+  lorraine:    { days:[0] },                                            // Mon
+  kathy:       { days:[0] },                                            // Mon
+  tbd_contemp: { days:[0,1,2,3,4,5] },                                 // All days (solver picks best 2)
+};
+
+// Room constraints: ETAP/ITP cannot use Fosse or Workshop
+function isRoomAllowed(className, roomId){
+  const n = className.toLowerCase();
+  if(n.startsWith('etap') || n.startsWith('itp')){
+    return roomId !== 'fosse' && roomId !== 'workshop';
+  }
+  return true;
+}
+function getAllowedRooms(className){
+  return ROOMS.filter(r => isRoomAllowed(className, r.id));
+}
 
 function teacherById(id){ return TEACHERS.find(t=>t.id===id); }
 function teacherShort(id){ const t=teacherById(id); return t?t.short:'?'; }
@@ -482,7 +524,7 @@ function detectDuration(name){
 function detectTeachers(name){
   const n = name.toLowerCase();
   if(n.includes('etap') && n.includes('acting')) return ['lorraine'];
-  if(n.includes('voice')) return ['voice'];
+  if(n.includes('voice')) return ['kathy'];
   if(n.includes('etap') && n.includes('ballroom')) return ['anastasiia'];
   if(n.includes('etap') && n.includes('leaps')) return ['raynor'];
   if(n.includes('etap a') && n.includes('jazz')) return ['raynor'];
@@ -493,31 +535,31 @@ function detectTeachers(name){
   if(n.includes('etap') && n.includes('ballet')) return ['vadim'];
   if(n.includes('etap') && n.includes('hip hop')) return ['luke'];
   if(n.includes('etap') && n.includes('tap')) return ['luke','courtney'];
-  if(n.includes('etap') && n.includes('contemp')) return ['cami','ashleigh'];
+  if(n.includes('etap') && n.includes('contemp')) return ['tbd_contemp'];
   if(n.includes('itp e')) return ['raynor','courtney','paige'];
   if(n.includes('itp') && n.includes('jazz')) return ['raynor','courtney'];
   if(n.includes('itp') && n.includes('tap')) return ['courtney','paige','luke'];
   if(n.includes('itp') && n.includes('ballet')) return ['vadim','gaby','ashleigh'];
   if(n.includes('teen') && n.includes('ballet')) return ['gaby','ashleigh'];
-  if(n.includes('teen') && n.includes('contemp')) return ['cami','ashleigh'];
+  if(n.includes('teen') && n.includes('contemp')) return ['tbd_contemp'];
   if(n.includes('teen') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('teen') && n.includes('jazz')) return ['paige','jessy','cami','ashleigh'];
   if(n.includes('teen') && n.includes('tap')) return ['paige','cami','courtney'];
   if(n.includes('teen') && n.includes('broadway')) return ['courtney'];
   if(n.includes('tween') && n.includes('ballet')) return ['liesl','ashleigh'];
-  if(n.includes('tween') && n.includes('contemp')) return ['ashleigh','cami'];
+  if(n.includes('tween') && n.includes('contemp')) return ['tbd_contemp'];
   if(n.includes('tween') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('tween') && n.includes('jazz')) return ['ashleigh','paige'];
   if(n.includes('tween') && n.includes('tap')) return ['courtney','luke'];
   if(n.includes('tween') && n.includes('broadway')) return ['courtney'];
   if(n.includes('junior') && n.includes('broadway')) return ['courtney'];
   if(n.includes('junior') && n.includes('ballet')) return ['liesl','ashleigh'];
-  if(n.includes('junior') && n.includes('contemp')) return ['cami','ashleigh'];
+  if(n.includes('junior') && n.includes('contemp')) return ['tbd_contemp'];
   if(n.includes('junior') && n.includes('hip hop')) return ['luke','jessy'];
   if(n.includes('junior') && n.includes('jazz')) return ['paige','courtney','cami'];
   if(n.includes('junior') && n.includes('tap')) return ['luke','courtney','paige'];
   if(n.includes('mini') && n.includes('ballet')) return ['paige','cami'];
-  if(n.includes('mini') && n.includes('hip hop')) return ['paige','cami'];
+  if(n.includes('mini') && n.includes('hip hop')) return ['jessy','paige'];
   if(n.includes('mini') && n.includes('combo')) return ['paige','cami'];
   if(n.includes('mini') && n.includes('jazz')) return ['paige','cami'];
   if(n.includes('munchkin')) return ['paige','cami'];
@@ -543,132 +585,144 @@ function extractLevel(name){
 }
 
 // Authoritative schedule data (2026-2027)
+// Entries WITHOUT day/start are unassigned; entries WITH day/start are pre-placed
 const SCHEDULE_DATA = [
-  // Adult
-  {name:'Adult Latin Jazz',day:1,start:1170,dur:60,teacher:'anastasiia'},
-  // ETAP C&D / ITP A crossover
-  {name:'ETAP C & D / ITP A Jazz',day:0,start:1170,dur:60,teacher:'raynor'},
-  {name:'ETAP C & D / ITP A Tap',day:0,start:1230,dur:60,teacher:'courtney'},
-  {name:'ETAP C&D / ITP A Ballet',day:0,start:1110,dur:60,teacher:'vadim'},
-  // ETAP Company
-  {name:'ETAP Company Leaps & Turns',day:5,start:780,dur:60,teacher:'raynor'},
-  // ETAP Level A/B
-  {name:'ETAP Level A/B Ballet',day:5,start:600,dur:90,teacher:'vadim'},
-  {name:'ETAP Level A/B Ballet',day:3,start:1200,dur:90,teacher:'vadim'},
-  {name:'ETAP Level A/B Ballet & Pointe',day:0,start:1170,dur:90,teacher:'vadim'},
-  {name:'ETAP Level A/B Ballroom',day:1,start:1110,dur:60,teacher:'anastasiia'},
-  {name:'ETAP Level A/B Contemporary',day:1,start:1170,dur:60,teacher:'nicole'},
-  {name:'ETAP Level A/B Hip Hop',day:1,start:1230,dur:60,teacher:'luke'},
-  {name:'ETAP Level A/B Jazz',day:0,start:1110,dur:60,teacher:'raynor'},
-  {name:'ETAP Level A/B Jazz',day:3,start:1110,dur:90,teacher:'raynor'},
-  {name:'ETAP Level A/B Tap',day:5,start:720,dur:60,teacher:'courtney'},
-  {name:'ETAP Level A/B Tap',day:1,start:1050,dur:60,teacher:'luke'},
-  {name:'ETAP Level A/B VOICE',day:0,start:1050,dur:60,teacher:'voice'},
-  {name:'ETAP Level A/B/C ACTING',day:0,start:990,dur:60,teacher:'lorraine'},
-  // ETAP Level C/D
-  {name:'ETAP Level C/D ACTING',day:0,start:1050,dur:60,teacher:'lorraine'},
-  {name:'ETAP Level C/D Ballet',day:5,start:690,dur:90,teacher:'vadim'},
-  {name:'ETAP Level C/D Ballet & Pre-Pointe',day:3,start:1110,dur:90,teacher:'vadim'},
-  {name:'ETAP Level C/D Ballroom',day:1,start:1230,dur:60,teacher:'anastasiia'},
-  {name:'ETAP Level C/D Contemporary',day:1,start:1050,dur:60,teacher:'nicole'},
-  {name:'ETAP Level C/D Hip Hop',day:1,start:1170,dur:60,teacher:'luke'},
-  {name:'ETAP Level C/D Jazz',day:3,start:1020,dur:90,teacher:'raynor'},
-  {name:'ETAP Level C/D Tap',day:1,start:1110,dur:60,teacher:'luke'},
-  {name:'ETAP Level C/D VOICE',day:0,start:990,dur:60,teacher:'voice'},
-  // ITP
-  {name:'ITP A & B / Teen 4 Ballet',day:3,start:1050,dur:60,teacher:'gaby'},
-  {name:'ITP A&B / Teen 4 Jazz',day:2,start:1110,dur:60,teacher:'raynor'},
-  {name:'ITP A&B / Teen 4 Tap',day:2,start:1170,dur:60,teacher:'courtney'},
-  {name:'ITP B Ballet',day:1,start:1050,dur:60,teacher:'ashleigh'},
-  {name:'ITP B/C Jazz',day:1,start:1170,dur:60,teacher:'courtney'},
-  {name:'ITP B/C Tap',day:1,start:1110,dur:60,teacher:'courtney'},
-  {name:'ITP C Ballet',day:3,start:990,dur:60,teacher:'vadim'},
-  {name:'ITP C Ballet',day:4,start:1050,dur:60,teacher:'gaby'},
-  {name:'ITP C Jazz',day:4,start:990,dur:60,teacher:'courtney'},
-  {name:'ITP C Tap',day:4,start:1110,dur:60,teacher:'paige'},
-  {name:'ITP D Ballet',day:4,start:990,dur:60,teacher:'gaby'},
-  {name:'ITP D Jazz',day:1,start:990,dur:60,teacher:'courtney'},
-  {name:'ITP D Jazz',day:4,start:1050,dur:60,teacher:'courtney'},
-  {name:'ITP D Tap',day:1,start:1050,dur:60,teacher:'courtney'},
-  // Junior
-  {name:'Junior Broadway Bound',day:2,start:990,dur:60,teacher:'courtney'},
-  {name:'Junior Level 1 Ballet',day:0,start:1050,dur:60,teacher:'liesl'},
-  {name:'Junior Level 1 Ballet',day:2,start:1110,dur:60,teacher:'ashleigh'},
-  {name:'Junior Level 1 Contemporary',day:2,start:1050,dur:60,teacher:'nicole'},
-  {name:'Junior Level 1 Hip Hop F*',day:4,start:1050,dur:60,teacher:'jessy'},
-  {name:'Junior Level 1 Hip Hop M*',day:0,start:990,dur:60,teacher:'jessy'},
-  {name:'Junior Level 1 Hip Hop R*',day:3,start:1050,dur:60,teacher:'jessy'},
-  {name:'Junior Level 1 Hip Hop W*',day:2,start:990,dur:60,teacher:'luke'},
-  {name:'Junior Level 1 Jazz/Tap',day:5,start:600,dur:90,teacher:'paige'},
-  {name:'Junior Level 1 Jazz/Tap',day:0,start:1050,dur:90,teacher:'paige'},
-  {name:'Junior Level 1A Hip Hop',day:1,start:1110,dur:60,teacher:'jessy'},
-  {name:'Junior Level 1a Jazz/Tap',day:4,start:1005,dur:90,teacher:'paige'},
-  {name:'Junior Level 2 & 3 Ballet',day:0,start:1110,dur:60,teacher:'liesl'},
-  {name:'Junior Level 2 & 3 Jazz',day:3,start:990,dur:60,teacher:'courtney'},
-  {name:'Junior Level 2 & 3 Tap',day:3,start:1050,dur:60,teacher:'luke'},
-  {name:'Junior Level 2 Contemporary',day:0,start:1050,dur:60,teacher:'cami'},
-  {name:'Junior Level 2 Hip Hop',day:5,start:690,dur:60,teacher:'jessy'},
-  {name:'Junior Level 2 Hip Hop',day:1,start:990,dur:60,teacher:'luke'},
-  {name:'Junior Level 3 Contemporary',day:2,start:990,dur:60,teacher:'nicole'},
-  {name:'Junior Level 3 Hip Hop',day:2,start:1050,dur:60,teacher:'luke'},
-  // Mini
-  {name:'Mini Age 4 & 5 Combo',day:0,start:1005,dur:45,teacher:'cami'},
-  {name:'Mini Age 4 & 5 Combo Hip Hop/Jazz',day:1,start:1050,dur:45,teacher:'jessy'},
-  {name:'Mini Age 4-6 Hip Hop F*',day:4,start:1005,dur:45,teacher:'jessy'},
-  {name:'Mini Age 4-6 Hip Hop S*',day:5,start:615,dur:45,teacher:'jessy'},
-  {name:'Mini Age 4-6 Hip Hop T*',day:1,start:1005,dur:45,teacher:'jessy'},
-  {name:'Mini Age 4-6 Hip Hop W*',day:2,start:1050,dur:45,teacher:'paige'},
-  {name:'Mini Age 5 & 6 Ballet',day:3,start:990,dur:60,teacher:'paige'},
-  {name:'Mini Age 5 & 6 Ballet',day:1,start:1050,dur:60,teacher:'paige'},
-  {name:'Mini Age 5 & 6 Jazz/Tap',day:5,start:660,dur:60,teacher:'cami'},
-  {name:'Mini Age 5 & 6 Jazz/Tap',day:2,start:990,dur:60,teacher:'paige'},
-  {name:'Mini Age 5 & 6 Jazz/Tap R*',day:3,start:1050,dur:60,teacher:'paige'},
-  {name:'Mini Age 6 Level 2 Jazz/Tap',day:3,start:1110,dur:60,teacher:'paige'},
-  // Munchkin
-  {name:'Munchkin Age 3 & 4 Combo',day:5,start:600,dur:45,teacher:'cami'},
-  {name:'Munchkin Age 3 & 4 Combo',day:0,start:1005,dur:45,teacher:'paige'},
-  {name:'Munchkin Age 3 & 4 Combo',day:1,start:1005,dur:45,teacher:'paige'},
-  // Team Rehearsals
-  {name:'TEAM REHEARSAL: CONTEMPORARY BLUE',day:5,start:720,dur:30,teacher:'cami'},
-  {name:'TEAM REHEARSAL: CONTEMPORARY YELLOW',day:5,start:750,dur:30,teacher:'cami'},
-  {name:'TEAM REHEARSAL: GREEN HIP HOP',day:5,start:660,dur:30,teacher:'jessy'},
-  {name:'TEAM REHEARSAL: HIP HOP BLUE',day:5,start:750,dur:30,teacher:'jessy'},
-  {name:'TEAM REHEARSAL: HIP HOP YELLOW',day:5,start:810,dur:30,teacher:'jessy'},
-  {name:'TEAM REHEARSAL: JAZZ BLUE',day:5,start:690,dur:30,teacher:'courtney'},
-  {name:'TEAM REHEARSAL: JAZZ GREEN',day:5,start:690,dur:30,teacher:'paige'},
-  {name:'TEAM REHEARSAL: JAZZ RED',day:5,start:660,dur:30,teacher:'courtney'},
-  {name:'TEAM REHEARSAL: JAZZ YELLOW',day:5,start:780,dur:30,teacher:'courtney'},
-  {name:'TEAM REHEARSAL: MINI JAZZ',day:5,start:720,dur:30,teacher:'paige'},
-  {name:'TEAM REHEARSAL: TAP BLUE',day:5,start:630,dur:30,teacher:'courtney'},
-  // Teen
-  {name:'Teen Level 1 & 2 Ballet',day:3,start:1110,dur:60,teacher:'gaby'},
-  {name:'Teen Level 1 & 2 Contemporary',day:1,start:1110,dur:60,teacher:'nicole'},
-  {name:'Teen Level 1 & 2 Hip Hop',day:1,start:1170,dur:60,teacher:'jessy'},
-  {name:'Teen Level 1 Jazz',day:2,start:1170,dur:60,teacher:'paige'},
-  {name:'Teen Level 1 Tap',day:2,start:1110,dur:60,teacher:'paige'},
-  {name:'Teen Level 2 & 3 Ballet',day:3,start:1170,dur:60,teacher:'gaby'},
-  {name:'Teen Level 2 & 3 Contemporary',day:3,start:1110,dur:60,teacher:'nicole'},
-  {name:'Teen Level 2 & 3 Hip Hop',day:3,start:990,dur:60,teacher:'jessy'},
-  {name:'Teen Level 2 & 3 Tap',day:0,start:1110,dur:60,teacher:'cami'},
-  {name:'Teen Level 2 Jazz',day:0,start:1170,dur:60,teacher:'jessy'},
-  {name:'Teen Level 3 & 4 Hip Hop',day:3,start:1170,dur:60,teacher:'luke'},
-  {name:'Teen Level 3 Jazz',day:0,start:1170,dur:60,teacher:'cami'},
-  // Tween
-  {name:'Tween Level 1 & 2 Hip Hop',day:3,start:1110,dur:60,teacher:'luke'},
-  {name:'Tween Level 1 Ballet',day:1,start:1170,dur:60,teacher:'ashleigh'},
-  {name:'Tween Level 1 Contemporary',day:1,start:1110,dur:60,teacher:'ashleigh'},
-  {name:'Tween Level 1 Hip Hop',day:0,start:1050,dur:60,teacher:'jessy'},
-  {name:'Tween Level 1 Jazz',day:2,start:990,dur:60,teacher:'ashleigh'},
-  {name:'Tween Level 1 Tap',day:2,start:1050,dur:60,teacher:'courtney'},
-  {name:'Tween Level 2 & 3 Contemporary',day:3,start:1050,dur:60,teacher:'nicole'},
-  {name:'Tween Level 2 & 3 Tap',day:2,start:1110,dur:60,teacher:'luke'},
-  {name:'Tween Level 2 Ballet',day:0,start:1170,dur:60,teacher:'liesl'},
-  {name:'Tween Level 2 Hip Hop',day:0,start:1110,dur:60,teacher:'jessy'},
-  {name:'Tween Level 2 Hip Hop',day:2,start:1170,dur:60,teacher:'luke'},
-  {name:'Tween Level 2 Jazz',day:2,start:1050,dur:60,teacher:'ashleigh'},
-  {name:'Tween Level 3 Jazz',day:2,start:1170,dur:60,teacher:'ashleigh'},
-  {name:'Tween/Teen Broadway Bound',day:2,start:1110,dur:60,teacher:'courtney'},
-  {name:'Tween/Teen Level 1 Jazz',day:0,start:1170,dur:60,teacher:'paige'},
+  // ── Munchkin ──
+  {name:'Munchkin Age 3 & 4 Combo',dur:45,teacher:'cami'},
+  {name:'Munchkin Age 3 & 4 Combo',dur:45,teacher:'paige'},
+  {name:'Munchkin Age 3 & 4 Combo',dur:45,teacher:'paige'},
+  // ── Mini ──
+  {name:'Mini Age 4 & 5 Combo Jazz/Tap',dur:45,teacher:'cami'},
+  {name:'Mini Age 4 & 5 Combo Hip Hop/Jazz',dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop',dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop',dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop',dur:45,teacher:'jessy'},
+  {name:'Mini Age 4-6 Hip Hop',dur:45,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Jazz/Tap',dur:60,teacher:'cami'},
+  {name:'Mini Age 5 & 6 Jazz/Tap',dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Jazz/Tap',dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Ballet',dur:60,teacher:'paige'},
+  {name:'Mini Age 5 & 6 Ballet',dur:60,teacher:'paige'},
+  // ── Junior ──
+  {name:'Junior Level 1 Ballet',dur:60,teacher:'liesl'},
+  {name:'Junior Level 1 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Junior Level 1a Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige'},
+  {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige'},
+  {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige'},
+  {name:'Junior Level 2 Ballet',dur:60,teacher:'liesl'},
+  {name:'Junior Level 3 Ballet',dur:60,teacher:'liesl'},
+  {name:'Junior Level 2 Jazz',dur:60,teacher:'courtney'},
+  {name:'Junior Level 3 Jazz',dur:60,teacher:'courtney'},
+  {name:'Junior Level 2 Tap',dur:60,teacher:'luke'},
+  {name:'Junior Level 3 Tap',dur:60,teacher:'luke'},
+  {name:'Junior Level 2 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Junior Level 2 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Junior Level 2 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Junior Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Junior Level 3 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Junior Broadway Bound',dur:60,teacher:'courtney'},
+  // ── Tween ──
+  {name:'Tween Level 1 Ballet',dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 1 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Tween Level 1 & 2 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Tween Level 2 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Tween Level 2 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Tween Level 1 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Tween Level 2 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Tween Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Tween Level 1 Tap',dur:60,teacher:'courtney'},
+  {name:'Tween Level 2 & 3 Tap',dur:60,teacher:'luke'},
+  {name:'Tween Level 1 Jazz',dur:60,teacher:'ashleigh'},
+  {name:'Tween Level 2 Jazz',dur:60,teacher:'ashleigh'},
+  {name:'Tween/Teen Level 1 Jazz',dur:60,teacher:'paige'},
+  // ── Teen ──
+  {name:'Teen Level 1 & 2 Ballet',dur:60,teacher:'gaby'},
+  {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby'},
+  {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Teen Level 1 Jazz',dur:60,teacher:'paige'},
+  {name:'Teen Level 1 Tap',dur:60,teacher:'paige'},
+  {name:'Teen Level 2 & 3 Tap',dur:60,teacher:'courtney'},
+  {name:'Teen Level 2 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Teen Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'Teen Level 2 & 3 Hip Hop',dur:60,teacher:'jessy'},
+  {name:'Teen Level 2 Jazz',dur:60,teacher:'jessy'},
+  {name:'Teen Level 3 & 4 Hip Hop',dur:60,teacher:'luke'},
+  {name:'Teen Level 3 Jazz',dur:60,teacher:'cami'},
+  {name:'Tween/Teen Broadway Bound',dur:60,teacher:'courtney'},
+  // ── ITP ──
+  {name:'ITP A Jazz',dur:60,teacher:'raynor'},
+  {name:'ITP A Jazz',dur:60,teacher:'courtney'},
+  {name:'ITP A Tap',dur:60,teacher:'courtney'},
+  {name:'ITP A Tap',dur:60,teacher:'luke'},
+  {name:'ITP A Ballet',dur:60,teacher:'gaby'},
+  {name:'ITP A Ballet',dur:60,teacher:'vadim'},
+  {name:'ITP B & C Jazz',dur:60,teacher:'courtney'},
+  {name:'ITP B & C Jazz',dur:60,teacher:'courtney'},
+  {name:'ITP B & C Tap',dur:60,teacher:'courtney'},
+  {name:'ITP B & C Tap',dur:60,teacher:'luke'},
+  {name:'ITP B & C Ballet',dur:60,teacher:'gaby'},
+  {name:'ITP B & C Ballet',dur:60,teacher:'vadim'},
+  {name:'ITP D Jazz',dur:60,teacher:'courtney'},
+  {name:'ITP D Jazz',dur:60,teacher:'courtney'},
+  {name:'ITP D Tap',dur:60,teacher:'courtney'},
+  {name:'ITP D Ballet',dur:60,teacher:'gaby'},
+  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney'},
+  {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney'},
+  // ── ETAP A ──
+  {name:'ETAP A Jazz',dur:90,teacher:'raynor'},
+  {name:'ETAP A Jazz',dur:60,teacher:'raynor'},
+  {name:'ETAP A Tap',dur:60,teacher:'courtney'},
+  {name:'ETAP A Tap',dur:60,teacher:'luke'},
+  {name:'ETAP A Ballet',dur:90,teacher:'vadim'},
+  {name:'ETAP A Ballet',dur:90,teacher:'vadim'},
+  {name:'ETAP A Ballet & Pointe',dur:90,teacher:'vadim'},
+  {name:'ETAP A Hip Hop',dur:60,teacher:'luke'},
+  {name:'ETAP A Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'ETAP A Acting',dur:60,teacher:'lorraine'},
+  // ── ETAP B&C ──
+  {name:'ETAP B&C Jazz',dur:90,teacher:'raynor'},
+  {name:'ETAP B&C Jazz',dur:60,teacher:'raynor'},
+  {name:'ETAP B&C Tap',dur:60,teacher:'courtney'},
+  {name:'ETAP B&C Tap',dur:60,teacher:'luke'},
+  {name:'ETAP B&C Ballet',dur:90,teacher:'vadim'},
+  {name:'ETAP B&C Ballet',dur:90,teacher:'vadim'},
+  {name:'ETAP B&C Ballet & Pointe',dur:90,teacher:'vadim'},
+  {name:'ETAP B&C Hip Hop',dur:60,teacher:'luke'},
+  {name:'ETAP B&C Contemporary',dur:60,teacher:'tbd_contemp'},
+  {name:'ETAP B&C Acting',dur:60,teacher:'lorraine'},
+  // ── ETAP D ──
+  {name:'ETAP D Jazz',dur:60,teacher:'raynor'},
+  {name:'ETAP D Jazz',dur:60,teacher:'courtney'},
+  {name:'ETAP D Tap',dur:60,teacher:'courtney'},
+  {name:'ETAP D Tap',dur:60,teacher:'luke'},
+  {name:'ETAP D Ballet',dur:60,teacher:'vadim'},
+  {name:'ETAP D Ballet',dur:60,teacher:'vadim'},
+  {name:'ETAP D Hip Hop',dur:60,teacher:'luke'},
+  {name:'ETAP D Contemporary',dur:60,teacher:'tbd_contemp'},
+  // ── ETAP Company ──
+  {name:'ETAP Company Leaps & Turns',dur:60,teacher:'raynor'},
+  // ── Voice (confirmed Mon, same as this year) ──
+  {name:'ETAP A VOICE',dur:60,teacher:'kathy',day:0,start:1050},
+  {name:'ETAP B&C VOICE',dur:60,teacher:'kathy',day:0,start:990},
+  // ── Team Rehearsals (confirmed Sat, same as this year) ──
+  {name:'TEAM REHEARSAL: CONTEMPORARY BLUE',dur:30,teacher:'cami',day:5,start:720},
+  {name:'TEAM REHEARSAL: CONTEMPORARY YELLOW',dur:30,teacher:'cami',day:5,start:750},
+  {name:'TEAM REHEARSAL: GREEN HIP HOP',dur:30,teacher:'jessy',day:5,start:660},
+  {name:'TEAM REHEARSAL: HIP HOP BLUE',dur:30,teacher:'jessy',day:5,start:750},
+  {name:'TEAM REHEARSAL: HIP HOP YELLOW',dur:30,teacher:'jessy',day:5,start:810},
+  {name:'TEAM REHEARSAL: JAZZ BLUE',dur:30,teacher:'courtney',day:5,start:690},
+  {name:'TEAM REHEARSAL: JAZZ GREEN',dur:30,teacher:'paige',day:5,start:690},
+  {name:'TEAM REHEARSAL: JAZZ RED',dur:30,teacher:'courtney',day:5,start:660},
+  {name:'TEAM REHEARSAL: JAZZ YELLOW',dur:30,teacher:'courtney',day:5,start:780},
+  {name:'TEAM REHEARSAL: MINI JAZZ',dur:30,teacher:'paige',day:5,start:720},
+  {name:'TEAM REHEARSAL: TAP BLUE',dur:30,teacher:'courtney',day:5,start:630},
 ];
 
 // Build class list from schedule data
@@ -748,7 +802,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 2;
+const SCHEDULE_VERSION = 3;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1357,6 +1411,333 @@ function doAddClass(){
   renderAll();
   save();
   toast('Class added: ' + name);
+}
+
+  closeAddClassModal();
+  renderAll();
+  save();
+  toast('Class added: ' + name);
+}
+
+// =============================================
+// AUTO-SCHEDULER ENGINE
+// =============================================
+
+function isTeacherAvailDay(teacherId, day){
+  const a = TEACHER_AVAIL[teacherId];
+  if(!a) return true; // unknown teacher = all days
+  return a.days.includes(day);
+}
+
+function meetsTimeConstraint(teacherId, day, startTime, dur){
+  const a = TEACHER_AVAIL[teacherId];
+  if(!a || !a.constraints || !a.constraints[day]) return true;
+  const c = a.constraints[day];
+  if(c.after !== undefined && startTime < c.after) return false;
+  if(c.before !== undefined && startTime + dur > c.before) return false;
+  return true;
+}
+
+function teacherBusy(teacherId, day, startTime, dur, assignments){
+  return assignments.some(a =>
+    a.teacherId === teacherId && a.day === day &&
+    startTime < a.startTime + a.dur && startTime + dur > a.startTime
+  );
+}
+
+function roomBusy(roomId, day, startTime, dur, assignments){
+  return assignments.some(a =>
+    a.room === roomId && a.day === day &&
+    startTime < a.startTime + a.dur && startTime + dur > a.startTime
+  );
+}
+
+function findAvailRoom(className, day, startTime, dur, assignments){
+  const allowed = getAllowedRooms(className);
+  for(const r of allowed){
+    if(!roomBusy(r.id, day, startTime, dur, assignments)) return r.id;
+  }
+  return null;
+}
+
+// Convert existing state.schedule into assignment format
+function existingAssignments(){
+  return state.schedule.map(s => {
+    const cls = CLASSES.find(c => c.id === s.classId);
+    return {
+      classId: s.classId,
+      teacherId: s.teacherId,
+      day: s.day,
+      startTime: s.startTime,
+      dur: cls ? cls.duration : 60,
+      room: s.room || '',
+      className: cls ? cls.name : '',
+    };
+  });
+}
+
+// Count how many days a teacher is used in assignments
+function teacherDaysUsed(teacherId, assignments){
+  const days = new Set(assignments.filter(a => a.teacherId === teacherId).map(a => a.day));
+  return days;
+}
+
+// Count classes in a room on a day
+function roomDayLoad(roomId, day, assignments){
+  return assignments.filter(a => a.room === roomId && a.day === day).length;
+}
+
+function generateScheduleOption(strategy){
+  // Start with already-assigned classes
+  const base = existingAssignments();
+  const assignments = [...base];
+  const unplaced = [];
+
+  // Get unassigned class IDs
+  const assignedIds = new Set(state.schedule.map(s => s.classId));
+  const unassigned = CLASSES.filter(c => !assignedIds.has(c.id));
+
+  // Sort based on strategy
+  const sorted = [...unassigned];
+  if(strategy === 'min-days'){
+    // Most constrained teachers first (fewest available days)
+    sorted.sort((a, b) => {
+      const sdA = SCHEDULE_DATA[a.id - 1];
+      const sdB = SCHEDULE_DATA[b.id - 1];
+      const daysA = (TEACHER_AVAIL[sdA.teacher]?.days?.length || 6);
+      const daysB = (TEACHER_AVAIL[sdB.teacher]?.days?.length || 6);
+      if(daysA !== daysB) return daysA - daysB;
+      return b.duration - a.duration; // longer classes first
+    });
+  } else if(strategy === 'balanced'){
+    // Longer classes first (harder to fit), then alphabetical
+    sorted.sort((a, b) => {
+      if(b.duration !== a.duration) return b.duration - a.duration;
+      return a.name.localeCompare(b.name);
+    });
+  } else if(strategy === 'last-year'){
+    // same sort as balanced, reference matching is in slot selection
+    sorted.sort((a, b) => b.duration - a.duration || a.name.localeCompare(b.name));
+  }
+
+  for(const cls of sorted){
+    const sd = SCHEDULE_DATA[cls.id - 1];
+    const teacherId = sd.teacher;
+    const dur = cls.duration;
+
+    let bestSlot = null;
+    let bestScore = -Infinity;
+
+    for(let day = 0; day < 6; day++){
+      if(!isTeacherAvailDay(teacherId, day)) continue;
+
+      const dayStart = day === 5 ? SAT_START : WEEKDAY_START;
+      const dayEnd = day === 5 ? SAT_END : WEEKDAY_END;
+
+      for(let t = dayStart; t + dur <= dayEnd; t += 15){
+        if(!meetsTimeConstraint(teacherId, day, t, dur)) continue;
+        if(teacherBusy(teacherId, day, t, dur, assignments)) continue;
+
+        const room = findAvailRoom(cls.name, day, t, dur, assignments);
+        if(!room) continue;
+
+        // Score based on strategy
+        let score = 0;
+        if(strategy === 'min-days'){
+          const usedDays = teacherDaysUsed(teacherId, assignments);
+          score += usedDays.has(day) ? 100 : 0; // strongly prefer existing days
+          score -= t * 0.01; // prefer earlier times
+        } else if(strategy === 'balanced'){
+          // Prefer day/room with lowest load
+          const load = roomDayLoad(room, day, assignments);
+          score -= load * 10;
+          // Spread teachers across days
+          const tDays = teacherDaysUsed(teacherId, assignments);
+          score += tDays.has(day) ? -5 : 5; // prefer new days for balance
+          score -= t * 0.001;
+        } else if(strategy === 'last-year'){
+          // Reference: find a similar class from last year's data
+          score -= t * 0.01; // default: prefer earlier
+          // Bonus for matching day pattern of same teacher
+          const tDays = teacherDaysUsed(teacherId, assignments);
+          score += tDays.has(day) ? 50 : 0;
+        }
+
+        if(score > bestScore){
+          bestScore = score;
+          bestSlot = { day, startTime: t, room, dur };
+        }
+      }
+    }
+
+    if(bestSlot){
+      assignments.push({
+        classId: cls.id,
+        teacherId: teacherId,
+        day: bestSlot.day,
+        startTime: bestSlot.startTime,
+        dur: dur,
+        room: bestSlot.room,
+        className: cls.name,
+      });
+    } else {
+      // Figure out why
+      const avail = TEACHER_AVAIL[teacherId];
+      let reason = 'No valid time slot found';
+      if(avail && avail.days.length === 0) reason = 'Teacher has no available days';
+      else if(avail && avail.days.length <= 2) reason = 'Teacher only available ' + avail.days.map(d => DAY_SHORT[d]).join(', ') + ' — all slots full';
+      unplaced.push({ classId: cls.id, className: cls.name, teacher: teacherId, reason });
+    }
+  }
+
+  // Compute stats
+  const newAssignments = assignments.filter(a => !assignedIds.has(a.classId));
+  const teacherDayCounts = {};
+  assignments.forEach(a => {
+    if(!teacherDayCounts[a.teacherId]) teacherDayCounts[a.teacherId] = new Set();
+    teacherDayCounts[a.teacherId].add(a.day);
+  });
+
+  const roomDayCounts = {};
+  assignments.forEach(a => {
+    const key = a.day + '-' + a.room;
+    roomDayCounts[key] = (roomDayCounts[key] || 0) + 1;
+  });
+  const maxRoomLoad = Math.max(...Object.values(roomDayCounts), 0);
+
+  // TBD Contemporary teacher day count
+  const tbdDays = teacherDayCounts['tbd_contemp'] ? teacherDayCounts['tbd_contemp'].size : 0;
+
+  return {
+    assignments: newAssignments,
+    allAssignments: assignments,
+    unplaced,
+    stats: {
+      placed: newAssignments.length,
+      total: unassigned.length,
+      unplacedCount: unplaced.length,
+      teacherDayCounts,
+      maxRoomLoad,
+      tbdDays,
+    }
+  };
+}
+
+function runAutoScheduler(){
+  const options = [
+    { key:'min-days', label:'Option A: Minimum Teacher Days', desc:'Packs each teacher into the fewest days possible' },
+    { key:'balanced', label:'Option B: Balanced Rooms', desc:'Spreads classes evenly across days and rooms' },
+    { key:'last-year', label:'Option C: Closest to Last Year', desc:'Keeps teachers on familiar day patterns' },
+  ];
+
+  const results = options.map(opt => {
+    const result = generateScheduleOption(opt.key);
+    return { ...opt, ...result };
+  });
+
+  showAutoScheduleResults(results);
+}
+
+function showAutoScheduleResults(results){
+  let html = '<div style="padding:1.5rem;max-height:80vh;overflow-y:auto;">';
+  html += '<h3 style="margin:0 0 1rem;">Auto-Schedule Suggestions</h3>';
+  html += '<p style="font-size:.75rem;color:var(--text-secondary);margin:0 0 1rem;">Three options generated based on different priorities. Review and accept one as your starting point.</p>';
+
+  results.forEach((r, idx) => {
+    const color = idx === 0 ? '#3B82F6' : idx === 1 ? '#10B981' : '#F59E0B';
+    html += '<div style="border:2px solid ' + color + ';border-radius:10px;padding:1rem;margin-bottom:1rem;background:var(--bg-card);">';
+    html += '<h4 style="margin:0 0 .25rem;color:' + color + ';">' + r.label + '</h4>';
+    html += '<p style="font-size:.72rem;color:var(--text-secondary);margin:0 0 .75rem;">' + r.desc + '</p>';
+
+    // Stats
+    html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem;">';
+    html += '<div style="font-size:.72rem;"><strong style="color:var(--success);">' + r.stats.placed + '</strong> / ' + r.stats.total + ' placed</div>';
+    if(r.stats.unplacedCount > 0) html += '<div style="font-size:.72rem;color:var(--danger);"><strong>' + r.stats.unplacedCount + '</strong> could not fit</div>';
+    html += '<div style="font-size:.72rem;">TBD Contemp: <strong>' + r.stats.tbdDays + ' days</strong></div>';
+    html += '<div style="font-size:.72rem;">Max room load: <strong>' + r.stats.maxRoomLoad + ' classes</strong></div>';
+    html += '</div>';
+
+    // Pros
+    html += '<div style="font-size:.72rem;margin-bottom:.5rem;">';
+    if(r.key === 'min-days'){
+      const teacherSummary = Object.entries(r.stats.teacherDayCounts)
+        .filter(([id]) => id !== 'kathy')
+        .map(([id, days]) => teacherShort(id) + ': ' + days.size + 'd')
+        .join(', ');
+      html += '<span style="color:var(--success);">&#10003;</span> Teacher day spread: ' + teacherSummary;
+    } else if(r.key === 'balanced'){
+      html += '<span style="color:var(--success);">&#10003;</span> Even room distribution (max ' + r.stats.maxRoomLoad + ' per room/day)';
+    } else {
+      html += '<span style="color:var(--success);">&#10003;</span> Familiar patterns preserved for returning families';
+    }
+    html += '</div>';
+
+    // Unplaced
+    if(r.unplaced.length > 0){
+      html += '<details style="font-size:.7rem;margin-bottom:.5rem;"><summary style="cursor:pointer;color:var(--danger);">' + r.unplaced.length + ' class(es) could not be placed</summary><ul style="margin:.25rem 0;padding-left:1.2rem;">';
+      r.unplaced.forEach(u => {
+        html += '<li><strong>' + u.className + '</strong> (' + teacherShort(u.teacher) + '): ' + u.reason + '</li>';
+      });
+      html += '</ul></details>';
+    }
+
+    // Preview table (first 10)
+    html += '<details style="font-size:.68rem;margin-bottom:.5rem;"><summary style="cursor:pointer;">Preview placements (' + r.assignments.length + ' classes)</summary>';
+    html += '<table style="font-size:.66rem;margin-top:.25rem;border-collapse:collapse;width:100%;">';
+    html += '<tr style="border-bottom:1px solid var(--border-light);"><th style="text-align:left;padding:.15rem .3rem;">Class</th><th style="text-align:left;padding:.15rem .3rem;">Day</th><th style="text-align:left;padding:.15rem .3rem;">Time</th><th style="text-align:left;padding:.15rem .3rem;">Room</th><th style="text-align:left;padding:.15rem .3rem;">Teacher</th></tr>';
+    r.assignments.slice(0, 12).forEach(a => {
+      html += '<tr style="border-bottom:1px solid var(--border-light);">';
+      html += '<td style="padding:.15rem .3rem;">' + a.className + '</td>';
+      html += '<td style="padding:.15rem .3rem;">' + DAY_SHORT[a.day] + '</td>';
+      html += '<td style="padding:.15rem .3rem;">' + minutesToTime(a.startTime) + '</td>';
+      html += '<td style="padding:.15rem .3rem;">' + roomName(a.room) + '</td>';
+      html += '<td style="padding:.15rem .3rem;">' + teacherShort(a.teacherId) + '</td>';
+      html += '</tr>';
+    });
+    if(r.assignments.length > 12) html += '<tr><td colspan="5" style="padding:.15rem .3rem;color:var(--text-muted);">...and ' + (r.assignments.length - 12) + ' more</td></tr>';
+    html += '</table></details>';
+
+    html += '<button class="btn btn-primary" style="font-size:.75rem;margin-top:.5rem;" onclick="applyAutoSchedule(\'' + r.key + '\')">Accept ' + r.label.split(':')[0] + '</button>';
+    html += '</div>';
+  });
+
+  html += '<div style="text-align:right;margin-top:.5rem;"><button class="btn btn-outline" onclick="closeAutoScheduleModal()">Cancel</button></div>';
+  html += '</div>';
+
+  document.getElementById('auto-schedule-content').innerHTML = html;
+  document.getElementById('auto-schedule-modal').classList.add('show');
+}
+
+function closeAutoScheduleModal(){
+  document.getElementById('auto-schedule-modal').classList.remove('show');
+}
+
+function applyAutoSchedule(strategy){
+  const result = generateScheduleOption(strategy);
+  if(!confirm('This will place ' + result.stats.placed + ' classes into the schedule' + (result.stats.unplacedCount > 0 ? ' (' + result.stats.unplacedCount + ' could not fit)' : '') + '. You can undo with Ctrl+Z. Continue?')) return;
+
+  pushUndo();
+  result.assignments.forEach(a => {
+    state.schedule.push({
+      classId: a.classId,
+      teacherId: a.teacherId,
+      day: a.day,
+      startTime: a.startTime,
+      room: a.room,
+    });
+  });
+
+  closeAutoScheduleModal();
+  buildAvailabilityFromSchedule();
+  populateFilters();
+  renderAll();
+  save();
+
+  if(result.stats.unplacedCount > 0){
+    toast(result.stats.placed + ' placed, ' + result.stats.unplacedCount + ' need manual placement');
+  } else {
+    toast('All ' + result.stats.placed + ' classes placed successfully!');
+  }
 }
 
 // =============================================
@@ -2713,6 +3094,11 @@ function populateFilters(){
 function renderAll(){
   renderCalendar();
   renderUnassigned();
+  // Update schedule tab unassigned count
+  const assignedIds = new Set(state.schedule.map(s => s.classId));
+  const unassignedN = CLASSES.filter(c => !assignedIds.has(c.id)).length;
+  const ucEl = document.getElementById('unassigned-count');
+  if(ucEl) ucEl.textContent = unassignedN > 0 ? unassignedN + ' of ' + CLASSES.length + ' classes unassigned' : 'All ' + CLASSES.length + ' classes assigned';
   if(activeTab === 'teachers') renderTeachers();
   if(activeTab === 'classes') renderClasses();
   if(activeTab === 'availability') renderAvailability();
@@ -2737,13 +3123,15 @@ document.addEventListener('keydown', e => {
 function seedFromTab3(){
   if(state.schedule.length > 0) return;
   SCHEDULE_DATA.forEach((d, i) => {
-    state.schedule.push({
-      classId: i + 1,
-      teacherId: d.teacher,
-      day: d.day,
-      startTime: d.start,
-      room: '',
-    });
+    if(d.day !== undefined && d.start !== undefined){
+      state.schedule.push({
+        classId: i + 1,
+        teacherId: d.teacher,
+        day: d.day,
+        startTime: d.start,
+        room: '',
+      });
+    }
   });
   save();
 }
