@@ -886,7 +886,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 5;
+const SCHEDULE_VERSION = 6;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -976,6 +976,34 @@ function getAgeGroup(name){
   return null;
 }
 
+// Returns array of student cohort IDs this class belongs to.
+// Classes sharing a cohort have the SAME students and CANNOT overlap.
+function getStudentCohorts(name){
+  var n = name.toUpperCase(), m;
+  if(n.startsWith('TEAM REHEARSAL')) return [];
+  if(n.startsWith('ETAP A ')) return ['ETAP-A'];
+  if(n.startsWith('ETAP B&C ')) return ['ETAP-BC'];
+  if(n.startsWith('ETAP D ')) return ['ETAP-D'];
+  if(n.startsWith('ETAP COMPANY')) return ['ETAP-CO'];
+  if(n.startsWith('ITP A ')) return ['ITP-A'];
+  if(n.startsWith('ITP B & C ')) return ['ITP-BC'];
+  if(n.startsWith('ITP D ')) return ['ITP-D'];
+  if(n.startsWith('ITP E ')) return ['ITP-E'];
+  if(n.includes('BROADWAY BOUND')) return [];
+  if(n.startsWith('TWEEN/TEEN')) return [];
+  m = n.match(/^JUNIOR LEVEL (\d+)/);
+  if(m) return ['JR-L' + m[1]];
+  m = n.match(/^TWEEN LEVEL (\d+)\s*(?:&\s*(\d+))?/);
+  if(m){ var c = ['TW-L'+m[1]]; if(m[2]) c.push('TW-L'+m[2]); return c; }
+  m = n.match(/^TEEN LEVEL (\d+)\s*(?:&\s*(\d+))?/);
+  if(m){ var c = ['TN-L'+m[1]]; if(m[2]) c.push('TN-L'+m[2]); return c; }
+  if(n.includes('MINI AGE 4-6')) return ['MINI-46'];
+  if(n.includes('MINI AGE 4 & 5')) return ['MINI-45'];
+  if(n.includes('MINI AGE 5 & 6')) return ['MINI-56'];
+  if(n.includes('MUNCHKIN')) return ['MUNCHKIN'];
+  return [];
+}
+
 function getConflicts(){
   const conflicts = [];
   for(let i=0; i<state.schedule.length; i++){
@@ -1000,12 +1028,13 @@ function getConflicts(){
       if(a.room && b.room && a.room === b.room){
         conflicts.push({ type:'room', a:i, b:j, msg:roomName(a.room) + ' overlap', ignored });
       }
-      // Same level in same age group (Raynor's rule)
-      if(ac.level !== null && bc.level !== null && ac.level === bc.level && ac.level >= 1){
-        const aGroup = getAgeGroup(ac.name);
-        const bGroup = getAgeGroup(bc.name);
-        if(aGroup && bGroup && aGroup === bGroup){
-          conflicts.push({ type:'level', a:i, b:j, msg:'Same level (' + aGroup + ' L' + ac.level + ') at same time', ignored });
+      // Same student cohort — these students cannot be in two places
+      const aCohorts = getStudentCohorts(ac.name);
+      const bCohorts = getStudentCohorts(bc.name);
+      if(aCohorts.length && bCohorts.length){
+        const shared = aCohorts.filter(function(c){ return bCohorts.indexOf(c) >= 0; });
+        if(shared.length){
+          conflicts.push({ type:'cohort', a:i, b:j, msg:shared[0] + ' students overlap', ignored });
         }
       }
     }
@@ -1568,6 +1597,17 @@ function findAvailRoom(className, day, startTime, dur, assignments){
   return null;
 }
 
+function cohortBusy(className, day, startTime, dur, assignments){
+  const cohorts = getStudentCohorts(className);
+  if(!cohorts.length) return false;
+  return assignments.some(a => {
+    if(a.day !== day) return false;
+    if(!(startTime < a.startTime + a.dur && startTime + dur > a.startTime)) return false;
+    var ac = getStudentCohorts(a.className);
+    return ac.some(function(c){ return cohorts.indexOf(c) >= 0; });
+  });
+}
+
 // Convert existing state.schedule into assignment format
 function existingAssignments(){
   const result = [];
@@ -1650,6 +1690,7 @@ function generateScheduleOption(strategy){
       for(let t = dayStart; t + dur <= dayEnd; t += 15){
         if(!meetsTimeConstraint(teacherId, day, t, dur)) continue;
         if(teacherBusy(teacherId, day, t, dur, assignments)) continue;
+        if(cohortBusy(cls.name, day, t, dur, assignments)) continue;
 
         const room = findAvailRoom(cls.name, day, t, dur, assignments);
         if(!room) continue;
