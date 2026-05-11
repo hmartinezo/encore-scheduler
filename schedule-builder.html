@@ -68,7 +68,7 @@ select, input { font-family:inherit; }
 
 /* ===== CALENDAR ===== */
 .calendar-wrap { flex:1; overflow:auto; padding:.75rem; }
-.cal-grid { display:grid; grid-template-columns:56px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:750px; }
+.cal-grid { display:grid; grid-template-columns:56px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:1500px; }
 .cal-header { background:#F8FAFC; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); padding:.4rem; text-align:center; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
 .cal-time { font-size:.6rem; color:var(--text-muted); padding:.2rem .3rem; text-align:right; border-right:1px solid var(--border); height:28px; display:flex; align-items:flex-start; justify-content:flex-end; }
 .cal-time.hour-mark { font-weight:600; color:var(--text-secondary); }
@@ -316,7 +316,7 @@ select, input { font-family:inherit; }
     <div style="padding:.5rem .75rem;display:flex;gap:.5rem;align-items:center;border-bottom:1px solid var(--border-light);flex-shrink:0;">
       <span id="unassigned-count" style="font-size:.72rem;color:var(--text-muted);"></span>
     </div>
-    <div class="calendar-wrap" id="calendar-wrap" style="flex:1;overflow:hidden;"></div>
+    <div class="calendar-wrap" id="calendar-wrap" style="flex:1;overflow:auto;"></div>
   </div>
 
   <!-- CLASSES TAB -->
@@ -1145,9 +1145,9 @@ function renderCalendar(){
   let colParts = ['56px'];
   for(let d = 0; d < numDays; d++){
     if(d === focusDay){
-      for(let r = 0; r < roomCount; r++) colParts.push('1fr');
+      for(let r = 0; r < roomCount; r++) colParts.push('minmax(140px,1fr)');
     } else {
-      colParts.push(focusDay >= 0 ? '0.5fr' : '1fr');
+      colParts.push(focusDay >= 0 ? 'minmax(60px,0.5fr)' : 'minmax(220px,1fr)');
     }
   }
   if(satCollapsed && focusDay !== 5) colParts.push('28px');
@@ -1998,9 +1998,9 @@ function renderOptionCalendarView(key){
   let colParts = ['56px'];
   for(let d = 0; d < numDays; d++){
     if(d === fd){
-      for(let ri = 0; ri < roomCount; ri++) colParts.push('1fr');
+      for(let ri = 0; ri < roomCount; ri++) colParts.push('minmax(140px,1fr)');
     } else {
-      colParts.push(fd >= 0 ? '0.5fr' : '1fr');
+      colParts.push(fd >= 0 ? 'minmax(60px,0.5fr)' : 'minmax(220px,1fr)');
     }
   }
   if(sc && fd !== 5) colParts.push('28px');
