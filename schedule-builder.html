@@ -669,12 +669,12 @@ const SCHEDULE_DATA = [
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:5,start:600},         // Sat 10:00 AM
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:0,start:1050},        // Mon 5:30 PM
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:4,start:1005},        // Fri 4:45 PM (1a)
-  {name:'Junior Level 2 Ballet',dur:60,teacher:'liesl',day:0,start:1110},          // Mon 6:30 PM (2&3 Ballet)
-  {name:'Junior Level 3 Ballet',dur:60,teacher:'liesl',day:0,start:1110},          // Mon 6:30 PM (same slot as 2&3)
-  {name:'Junior Level 2 Jazz',dur:60,teacher:'courtney',day:3,start:990},          // Thu 4:30 PM (2&3 Jazz)
-  {name:'Junior Level 3 Jazz',dur:60,teacher:'courtney',day:3,start:990},          // Thu 4:30 PM (same slot)
-  {name:'Junior Level 2 Tap',dur:60,teacher:'luke',day:3,start:1050},             // Thu 5:30 PM (2&3 Tap)
-  {name:'Junior Level 3 Tap',dur:60,teacher:'luke',day:3,start:1050},             // Thu 5:30 PM (same slot)
+  {name:'Junior Level 2 Ballet',dur:60,teacher:'liesl',day:0,start:1110},          // Mon 6:30 PM
+  {name:'Junior Level 3 Ballet',dur:60,teacher:'liesl'},                          // (split from Jr2 — auto-scheduler places)
+  {name:'Junior Level 2 Jazz',dur:60,teacher:'courtney',day:3,start:990},          // Thu 4:30 PM
+  {name:'Junior Level 3 Jazz',dur:60,teacher:'courtney'},                         // (split from Jr2 — auto-scheduler places)
+  {name:'Junior Level 2 Tap',dur:60,teacher:'luke',day:3,start:1050},             // Thu 5:30 PM
+  {name:'Junior Level 3 Tap',dur:60,teacher:'luke'},                              // (split from Jr2 — auto-scheduler places)
   {name:'Junior Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:0,start:1050}, // Mon 5:30 PM
   {name:'Junior Level 2 Hip Hop',dur:60,teacher:'jessy',day:5,start:690},          // Sat 11:30 AM
   {name:'Junior Level 2 Hip Hop',dur:60,teacher:'luke',day:1,start:990},           // Tue 4:30 PM
@@ -688,8 +688,8 @@ const SCHEDULE_DATA = [
   {name:'Tween Level 2 Hip Hop',dur:60,teacher:'jessy',day:0,start:1110},          // Mon 6:30 PM
   {name:'Tween Level 2 Hip Hop',dur:60,teacher:'luke',day:2,start:1170},           // Wed 7:30 PM
   {name:'Tween Level 1 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110}, // Tue 6:30 PM (Ashleigh last yr)
-  {name:'Tween Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1050}, // Thu 5:30 PM (2&3 Contemp)
-  {name:'Tween Level 3 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1050}, // Thu 5:30 PM (same slot as 2&3)
+  {name:'Tween Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1050}, // Thu 5:30 PM
+  {name:'Tween Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},                // (split — auto-scheduler places)
   {name:'Tween Level 1 Tap',dur:60,teacher:'courtney',day:2,start:1050},           // Wed 5:30 PM
   {name:'Tween Level 2 & 3 Tap',dur:60,teacher:'luke',day:2,start:1110},          // Wed 6:30 PM
   {name:'Tween Level 1 Jazz',dur:60,teacher:'ashleigh',day:2,start:990},           // Wed 4:30 PM
@@ -703,8 +703,8 @@ const SCHEDULE_DATA = [
   {name:'Teen Level 1 Jazz',dur:60,teacher:'paige',day:2,start:1170},              // Wed 7:30 PM
   {name:'Teen Level 1 Tap',dur:60,teacher:'paige',day:2,start:1110},               // Wed 6:30 PM
   {name:'Teen Level 2 & 3 Tap',dur:60,teacher:'courtney',day:0,start:1110},        // Mon 6:30 PM (Cami last yr)
-  {name:'Teen Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1110}, // Thu 6:30 PM (2&3 Contemp)
-  {name:'Teen Level 3 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1110}, // Thu 6:30 PM (same)
+  {name:'Teen Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1110}, // Thu 6:30 PM
+  {name:'Teen Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},                 // (split — auto-scheduler places)
   {name:'Teen Level 2 & 3 Hip Hop',dur:60,teacher:'jessy',day:3,start:990},        // Thu 4:30 PM
   {name:'Teen Level 2 Jazz',dur:60,teacher:'jessy',day:0,start:1170},              // Mon 7:30 PM
   {name:'Teen Level 3 & 4 Hip Hop',dur:60,teacher:'luke',day:3,start:1170},        // Thu 7:30 PM
@@ -722,12 +722,12 @@ const SCHEDULE_DATA = [
   {name:'ITP B & C Tap',dur:60,teacher:'courtney',day:1,start:1110},               // Tue 6:30 PM (B/C Tap)
   {name:'ITP B & C Tap',dur:60,teacher:'luke',day:4,start:1110},                   // Fri 6:30 PM (ITP C Tap)
   {name:'ITP B & C Ballet',dur:60,teacher:'gaby',day:4,start:990},                 // Fri 4:30 PM (ITP D Ballet)
-  {name:'ITP B & C Ballet',dur:60,teacher:'vadim',day:3,start:990},                // Thu 4:30 PM
+  {name:'ITP B & C Ballet',dur:60,teacher:'vadim'},                                // (split from ITP A Ballet Thu — auto places)
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:1,start:990},                   // Tue 4:30 PM
-  {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4,start:1050},                  // Fri 5:30 PM
+  {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4},                             // Fri (split from ITP B&C Jazz — auto places time)
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:1,start:1050},                   // Tue 5:30 PM
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:4},                              // Fri (director requirement - auto-scheduler places)
-  {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4,start:990},                     // Fri 4:30 PM
+  {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4},                               // Fri (split from ITP B&C Ballet — auto places time)
   {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney'},                               // (moved off Fri — not in director's Friday list)
   {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney',day:2,start:1110},           // Wed 6:30 PM (ITP E Jazz/Ballet)
   // ── ETAP A ── (matched to last year: A/B split across Mon/Tue/Thu/Sat)
@@ -753,10 +753,10 @@ const SCHEDULE_DATA = [
   {name:'ETAP B&C Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1050},    // Tue 5:30 PM (C/D Contemporary)
   {name:'ETAP B&C Acting',dur:60,teacher:'lorraine',day:0,start:1050},             // Mon 5:30 PM (C/D Acting)
   // ── ETAP D ── (new program - place on same pattern as ETAP C/D last year)
-  {name:'ETAP D Jazz',dur:60,teacher:'raynor',day:3,start:1020},                   // Thu 5:00 PM
+  {name:'ETAP D Jazz',dur:60,teacher:'raynor'},                                    // (split from ETAP B&C Jazz — auto places)
   {name:'ETAP D Jazz',dur:60,teacher:'courtney',day:3,start:1170},                 // Thu 7:30 PM (moved from Tue to avoid ITP D Jazz conflict)
   {name:'ETAP D Tap',dur:60,teacher:'courtney',day:3,start:1110},                  // Thu 6:30 PM (moved from Fri - ETAP no-Fri rule)
-  {name:'ETAP D Tap',dur:60,teacher:'luke',day:1,start:1050},                      // Tue 5:30 PM (combined with ETAP A Tap)
+  {name:'ETAP D Tap',dur:60,teacher:'luke'},                                      // (split from ETAP A Tap — auto places)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:0,start:1050},                  // Mon 5:30 PM (moved from Thu to avoid ITP Ballet conflict)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:5,start:690},                   // Sat 11:30 AM
   {name:'ETAP D Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM
@@ -857,7 +857,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 13;
+const SCHEDULE_VERSION = 14;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
