@@ -298,6 +298,7 @@ select, input { font-family:inherit; }
 <div class="topbar" id="topbar">
   <h2 id="topbar-title">Weekly Schedule</h2>
   <select id="filter-teacher"><option value="">All Teachers</option></select>
+  <select id="filter-group"><option value="">All Groups</option></select>
   <select id="filter-room"><option value="">All Rooms (6)</option></select>
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
@@ -698,7 +699,7 @@ const SCHEDULE_DATA = [
   // ── Teen ── (matched to last year)
   {name:'Teen Level 1 & 2 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
   {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
-  {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110}, // Tue 6:30 PM
+  {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1},             // Tue (unpin time — was conflicting with Tween Lvl1 at 6:30)
   {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy',day:1,start:1170},       // Tue 7:30 PM
   {name:'Teen Level 1 Jazz',dur:60,teacher:'paige',day:2,start:1170},              // Wed 7:30 PM
   {name:'Teen Level 1 Tap',dur:60,teacher:'paige',day:2,start:1110},               // Wed 6:30 PM
@@ -857,7 +858,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 14;
+const SCHEDULE_VERSION = 15;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -973,6 +974,19 @@ function getStudentCohorts(name){
   if(n.includes('MINI AGE 5 & 6')) return ['MINI-56'];
   if(n.includes('MUNCHKIN')) return ['MUNCHKIN'];
   return [];
+}
+
+// Extract the group name from a class name (Mini, Junior, Tween, Teen, ITP, ETAP)
+function getClassGroup(name){
+  const n = name.toLowerCase();
+  if(n.startsWith('etap')) return 'ETAP';
+  if(n.startsWith('itp')) return 'ITP';
+  if(n.startsWith('tween/teen') || n.startsWith('tween & teen')) return 'Tween/Teen';
+  if(n.startsWith('mini')) return 'Mini';
+  if(n.startsWith('junior')) return 'Junior';
+  if(n.startsWith('tween')) return 'Tween';
+  if(n.startsWith('teen')) return 'Teen';
+  return 'Other';
 }
 
 // Check if two overlapping classes with the same teacher are intentionally combined
@@ -1140,6 +1154,7 @@ let satCollapsed = true; // Saturday starts collapsed
 function renderCalendar(){
   const wrap = document.getElementById('calendar-wrap');
   const filterTeacher = document.getElementById('filter-teacher').value;
+  const filterGroup = document.getElementById('filter-group').value;
   const filterRoom = document.getElementById('filter-room').value;
 
   const showSat = !satCollapsed;
@@ -1218,6 +1233,7 @@ function renderCalendar(){
 
     const cls = CLASSES.find(c=>c.id===sched.classId);
     if(!cls) return;
+    if(filterGroup && getClassGroup(cls.name) !== filterGroup) return;
 
     if(sched.day >= numDays) return;
     const timeRowInVisible = visibleSlots.indexOf(sched.startTime);
@@ -1320,10 +1336,15 @@ function renderCalendar(){
 function renderTeachers(){
   const view = document.getElementById('teachers-view');
   const filterTeacher = document.getElementById('filter-teacher').value;
+  const filterGroup = document.getElementById('filter-group').value;
   const filterRoom = document.getElementById('filter-room').value;
 
   let teachersToShow = [...TEACHERS];
   if(filterTeacher) teachersToShow = teachersToShow.filter(t => t.id === filterTeacher);
+  if(filterGroup){
+    const teachersInGroup = new Set(state.schedule.filter(s => { const c = CLASSES.find(cc=>cc.id===s.classId); return c && getClassGroup(c.name) === filterGroup; }).map(s => s.teacherId));
+    teachersToShow = teachersToShow.filter(t => teachersInGroup.has(t.id));
+  }
   if(filterRoom){
     const teachersInRoom = new Set(state.schedule.filter(s => s.room === filterRoom).map(s => s.teacherId));
     teachersToShow = teachersToShow.filter(t => teachersInRoom.has(t.id));
@@ -1419,12 +1440,16 @@ function saveTeacher(){
 function renderClasses(){
   const view = document.getElementById('classes-view');
   const filterTeacher = document.getElementById('filter-teacher').value;
+  const filterGroup = document.getElementById('filter-group').value;
   const filterRoom = document.getElementById('filter-room').value;
 
   let classesToShow = CLASSES;
   const assignedMap = {};
   state.schedule.forEach(s => { assignedMap[s.classId] = s; });
 
+  if(filterGroup){
+    classesToShow = classesToShow.filter(c => getClassGroup(c.name) === filterGroup);
+  }
   if(filterTeacher){
     classesToShow = classesToShow.filter(c => {
       const sched = assignedMap[c.id];
@@ -3319,10 +3344,14 @@ function showAssignModal(classId, day, time){
   modal.classList.add('show');
 
   const filterTeacher = document.getElementById('filter-teacher').value;
+  const filterGroup = document.getElementById('filter-group').value;
   const filterRoom = document.getElementById('filter-room').value;
 
   const classSelect = document.getElementById('assign-class');
   let unassigned = getUnassigned();
+  if(filterGroup){
+    unassigned = unassigned.filter(c => getClassGroup(c.name) === filterGroup);
+  }
   if(filterTeacher){
     unassigned = unassigned.filter(c => c.eligibleTeachers.includes(filterTeacher));
   }
@@ -3475,6 +3504,16 @@ function populateFilters(){
   TEACHERS.forEach(t => sel.innerHTML += '<option value="' + t.id + '">' + t.name + '</option>');
   sel.value = currentVal || '';
   sel.onchange = () => renderAll();
+
+  const groupSel = document.getElementById('filter-group');
+  const currentGroup = groupSel.value;
+  const groupOrder = ['Mini','Junior','Tween','Tween/Teen','Teen','ITP','ETAP','Other'];
+  const groups = [...new Set(CLASSES.map(c => getClassGroup(c.name)))];
+  groups.sort((a,b) => groupOrder.indexOf(a) - groupOrder.indexOf(b));
+  groupSel.innerHTML = '<option value="">All Groups</option>';
+  groups.forEach(g => { const cnt = CLASSES.filter(c => getClassGroup(c.name) === g).length; groupSel.innerHTML += '<option value="' + g + '">' + g + ' (' + cnt + ')</option>'; });
+  groupSel.value = currentGroup || '';
+  groupSel.onchange = () => renderAll();
 
   const roomSel = document.getElementById('filter-room');
   const currentRoom = roomSel.value;
