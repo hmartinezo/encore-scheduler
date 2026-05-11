@@ -68,7 +68,7 @@ select, input { font-family:inherit; }
 
 /* ===== CALENDAR ===== */
 .calendar-wrap { flex:1; overflow:auto; padding:.75rem; }
-.cal-grid { display:grid; grid-template-columns:56px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:1500px; }
+.cal-grid { display:grid; grid-template-columns:56px repeat(6,1fr); border:1px solid var(--border); border-radius:6px; background:var(--card); min-width:3700px; }
 .cal-header { background:#F8FAFC; font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); padding:.4rem; text-align:center; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
 .cal-time { font-size:.6rem; color:var(--text-muted); padding:.2rem .3rem; text-align:right; border-right:1px solid var(--border); height:28px; display:flex; align-items:flex-start; justify-content:flex-end; }
 .cal-time.hour-mark { font-weight:600; color:var(--text-secondary); }
@@ -1133,62 +1133,43 @@ function renderCalendar(){
   const filterTeacher = document.getElementById('filter-teacher').value;
   const filterRoom = document.getElementById('filter-room').value;
 
-  const showSat = !satCollapsed || focusDay === 5;
+  const showSat = !satCollapsed;
   const numDays = showSat ? 6 : 5;
   const roomCount = ROOMS.length;
 
-  const visibleSlots = satCollapsed && focusDay !== 5
+  const visibleSlots = satCollapsed
     ? TIME_SLOTS.filter(t => t >= WEEKDAY_START)
     : TIME_SLOTS;
 
-  // Build grid columns — expanded day gets 6 room sub-columns
+  // Always show room sub-columns for every day
   let colParts = ['56px'];
   for(let d = 0; d < numDays; d++){
-    if(d === focusDay){
-      for(let r = 0; r < roomCount; r++) colParts.push('minmax(140px,1fr)');
-    } else {
-      colParts.push(focusDay >= 0 ? 'minmax(60px,0.5fr)' : 'minmax(220px,1fr)');
-    }
+    for(let r = 0; r < roomCount; r++) colParts.push('minmax(120px,1fr)');
   }
-  if(satCollapsed && focusDay !== 5) colParts.push('28px');
+  if(satCollapsed) colParts.push('28px');
   const colTemplate = colParts.join(' ');
   const totalGridCols = colParts.length;
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
 
-  // Header row 1: day names (expanded day = roomCount individual cells for correct indexing)
+  // Header row 1: day names spanning roomCount columns each
   html += '<div class="cal-header"></div>';
   for(let d = 0; d < numDays; d++){
-    const isExpanded = focusDay === d;
-    if(isExpanded){
-      for(let r = 0; r < roomCount; r++){
-        html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);" data-day-header="' + d + '">' + (r === 0 ? DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span>' : '') + '</div>';
-      }
-    } else {
-      const arrow = ' &#9654;';
-      let dayLabel = focusDay >= 0 ? DAY_SHORT[d].charAt(0) : DAY_SHORT[d];
-      html += '<div class="cal-header" style="cursor:pointer;user-select:none;" data-day-header="' + d + '">' + dayLabel + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;">' + arrow + '</span></div>';
-    }
+    html += '<div class="cal-header" style="cursor:pointer;user-select:none;grid-column:span ' + roomCount + ';text-align:center;font-weight:600;border-left:2px solid var(--border);" data-sat-toggle="' + (d===5?'1':'') + '">' + DAYS[d] + '</div>';
   }
-  if(satCollapsed && focusDay !== 5){
+  if(satCollapsed){
     html += '<div class="cal-header" style="cursor:pointer;writing-mode:vertical-lr;padding:.3rem .1rem;font-size:.55rem;line-height:1;letter-spacing:1px;user-select:none;" data-sat-toggle="1" title="Show Saturday">+ Sat</div>';
   }
 
-  // Header row 2: room names under expanded day (only when a day is expanded)
-  if(focusDay >= 0){
-    html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
-    for(let d = 0; d < numDays; d++){
-      if(d === focusDay){
-        ROOMS.forEach(r => {
-          html += '<div class="cal-header" style="font-size:.55rem;height:20px;background:#EFF6FF;border-bottom:1px solid var(--border);padding:2px 1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + r.name + '</div>';
-        });
-      } else {
-        html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
-      }
-    }
-    if(satCollapsed && focusDay !== 5){
-      html += '<div style="height:20px;border-bottom:1px solid var(--border);background:#F5F5F5;"></div>';
-    }
+  // Header row 2: room names under each day
+  html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
+  for(let d = 0; d < numDays; d++){
+    ROOMS.forEach((r, ri) => {
+      html += '<div class="cal-header" style="font-size:.55rem;height:20px;background:#EFF6FF;border-bottom:1px solid var(--border);padding:2px 1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;' + (ri===0?'border-left:2px solid var(--border);':'') + '">' + r.name + '</div>';
+    });
+  }
+  if(satCollapsed){
+    html += '<div style="height:20px;border-bottom:1px solid var(--border);background:#F5F5F5;"></div>';
   }
 
   // Time rows
@@ -1197,15 +1178,11 @@ function renderCalendar(){
     html += '<div class="cal-time' + (isHour?' hour-mark':'') + '">' + (isHour?minutesToTime(time):'') + '</div>';
     for(let d = 0; d < numDays; d++){
       const valid = isTimeInDay(time, d);
-      if(d === focusDay){
-        ROOMS.forEach(r => {
-          html += '<div class="cal-cell' + (valid?'':' unavailable') + '" data-day="' + d + '" data-time="' + time + '" data-room="' + r.id + '"></div>';
-        });
-      } else {
-        html += '<div class="cal-cell' + (valid?'':' unavailable') + '" data-day="' + d + '" data-time="' + time + '"></div>';
-      }
+      ROOMS.forEach((r, ri) => {
+        html += '<div class="cal-cell' + (valid?'':' unavailable') + '" data-day="' + d + '" data-time="' + time + '" data-room="' + r.id + '" style="' + (ri===0?'border-left:2px solid var(--border);':'') + '"></div>';
+      });
     }
-    if(satCollapsed && focusDay !== 5){
+    if(satCollapsed){
       html += '<div style="height:28px;background:#F5F5F5;border-bottom:1px solid var(--border-light);"></div>';
     }
   });
@@ -1213,19 +1190,15 @@ function renderCalendar(){
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const headerRows = focusDay >= 0 ? 2 : 1;
+  const headerRows = 2;
   const headerElCount = headerRows * totalGridCols;
 
   // Helper: compute column offset for a given day/room
   function colOffset(day, roomId){
     let off = 1; // skip time column
-    for(let d = 0; d < day; d++){
-      off += (d === focusDay) ? roomCount : 1;
-    }
-    if(day === focusDay){
-      const ri = ROOMS.findIndex(r => r.id === roomId);
-      off += ri >= 0 ? ri : 0;
-    }
+    off += day * roomCount;
+    const ri = ROOMS.findIndex(r => r.id === roomId);
+    off += ri >= 0 ? ri : 0;
     return off;
   }
 
@@ -1250,48 +1223,14 @@ function renderCalendar(){
     const style = cls.style;
     const hasConflict = isConflict(idx);
 
-    // Overlap layout — only for collapsed days (expanded days use room columns)
-    let overlapStyle = '';
-    if(sched.day !== focusDay){
-      const overlapping = state.schedule.filter((s2, i2) => {
-        if(i2 === idx) return false;
-        if(s2.day !== sched.day) return false;
-        if(filterTeacher && s2.teacherId !== filterTeacher) return false;
-        if(filterRoom && s2.room !== filterRoom) return false;
-        const c2 = CLASSES.find(c=>c.id===s2.classId);
-        if(!c2) return false;
-        return s2.startTime < sched.startTime + cls.duration && sched.startTime < s2.startTime + c2.duration;
-      });
-
-      if(overlapping.length > 0){
-        const allOverlap = [sched, ...overlapping].sort((a,b)=>state.schedule.indexOf(a)-state.schedule.indexOf(b));
-        const myPos = allOverlap.indexOf(sched);
-        const total = allOverlap.length;
-        const pct = 100 / total;
-        overlapStyle = 'left:' + (myPos * pct) + '%;right:' + ((total - myPos - 1) * pct) + '%;';
-      }
-    }
-
     const teacher = teacherById(sched.teacherId);
-    const isCollapsedDay = focusDay >= 0 && sched.day !== focusDay;
     const block = document.createElement('div');
     block.className = 'class-block style-' + style + (hasConflict?' conflict':'');
-    if(overlapStyle) block.style.cssText += overlapStyle;
     block.style.top = '0px';
     block.style.height = height + 'px';
     block.draggable = true;
     block.dataset.schedIdx = idx;
-    if(isCollapsedDay){
-      block.innerHTML = '';
-      block.style.padding = '0';
-      block.style.fontSize = '0';
-    } else if(sched.day === focusDay){
-      // Expanded day: full detail (no room name since columns show it)
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + cls.duration + 'm</div>';
-    } else {
-      // Default collapsed: compact — name + teacher only
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div>';
-    }
+    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + cls.duration + 'm</div>';
     block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+cls.duration) + '\n' + roomName(sched.room);
 
     block.addEventListener('dragstart', e => {
@@ -1356,28 +1295,10 @@ function renderCalendar(){
   const conflicts = getConflicts().filter(c => !c.ignored);
   document.getElementById('nav-conflict-count').textContent = conflicts.length;
 
-  // Day header click to expand/collapse
-  grid.querySelectorAll('[data-day-header]').forEach(hdr => {
-    hdr.addEventListener('click', () => {
-      const d = parseInt(hdr.dataset.dayHeader);
-      if(d === 5){
-        if(focusDay === 5){
-          focusDay = -1;
-          satCollapsed = true;
-        } else {
-          satCollapsed = false;
-          focusDay = 5;
-        }
-      } else {
-        focusDay = (focusDay === d) ? -1 : d;
-      }
-      renderCalendar();
-    });
-  });
-
+  // Saturday toggle
   grid.querySelectorAll('[data-sat-toggle]').forEach(btn => {
     btn.addEventListener('click', () => {
-      satCollapsed = false;
+      satCollapsed = !satCollapsed;
       renderCalendar();
     });
   });
@@ -1983,65 +1904,45 @@ function renderOptionCalendarView(key){
   const r = autoScheduleResults[key];
   const meta = OPTION_META[key];
   const wrap = document.getElementById('sched-' + key + '-calendar');
-  const fd = optFocusDay[key];
   const sc = optSatCollapsed[key];
   const roomCount = ROOMS.length;
 
-  const showSat = !sc || fd === 5;
+  const showSat = !sc;
   const numDays = showSat ? 6 : 5;
 
-  const visibleSlots = sc && fd !== 5
+  const visibleSlots = sc
     ? TIME_SLOTS.filter(t => t >= WEEKDAY_START)
     : TIME_SLOTS;
 
-  // Build grid columns — expanded day gets room sub-columns
+  // Always show room sub-columns for every day
   let colParts = ['56px'];
   for(let d = 0; d < numDays; d++){
-    if(d === fd){
-      for(let ri = 0; ri < roomCount; ri++) colParts.push('minmax(140px,1fr)');
-    } else {
-      colParts.push(fd >= 0 ? 'minmax(60px,0.5fr)' : 'minmax(220px,1fr)');
-    }
+    for(let ri = 0; ri < roomCount; ri++) colParts.push('minmax(120px,1fr)');
   }
-  if(sc && fd !== 5) colParts.push('28px');
+  if(sc) colParts.push('28px');
   const colTemplate = colParts.join(' ');
   const totalGridCols = colParts.length;
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
 
-  // Header row 1: day names (expanded day = roomCount individual cells for correct indexing)
+  // Header row 1: day names spanning roomCount columns each
   html += '<div class="cal-header"></div>';
   for(let d = 0; d < numDays; d++){
-    const isExpanded = fd === d;
-    if(isExpanded){
-      for(let r = 0; r < roomCount; r++){
-        html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);" data-opt-day-header="' + d + '" data-opt-key="' + key + '">' + (r === 0 ? DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span>' : '') + '</div>';
-      }
-    } else {
-      const arrow = ' &#9654;';
-      let dayLabel = fd >= 0 ? DAY_SHORT[d].charAt(0) : DAY_SHORT[d];
-      html += '<div class="cal-header" style="cursor:pointer;user-select:none;" data-opt-day-header="' + d + '" data-opt-key="' + key + '">' + dayLabel + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;">' + arrow + '</span></div>';
-    }
+    html += '<div class="cal-header" style="cursor:pointer;user-select:none;grid-column:span ' + roomCount + ';text-align:center;font-weight:600;border-left:2px solid var(--border);" data-opt-sat-toggle="' + (d===5?key:'') + '">' + DAYS[d] + '</div>';
   }
-  if(sc && fd !== 5){
+  if(sc){
     html += '<div class="cal-header" style="cursor:pointer;writing-mode:vertical-lr;padding:.3rem .1rem;font-size:.55rem;line-height:1;letter-spacing:1px;user-select:none;" data-opt-sat-toggle="' + key + '" title="Show Saturday">+ Sat</div>';
   }
 
-  // Header row 2: room names under expanded day
-  if(fd >= 0){
-    html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
-    for(let d = 0; d < numDays; d++){
-      if(d === fd){
-        ROOMS.forEach(rm => {
-          html += '<div class="cal-header" style="font-size:.55rem;height:20px;background:#EFF6FF;border-bottom:1px solid var(--border);padding:2px 1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">' + rm.name + '</div>';
-        });
-      } else {
-        html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
-      }
-    }
-    if(sc && fd !== 5){
-      html += '<div style="height:20px;border-bottom:1px solid var(--border);background:#F5F5F5;"></div>';
-    }
+  // Header row 2: room names under each day
+  html += '<div class="cal-header" style="height:20px;border-bottom:1px solid var(--border);"></div>';
+  for(let d = 0; d < numDays; d++){
+    ROOMS.forEach((rm, ri) => {
+      html += '<div class="cal-header" style="font-size:.55rem;height:20px;background:#EFF6FF;border-bottom:1px solid var(--border);padding:2px 1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;' + (ri===0?'border-left:2px solid var(--border);':'') + '">' + rm.name + '</div>';
+    });
+  }
+  if(sc){
+    html += '<div style="height:20px;border-bottom:1px solid var(--border);background:#F5F5F5;"></div>';
   }
 
   // Time rows
@@ -2050,15 +1951,11 @@ function renderOptionCalendarView(key){
     html += '<div class="cal-time' + (isHour ? ' hour-mark' : '') + '">' + (isHour ? minutesToTime(time) : '') + '</div>';
     for(let d = 0; d < numDays; d++){
       const valid = isTimeInDay(time, d);
-      if(d === fd){
-        ROOMS.forEach(rm => {
-          html += '<div class="cal-cell' + (valid ? '' : ' unavailable') + '" data-day="' + d + '" data-time="' + time + '" data-room="' + rm.id + '"></div>';
-        });
-      } else {
-        html += '<div class="cal-cell' + (valid ? '' : ' unavailable') + '" data-day="' + d + '" data-time="' + time + '"></div>';
-      }
+      ROOMS.forEach((rm, ri) => {
+        html += '<div class="cal-cell' + (valid ? '' : ' unavailable') + '" data-day="' + d + '" data-time="' + time + '" data-room="' + rm.id + '" style="' + (ri===0?'border-left:2px solid var(--border);':'') + '"></div>';
+      });
     }
-    if(sc && fd !== 5){
+    if(sc){
       html += '<div style="height:28px;background:#F5F5F5;border-bottom:1px solid var(--border-light);"></div>';
     }
   });
@@ -2066,19 +1963,15 @@ function renderOptionCalendarView(key){
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const headerRows = fd >= 0 ? 2 : 1;
+  const headerRows = 2;
   const headerElCount = headerRows * totalGridCols;
 
   // Helper: compute column offset for a given day/room
   function colOff(day, roomId){
     let off = 1;
-    for(let d = 0; d < day; d++){
-      off += (d === fd) ? roomCount : 1;
-    }
-    if(day === fd){
-      const ri = ROOMS.findIndex(rm => rm.id === roomId);
-      off += ri >= 0 ? ri : 0;
-    }
+    off += day * roomCount;
+    const ri = ROOMS.findIndex(rm => rm.id === roomId);
+    off += ri >= 0 ? ri : 0;
     return off;
   }
 
@@ -2100,77 +1993,29 @@ function renderOptionCalendarView(key){
     const height = slots * SLOT_HEIGHT - 2;
     const style = cls.style;
 
-    // Overlap layout — only for collapsed days
-    let overlapStyle = '';
-    if(a.day !== fd){
-      const overlapping = r.allAssignments.filter(a2 => {
-        if(a2 === a) return false;
-        if(a2.day !== a.day) return false;
-        return a2.startTime < a.startTime + a.dur && a.startTime < a2.startTime + a2.dur;
-      });
-
-      if(overlapping.length > 0){
-        const allOverlap = [a, ...overlapping].sort((x, y) => r.allAssignments.indexOf(x) - r.allAssignments.indexOf(y));
-        const myPos = allOverlap.indexOf(a);
-        const total = allOverlap.length;
-        const pct = 100 / total;
-        overlapStyle = 'left:' + (myPos * pct) + '%;right:' + ((total - myPos - 1) * pct) + '%;';
-      }
-    }
-
     const teacher = teacherById(a.teacherId);
     const isNew = !state.schedule.some(s => s.classId === a.classId);
-    const isCollapsedDay = fd >= 0 && a.day !== fd;
 
     const block = document.createElement('div');
     block.className = 'class-block style-' + style;
-    if(overlapStyle) block.style.cssText += overlapStyle;
     if(isNew) block.style.outline = '2px dashed ' + meta.color;
     block.style.top = '0px';
     block.style.height = height + 'px';
     block.style.cursor = 'default';
-    if(isCollapsedDay){
-      block.innerHTML = '';
-      block.style.padding = '0';
-      block.style.fontSize = '0';
-    } else if(a.day === fd){
-      // Expanded day: full detail
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + a.dur + 'm</div>';
-    } else {
-      // Default collapsed: compact — name + teacher only
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div>';
-    }
+    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + a.dur + 'm</div>';
     block.title = cls.name + '\n' + (teacher ? teacher.name : '?') + '\n' + DAYS[a.day] + ' ' + minutesToTime(a.startTime) + '-' + minutesToTime(a.startTime + a.dur) + '\n' + roomName(a.room) + (isNew ? '\n(NEW - auto-placed)' : '');
 
     cell.appendChild(block);
   });
 
-  // Day header click to expand/collapse
-  grid.querySelectorAll('[data-opt-day-header]').forEach(hdr => {
-    hdr.addEventListener('click', () => {
-      const d = parseInt(hdr.dataset.optDayHeader);
-      const k = hdr.dataset.optKey;
-      if(d === 5){
-        if(optFocusDay[k] === 5){
-          optFocusDay[k] = -1;
-          optSatCollapsed[k] = true;
-        } else {
-          optSatCollapsed[k] = false;
-          optFocusDay[k] = 5;
-        }
-      } else {
-        optFocusDay[k] = (optFocusDay[k] === d) ? -1 : d;
-      }
-      renderOptionCalendarView(k);
-    });
-  });
-
-  // Saturday toggle (collapsed column)
+  // Saturday toggle
   grid.querySelectorAll('[data-opt-sat-toggle]').forEach(btn => {
     btn.addEventListener('click', () => {
       const k = btn.dataset.optSatToggle;
-      optSatCollapsed[k] = false;
-      renderOptionCalendarView(k);
+      if(k){
+        optSatCollapsed[k] = !optSatCollapsed[k];
+        renderOptionCalendarView(k);
+      }
     });
   });
 }
