@@ -1251,7 +1251,7 @@ function renderCalendar(){
     const hasConflict = isConflict(idx);
 
     // Overlap layout — only for collapsed days (expanded days use room columns)
-    let colClass = '';
+    let overlapStyle = '';
     if(sched.day !== focusDay){
       const overlapping = state.schedule.filter((s2, i2) => {
         if(i2 === idx) return false;
@@ -1263,20 +1263,20 @@ function renderCalendar(){
         return s2.startTime < sched.startTime + cls.duration && sched.startTime < s2.startTime + c2.duration;
       });
 
-      if(overlapping.length === 1){
-        const otherIdx = state.schedule.indexOf(overlapping[0]);
-        colClass = idx < otherIdx ? ' col-left' : ' col-right';
-      } else if(overlapping.length >= 2){
+      if(overlapping.length > 0){
         const allOverlap = [sched, ...overlapping].sort((a,b)=>state.schedule.indexOf(a)-state.schedule.indexOf(b));
         const myPos = allOverlap.indexOf(sched);
-        colClass = myPos === 0 ? ' col-third-1' : myPos === 1 ? ' col-third-2' : ' col-third-3';
+        const total = allOverlap.length;
+        const pct = 100 / total;
+        overlapStyle = 'left:' + (myPos * pct) + '%;right:' + ((total - myPos - 1) * pct) + '%;';
       }
     }
 
     const teacher = teacherById(sched.teacherId);
     const isCollapsedDay = focusDay >= 0 && sched.day !== focusDay;
     const block = document.createElement('div');
-    block.className = 'class-block style-' + style + (hasConflict?' conflict':'') + colClass;
+    block.className = 'class-block style-' + style + (hasConflict?' conflict':'');
+    if(overlapStyle) block.style.cssText += overlapStyle;
     block.style.top = '0px';
     block.style.height = height + 'px';
     block.draggable = true;
@@ -2101,7 +2101,7 @@ function renderOptionCalendarView(key){
     const style = cls.style;
 
     // Overlap layout — only for collapsed days
-    let colClass = '';
+    let overlapStyle = '';
     if(a.day !== fd){
       const overlapping = r.allAssignments.filter(a2 => {
         if(a2 === a) return false;
@@ -2109,14 +2109,12 @@ function renderOptionCalendarView(key){
         return a2.startTime < a.startTime + a.dur && a.startTime < a2.startTime + a2.dur;
       });
 
-      if(overlapping.length === 1){
-        const myIdx = r.allAssignments.indexOf(a);
-        const otherIdx = r.allAssignments.indexOf(overlapping[0]);
-        colClass = myIdx < otherIdx ? ' col-left' : ' col-right';
-      } else if(overlapping.length >= 2){
+      if(overlapping.length > 0){
         const allOverlap = [a, ...overlapping].sort((x, y) => r.allAssignments.indexOf(x) - r.allAssignments.indexOf(y));
         const myPos = allOverlap.indexOf(a);
-        colClass = myPos === 0 ? ' col-third-1' : myPos === 1 ? ' col-third-2' : ' col-third-3';
+        const total = allOverlap.length;
+        const pct = 100 / total;
+        overlapStyle = 'left:' + (myPos * pct) + '%;right:' + ((total - myPos - 1) * pct) + '%;';
       }
     }
 
@@ -2125,7 +2123,8 @@ function renderOptionCalendarView(key){
     const isCollapsedDay = fd >= 0 && a.day !== fd;
 
     const block = document.createElement('div');
-    block.className = 'class-block style-' + style + colClass;
+    block.className = 'class-block style-' + style;
+    if(overlapStyle) block.style.cssText += overlapStyle;
     if(isNew) block.style.outline = '2px dashed ' + meta.color;
     block.style.top = '0px';
     block.style.height = height + 'px';
