@@ -886,7 +886,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 4;
+const SCHEDULE_VERSION = 5;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1570,18 +1570,23 @@ function findAvailRoom(className, day, startTime, dur, assignments){
 
 // Convert existing state.schedule into assignment format
 function existingAssignments(){
-  return state.schedule.map(s => {
+  const result = [];
+  state.schedule.forEach(s => {
     const cls = CLASSES.find(c => c.id === s.classId);
-    return {
-      classId: s.classId,
-      teacherId: s.teacherId,
-      day: s.day,
-      startTime: s.startTime,
-      dur: cls ? cls.duration : 60,
-      room: s.room || '',
-      className: cls ? cls.name : '',
-    };
+    const dur = cls ? cls.duration : 60;
+    let room = s.room || '';
+    // Auto-assign room if missing so roomBusy() can detect collisions
+    if(!room && cls && s.day !== undefined){
+      const r = findAvailRoom(cls.name, s.day, s.startTime, dur, result);
+      if(r){ room = r; s.room = r; }
+    }
+    result.push({
+      classId: s.classId, teacherId: s.teacherId,
+      day: s.day, startTime: s.startTime, dur: dur,
+      room: room, className: cls ? cls.name : '',
+    });
   });
+  return result;
 }
 
 // Count how many days a teacher is used in assignments
@@ -3538,6 +3543,25 @@ function seedFromTab3(){
 // =============================================
 load();
 seedFromTab3();
+// Assign rooms to seeded entries missing rooms
+(function assignMissingRooms(){
+  const needRoom = state.schedule.filter(s => !s.room && s.day !== undefined);
+  if(!needRoom.length) return;
+  const assigned = state.schedule.filter(s => s.room).map(s => {
+    const cls = CLASSES.find(c => c.id === s.classId);
+    return { classId:s.classId, day:s.day, startTime:s.startTime, dur:cls?cls.duration:60, room:s.room };
+  });
+  needRoom.forEach(s => {
+    const cls = CLASSES.find(c => c.id === s.classId);
+    if(!cls) return;
+    const room = findAvailRoom(cls.name, s.day, s.startTime, cls.duration, assigned);
+    if(room){
+      s.room = room;
+      assigned.push({ classId:s.classId, day:s.day, startTime:s.startTime, dur:cls.duration, room:room });
+    }
+  });
+  save();
+})();
 // Auto-apply Schedule A (min-days) to fill unassigned classes
 (function applyScheduleA(){
   const assignedIds = new Set(state.schedule.map(s => s.classId));
