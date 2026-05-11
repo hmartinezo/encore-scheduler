@@ -98,6 +98,7 @@ select, input { font-family:inherit; }
 .style-broadway { background:#FFE4E6; color:#9F1239; border-color:#F43F5E; }
 .style-acting { background:#F1F5F9; color:#475569; border-color:#64748B; }
 .style-voice { background:#F1F5F9; color:#475569; border-color:#94A3B8; }
+.style-pointe { background:#EDE9FE; color:#5B21B6; border-color:#8B5CF6; }
 .style-ballroom { background:#FECDD3; color:#881337; border-color:#E11D48; }
 .style-team { background:#CCFBF1; color:#134E4A; border-color:#14B8A6; }
 .style-leaps { background:#FEF3C7; color:#78350F; border-color:#D97706; }
@@ -450,7 +451,7 @@ const DAY_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat'];
 const STYLES = {
   jazz:'Jazz', tap:'Tap', ballet:'Ballet', hiphop:'Hip Hop', contemp:'Contemporary',
   combo:'Combo', broadway:'Broadway', acting:'Acting', voice:'Voice',
-  ballroom:'Ballroom', team:'Team Rehearsal', leaps:'Leaps & Turns'
+  ballroom:'Ballroom', team:'Team Rehearsal', leaps:'Leaps & Turns', pointe:'Pointe'
 };
 
 const ROOMS = [
@@ -497,7 +498,7 @@ const TEACHER_AVAIL = {
   jessy:       { days:[0,1,3,4,5] },                                    // Mon,Tue,Thu,Fri,Sat
   paige:       { days:[0,1,2,3,4,5], maxClasses:20 },                   // up to 20 classes/week
   ashleigh:    { days:[1,2], constraints:{ 1:{after:990}, 2:{after:990} }, maxClasses:8 }, // Tue,Wed from 4:30, 8 classes/week
-  gaby:        { days:[3,4] },                                          // Thu,Fri
+  gaby:        { days:[1,3,4] },                                          // Tue,Thu,Fri
   liesl:       { days:[0], constraints:{ 0:{after:1050} } },            // Mon after 5:30
   cami:        { days:[0,5] },                                          // Mon,Sat
   lorraine:    { days:[0], constraints:{ 0:{after:990,before:1110} } },  // Mon 4:30-6:30 only
@@ -553,7 +554,7 @@ function detectStyle(name){
   if(n.includes('ballet') && n.includes('jazz')) return 'jazz';
   if(n.includes('jazz') && n.includes('tap')) return 'jazz';
   if(n.includes('ballet') && n.includes('pointe')) return 'ballet';
-  if(n.includes('pointe')) return 'ballet';
+  if(n.includes('pointe')) return 'pointe';
   if(n.includes('ballet')) return 'ballet';
   if(n.includes('tap')) return 'tap';
   if(n.includes('jazz')) return 'jazz';
@@ -586,6 +587,7 @@ function detectTeachers(name){
   if(n.includes('etap') && n.includes('jazz')) return ['raynor'];
 
   if(n.includes('etap') && n.includes('ballet')) return ['vadim'];
+  if(n.includes('pointe')) return ['gaby'];
   if(n.includes('etap') && n.includes('hip hop')) return ['luke'];
   if(n.includes('etap') && n.includes('tap')) return ['luke','courtney'];
   if(n.includes('etap') && n.includes('contemp')) return ['tbd_contemp'];
@@ -694,8 +696,8 @@ const SCHEDULE_DATA = [
   {name:'Tween Level 2 Jazz',dur:60,teacher:'ashleigh',day:2,start:1050},          // Wed 5:30 PM
   {name:'Tween/Teen Level 1 Jazz',dur:60,teacher:'paige',day:0,start:1170},        // Mon 7:30 PM
   // ── Teen ── (matched to last year)
-  {name:'Teen Level 1 & 2 Ballet',dur:60,teacher:'gaby',day:3,start:1110},         // Thu 6:30 PM
-  {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby',day:3,start:1170},         // Thu 7:30 PM
+  {name:'Teen Level 1 & 2 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
+  {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
   {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110}, // Tue 6:30 PM
   {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy',day:1,start:1170},       // Tue 7:30 PM
   {name:'Teen Level 1 Jazz',dur:60,teacher:'paige',day:2,start:1170},              // Wed 7:30 PM
@@ -710,8 +712,8 @@ const SCHEDULE_DATA = [
   {name:'Tween/Teen Broadway Bound',dur:60,teacher:'courtney',day:3,start:1050},    // Thu 5:30 PM (moved from Wed - ITP E conflict)
   // ── ITP ── (matched to last year)
   {name:'ITP A Jazz',dur:60,teacher:'raynor',day:2,start:1110},                    // Wed 6:30 PM (A&B/Teen4 Jazz)
-  {name:'ITP A Jazz',dur:60,teacher:'courtney',day:4,start:990},                   // Fri 4:30 PM (ITP C Jazz)
-  {name:'ITP A Tap',dur:60,teacher:'courtney',day:4,start:1200},                   // Fri 8:00 PM (moved from Wed - ITP E overlap)
+  {name:'ITP A Jazz',dur:60,teacher:'courtney'},                                  // (moved off Fri — not in director's Friday list)
+  {name:'ITP A Tap',dur:60,teacher:'courtney'},                                   // (moved off Fri — not in director's Friday list)
   {name:'ITP A Tap',dur:60,teacher:'luke',day:3,start:1230},                       // Thu 8:30 PM (moved from 5:30 - Jr L2&3 Tap conflict)
   {name:'ITP A Ballet',dur:60,teacher:'gaby',day:3,start:1050},                    // Thu 5:30 PM (A&B/Teen4 Ballet)
   {name:'ITP A Ballet',dur:60,teacher:'vadim',day:3,start:990},                    // Thu 4:30 PM (ITP C Ballet)
@@ -726,7 +728,7 @@ const SCHEDULE_DATA = [
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:1,start:1050},                   // Tue 5:30 PM
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:4},                              // Fri (director requirement - auto-scheduler places)
   {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4,start:990},                     // Fri 4:30 PM
-  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney',day:4,start:1110},              // Fri 6:30 PM (moved from Tue - Courtney conflict)
+  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney'},                               // (moved off Fri — not in director's Friday list)
   {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney',day:2,start:1110},           // Wed 6:30 PM (ITP E Jazz/Ballet)
   // ── ETAP A ── (matched to last year: A/B split across Mon/Tue/Thu/Sat)
   {name:'ETAP A Jazz',dur:90,teacher:'raynor',day:3,start:1110},                   // Thu 6:30 PM (A/B Jazz 90m)
@@ -734,9 +736,8 @@ const SCHEDULE_DATA = [
   {name:'ETAP A Tap',dur:60,teacher:'courtney',day:5,start:720},                   // Sat 12:00 PM (A/B Tap)
   {name:'ETAP A Tap',dur:60,teacher:'luke',day:1,start:1050},                      // Tue 5:30 PM (A/B Tap)
   {name:'ETAP A Ballet',dur:90,teacher:'vadim',day:5,start:600},                   // Sat 10:00 AM (A/B Ballet)
-  {name:'ETAP A Ballet',dur:90,teacher:'vadim',day:3,start:1200},                  // Thu 8:00 PM (A/B Ballet)
-  {name:'ETAP A Ballet',dur:60,teacher:'vadim',day:0,start:1170},                  // Mon 7:30 PM (split from Ballet&Pointe)
-  {name:'ETAP A Pointe',dur:30,teacher:'gaby'},                                    // Thu after ballet (unassigned — auto-scheduler places)
+  {name:'ETAP A Ballet',dur:60,teacher:'vadim',day:3,start:1170},                  // Thu 7:30 PM (60min Ballet, Pointe follows)
+  {name:'ETAP A Pointe',dur:30,teacher:'gaby',day:3,start:1230},                   // Thu 8:30 PM (30min Pointe after Ballet)
   {name:'ETAP A Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM (A/B Hip Hop)
   {name:'ETAP A Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1170},      // Tue 7:30 PM (A/B Contemporary)
   {name:'ETAP A Acting',dur:60,teacher:'lorraine',day:0,start:990},                // Mon 4:30 PM (A/B/C Acting)
@@ -746,9 +747,8 @@ const SCHEDULE_DATA = [
   {name:'ETAP B&C Tap',dur:60,teacher:'courtney',day:0,start:1230},                // Mon 8:30 PM (C/D Tap)
   {name:'ETAP B&C Tap',dur:60,teacher:'luke',day:1,start:1110},                    // Tue 6:30 PM (C/D Tap)
   {name:'ETAP B&C Ballet',dur:90,teacher:'vadim',day:5,start:690},                 // Sat 11:30 AM (C/D Ballet)
-  {name:'ETAP B&C Ballet',dur:90,teacher:'vadim',day:3,start:1110},                // Thu 6:30 PM (C/D Ballet&PrePointe)
-  {name:'ETAP B&C Ballet',dur:60,teacher:'vadim',day:0,start:1170},                // Mon 7:30 PM (split from Ballet&Pointe)
-  {name:'ETAP B&C Pointe',dur:30,teacher:'gaby',day:3,start:1200},                 // Thu 8:00 PM after B&C Ballet
+  {name:'ETAP B&C Ballet',dur:60,teacher:'vadim',day:3,start:1110},                // Thu 6:30 PM (60min Ballet, Pointe follows)
+  {name:'ETAP B&C Pointe',dur:30,teacher:'gaby',day:3,start:1170},                 // Thu 7:30 PM (30min Pointe after Ballet)
   {name:'ETAP B&C Hip Hop',dur:60,teacher:'luke',day:1,start:1170},                // Tue 7:30 PM (C/D Hip Hop)
   {name:'ETAP B&C Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1050},    // Tue 5:30 PM (C/D Contemporary)
   {name:'ETAP B&C Acting',dur:60,teacher:'lorraine',day:0,start:1050},             // Mon 5:30 PM (C/D Acting)
@@ -817,7 +817,7 @@ function buildAvailabilityFromSchedule(){
     if(!cls) return;
     const BUFFER = 30;
     const dayStart = s.day === 5 ? SAT_START : WEEKDAY_START;
-    const dayEnd = s.day === 5 ? SAT_END : WEEKDAY_END;
+    const dayEnd = s.day === 5 ? SAT_END : (s.day === 4 ? FRIDAY_END : WEEKDAY_END);
     const start = Math.max(dayStart, s.startTime - BUFFER);
     const end = Math.min(dayEnd, s.startTime + cls.duration + BUFFER);
     if(!state.availability[s.teacherId]) state.availability[s.teacherId] = {};
@@ -857,7 +857,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 12;
+const SCHEDULE_VERSION = 13;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1068,6 +1068,7 @@ const SLOT_MINUTES = 15;
 const AVAIL_SLOT_MINUTES = 30;
 const WEEKDAY_START = 990;  // 4:30 PM
 const WEEKDAY_END = 1260;   // 9:00 PM (no classes 9-10 PM)
+const FRIDAY_END = 1170;    // 7:30 PM (Friday ends earlier)
 const SAT_START = 600;      // 10:00 AM
 const SAT_END = 840;        // 2:00 PM
 const SLOT_HEIGHT = 28;
@@ -1091,6 +1092,7 @@ const AVAIL_TIME_SLOTS = getAvailTimeSlots();
 
 function isTimeInDay(time, dayIdx){
   if(dayIdx === 5) return time >= SAT_START && time < SAT_END;
+  if(dayIdx === 4) return time >= WEEKDAY_START && time < FRIDAY_END;
   return time >= WEEKDAY_START && time < WEEKDAY_END;
 }
 
@@ -1586,20 +1588,21 @@ function backToBackBonus(className, day, startTime, dur, assignments){
   const cohorts = getStudentCohorts(className);
   if(!cohorts.length) return 0;
 
-  // Determine complementary style
-  let compStyle = null;
-  if(style === 'jazz') compStyle = 'tap';
-  else if(style === 'tap') compStyle = 'jazz';
-  else if(style === 'ballet') compStyle = 'contemp';
-  else if(style === 'contemp') compStyle = 'ballet';
-  if(!compStyle) return 0;
+  // Determine complementary styles
+  let compStyles = [];
+  if(style === 'jazz') compStyles = ['tap'];
+  else if(style === 'tap') compStyles = ['jazz'];
+  else if(style === 'ballet') compStyles = ['contemp', 'pointe'];
+  else if(style === 'contemp') compStyles = ['ballet'];
+  else if(style === 'pointe') compStyles = ['ballet'];
+  if(!compStyles.length) return 0;
 
   const endTime = startTime + dur;
   let bonus = 0;
   for(const a of assignments){
     if(a.day !== day) continue;
     const aStyle = detectStyle(a.className);
-    if(aStyle !== compStyle) continue;
+    if(!compStyles.includes(aStyle)) continue;
     const aCohorts = getStudentCohorts(a.className);
     if(!aCohorts.some(c => cohorts.includes(c))) continue;
     // Check adjacency: this class ends where the other starts, or vice versa
@@ -1688,7 +1691,7 @@ function generateScheduleOption(strategy){
       }
 
       const dayStart = day === 5 ? SAT_START : WEEKDAY_START;
-      const dayEnd = day === 5 ? SAT_END : WEEKDAY_END;
+      const dayEnd = day === 5 ? SAT_END : (day === 4 ? FRIDAY_END : WEEKDAY_END);
 
       for(let t = dayStart; t + dur <= dayEnd; t += 15){
         if(!meetsTimeConstraint(teacherId, day, t, dur)) continue;
