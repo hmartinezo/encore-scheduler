@@ -372,6 +372,8 @@ select, input { font-family:inherit; }
     </select>
     <label>Start Time</label>
     <select id="assign-time"></select>
+    <label>End Time</label>
+    <select id="assign-end-time"></select>
     <label>Room</label>
     <select id="assign-room"></select>
     <div class="modal-actions">
@@ -1262,7 +1264,8 @@ function renderCalendar(){
     const cell = grid.children[cellIdx];
     if(!cell) return;
 
-    const slots = cls.duration / SLOT_MINUTES;
+    const effectiveDur = sched.dur || cls.duration;
+    const slots = effectiveDur / SLOT_MINUTES;
     const height = slots * SLOT_HEIGHT - 2;
     const style = cls.style;
     const hasConflict = isConflict(idx);
@@ -1274,8 +1277,8 @@ function renderCalendar(){
     block.style.height = height + 'px';
     block.draggable = true;
     block.dataset.schedIdx = idx;
-    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + cls.duration + 'm</div>';
-    block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+cls.duration) + '\n' + roomName(sched.room);
+    block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + effectiveDur + 'm</div>';
+    block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+effectiveDur) + '\n' + roomName(sched.room);
 
     block.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', String(idx));
@@ -3385,7 +3388,8 @@ function showAssignModal(classId, day, time){
   }
   classSelect.onchange = () => { updateAssignTeachers(); updateAssignTimeDropdown(); };
 
-  populateTimeDropdown(time, getSelectedClassDuration());
+  populateTimeDropdown(time);
+  populateEndTimeDropdown();
   populateRoomDropdown(filterRoom || '');
 }
 
@@ -3413,7 +3417,9 @@ function showEditAssignment(schedIdx){
   }).join('');
 
   document.getElementById('assign-day').value = sched.day;
-  populateTimeDropdown(sched.startTime, cls.duration);
+  populateTimeDropdown(sched.startTime);
+  const endTime = sched.startTime + (sched.dur || cls.duration);
+  populateEndTimeDropdown(endTime);
   populateRoomDropdown(sched.room);
 
   classSelect.onchange = null;
@@ -3427,17 +3433,30 @@ function getSelectedClassDuration(){
 
 function updateAssignTimeDropdown(){
   const current = parseInt(document.getElementById('assign-time').value);
-  populateTimeDropdown(current, getSelectedClassDuration());
+  populateTimeDropdown(current);
+  populateEndTimeDropdown();
 }
 
-function populateTimeDropdown(selectedTime, duration){
-  const dur = duration || 60;
+function populateTimeDropdown(selectedTime){
   const timeSelect = document.getElementById('assign-time');
   timeSelect.innerHTML = '';
   TIME_SLOTS.forEach(t => {
-    const endTime = t + dur;
-    timeSelect.innerHTML += '<option value="' + t + '"' + (t===selectedTime?' selected':'') + '>' + minutesToTime(t) + ' \u2013 ' + minutesToTime(endTime) + '</option>';
+    timeSelect.innerHTML += '<option value="' + t + '"' + (t===selectedTime?' selected':'') + '>' + minutesToTime(t) + '</option>';
   });
+  timeSelect.onchange = () => populateEndTimeDropdown();
+}
+
+function populateEndTimeDropdown(selectedEnd){
+  const startTime = parseInt(document.getElementById('assign-time').value) || 540;
+  const dur = getSelectedClassDuration();
+  const defaultEnd = selectedEnd || (startTime + dur);
+  const endSelect = document.getElementById('assign-end-time');
+  endSelect.innerHTML = '';
+  // End times: from startTime+15 to last slot + max duration, in 15min steps
+  for(let t = startTime + 15; t <= 1320; t += 15){
+    const label = minutesToTime(t) + ' (' + (t - startTime) + 'm)';
+    endSelect.innerHTML += '<option value="' + t + '"' + (t===defaultEnd?' selected':'') + '>' + label + '</option>';
+  }
 }
 
 function populateRoomDropdown(selectedRoom){
@@ -3463,12 +3482,14 @@ function doAssign(){
   const teacherId = document.getElementById('assign-teacher').value;
   const day = parseInt(document.getElementById('assign-day').value);
   const startTime = parseInt(document.getElementById('assign-time').value);
+  const endTime = parseInt(document.getElementById('assign-end-time').value);
   const room = document.getElementById('assign-room').value;
+  const dur = endTime - startTime;
 
   if(!classId || !teacherId) return;
 
   pushUndo();
-  state.schedule.push({ classId, teacherId, day, startTime, room });
+  state.schedule.push({ classId, teacherId, day, startTime, room, dur });
   closeModal();
   saveAndRender();
   toast('Class assigned!');
@@ -3479,13 +3500,16 @@ function doEditAssignment(){
   const teacherId = document.getElementById('assign-teacher').value;
   const day = parseInt(document.getElementById('assign-day').value);
   const startTime = parseInt(document.getElementById('assign-time').value);
+  const endTime = parseInt(document.getElementById('assign-end-time').value);
   const room = document.getElementById('assign-room').value;
+  const dur = endTime - startTime;
 
   pushUndo();
   state.schedule[editingScheduleIdx].teacherId = teacherId;
   state.schedule[editingScheduleIdx].day = day;
   state.schedule[editingScheduleIdx].startTime = startTime;
   state.schedule[editingScheduleIdx].room = room;
+  state.schedule[editingScheduleIdx].dur = dur;
   closeModal();
   saveAndRender();
   toast('Class updated!');
