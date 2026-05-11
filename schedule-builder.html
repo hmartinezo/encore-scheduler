@@ -1127,12 +1127,14 @@ function renderCalendar(){
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
 
-  // Header row 1: day names (expanded day spans roomCount columns)
+  // Header row 1: day names (expanded day = roomCount individual cells for correct indexing)
   html += '<div class="cal-header"></div>';
   for(let d = 0; d < numDays; d++){
     const isExpanded = focusDay === d;
     if(isExpanded){
-      html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);grid-column:span ' + roomCount + ';" data-day-header="' + d + '">' + DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span></div>';
+      for(let r = 0; r < roomCount; r++){
+        html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);" data-day-header="' + d + '">' + (r === 0 ? DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span>' : '') + '</div>';
+      }
     } else {
       const arrow = ' &#9654;';
       let dayLabel = focusDay >= 0 ? DAY_SHORT[d].charAt(0) : DAY_SHORT[d];
@@ -1957,12 +1959,14 @@ function renderOptionCalendarView(key){
 
   let html = '<div class="cal-grid" style="grid-template-columns:' + colTemplate + ';">';
 
-  // Header row 1: day names
+  // Header row 1: day names (expanded day = roomCount individual cells for correct indexing)
   html += '<div class="cal-header"></div>';
   for(let d = 0; d < numDays; d++){
     const isExpanded = fd === d;
     if(isExpanded){
-      html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);grid-column:span ' + roomCount + ';" data-opt-day-header="' + d + '" data-opt-key="' + key + '">' + DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span></div>';
+      for(let r = 0; r < roomCount; r++){
+        html += '<div class="cal-header" style="cursor:pointer;user-select:none;background:#DBEAFE;color:var(--primary);" data-opt-day-header="' + d + '" data-opt-key="' + key + '">' + (r === 0 ? DAYS[d] + '<span style="font-size:.5rem;margin-left:2px;opacity:.5;"> &#9664;</span>' : '') + '</div>';
+      }
     } else {
       const arrow = ' &#9654;';
       let dayLabel = fd >= 0 ? DAY_SHORT[d].charAt(0) : DAY_SHORT[d];
