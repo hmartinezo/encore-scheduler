@@ -3383,9 +3383,9 @@ function showAssignModal(classId, day, time){
   if(filterTeacher){
     document.getElementById('assign-teacher').value = filterTeacher;
   }
-  classSelect.onchange = updateAssignTeachers;
+  classSelect.onchange = () => { updateAssignTeachers(); updateAssignTimeDropdown(); };
 
-  populateTimeDropdown(time);
+  populateTimeDropdown(time, getSelectedClassDuration());
   populateRoomDropdown(filterRoom || '');
 }
 
@@ -3413,17 +3413,30 @@ function showEditAssignment(schedIdx){
   }).join('');
 
   document.getElementById('assign-day').value = sched.day;
-  populateTimeDropdown(sched.startTime);
+  populateTimeDropdown(sched.startTime, cls.duration);
   populateRoomDropdown(sched.room);
 
   classSelect.onchange = null;
 }
 
-function populateTimeDropdown(selectedTime){
+function getSelectedClassDuration(){
+  const classId = parseInt(document.getElementById('assign-class').value);
+  const cls = CLASSES.find(c => c.id === classId);
+  return cls ? cls.duration : 60;
+}
+
+function updateAssignTimeDropdown(){
+  const current = parseInt(document.getElementById('assign-time').value);
+  populateTimeDropdown(current, getSelectedClassDuration());
+}
+
+function populateTimeDropdown(selectedTime, duration){
+  const dur = duration || 60;
   const timeSelect = document.getElementById('assign-time');
   timeSelect.innerHTML = '';
   TIME_SLOTS.forEach(t => {
-    timeSelect.innerHTML += '<option value="' + t + '"' + (t===selectedTime?' selected':'') + '>' + minutesToTime(t) + '</option>';
+    const endTime = t + dur;
+    timeSelect.innerHTML += '<option value="' + t + '"' + (t===selectedTime?' selected':'') + '>' + minutesToTime(t) + ' \u2013 ' + minutesToTime(endTime) + '</option>';
   });
 }
 
