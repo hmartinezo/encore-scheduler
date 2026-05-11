@@ -857,7 +857,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 11;
+const SCHEDULE_VERSION = 12;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1197,8 +1197,9 @@ function renderCalendar(){
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const headerRows = 2;
-  const headerElCount = headerRows * totalGridCols;
+  // Row 1 has spanning day-headers (1 per day), not one element per column
+  const headerRow1Count = 1 + numDays + (satCollapsed ? 1 : 0);
+  const headerElCount = headerRow1Count + totalGridCols;
 
   // Helper: compute column offset for a given day/room
   function colOffset(day, roomId){
@@ -2047,8 +2048,9 @@ function renderOptionCalendarView(key){
   wrap.innerHTML = html;
 
   const grid = wrap.querySelector('.cal-grid');
-  const headerRows = 2;
-  const headerElCount = headerRows * totalGridCols;
+  // Row 1 has spanning day-headers (1 per day), not one element per column
+  const headerRow1Count = 1 + numDays + (sc ? 1 : 0);
+  const headerElCount = headerRow1Count + totalGridCols;
 
   // Helper: compute column offset for a given day/room
   function colOff(day, roomId){
