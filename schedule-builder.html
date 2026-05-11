@@ -858,7 +858,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 15;
+const SCHEDULE_VERSION = 16;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -987,6 +987,24 @@ function getClassGroup(name){
   if(n.startsWith('tween')) return 'Tween';
   if(n.startsWith('teen')) return 'Teen';
   return 'Other';
+}
+
+// Extract the sub-group from a class name (e.g. "ETAP A", "Junior Level 1", "Mini Age 4 & 5")
+function getClassSubGroup(name){
+  // ETAP sub-groups: ETAP A, ETAP B&C, ETAP D, ETAP Company
+  let m = name.match(/^(ETAP\s+(?:A|B&C|D|Company))/);
+  if(m) return m[1];
+  // ITP sub-groups: ITP A, ITP B & C, ITP D, ITP E
+  m = name.match(/^(ITP\s+(?:A|B & C|D|E))/);
+  if(m) return m[1];
+  // Strip trailing style suffix for level/age-based groups
+  const stripped = name.replace(/\s+(?:Combo )?(?:Hip Hop\/Jazz|Jazz\/Tap|Jazz\/Ballet|Hip Hop|Musical Theatre|Voice & Acting|VOICE|Acting|Leaps & Turns|Contemporary|Ballet|Pointe|Jazz|Tap|Acro)$/, '').trim();
+  return stripped || name;
+}
+
+// Check if a class matches a group filter value (top-level group OR sub-group)
+function matchesGroupFilter(className, filterVal){
+  return getClassGroup(className) === filterVal || getClassSubGroup(className) === filterVal;
 }
 
 // Check if two overlapping classes with the same teacher are intentionally combined
@@ -1233,7 +1251,7 @@ function renderCalendar(){
 
     const cls = CLASSES.find(c=>c.id===sched.classId);
     if(!cls) return;
-    if(filterGroup && getClassGroup(cls.name) !== filterGroup) return;
+    if(filterGroup && !matchesGroupFilter(cls.name, filterGroup)) return;
 
     if(sched.day >= numDays) return;
     const timeRowInVisible = visibleSlots.indexOf(sched.startTime);
@@ -1342,7 +1360,7 @@ function renderTeachers(){
   let teachersToShow = [...TEACHERS];
   if(filterTeacher) teachersToShow = teachersToShow.filter(t => t.id === filterTeacher);
   if(filterGroup){
-    const teachersInGroup = new Set(state.schedule.filter(s => { const c = CLASSES.find(cc=>cc.id===s.classId); return c && getClassGroup(c.name) === filterGroup; }).map(s => s.teacherId));
+    const teachersInGroup = new Set(state.schedule.filter(s => { const c = CLASSES.find(cc=>cc.id===s.classId); return c && matchesGroupFilter(c.name, filterGroup); }).map(s => s.teacherId));
     teachersToShow = teachersToShow.filter(t => teachersInGroup.has(t.id));
   }
   if(filterRoom){
@@ -1448,7 +1466,7 @@ function renderClasses(){
   state.schedule.forEach(s => { assignedMap[s.classId] = s; });
 
   if(filterGroup){
-    classesToShow = classesToShow.filter(c => getClassGroup(c.name) === filterGroup);
+    classesToShow = classesToShow.filter(c => matchesGroupFilter(c.name, filterGroup));
   }
   if(filterTeacher){
     classesToShow = classesToShow.filter(c => {
@@ -3350,7 +3368,7 @@ function showAssignModal(classId, day, time){
   const classSelect = document.getElementById('assign-class');
   let unassigned = getUnassigned();
   if(filterGroup){
-    unassigned = unassigned.filter(c => getClassGroup(c.name) === filterGroup);
+    unassigned = unassigned.filter(c => matchesGroupFilter(c.name, filterGroup));
   }
   if(filterTeacher){
     unassigned = unassigned.filter(c => c.eligibleTeachers.includes(filterTeacher));
@@ -3511,7 +3529,23 @@ function populateFilters(){
   const groups = [...new Set(CLASSES.map(c => getClassGroup(c.name)))];
   groups.sort((a,b) => groupOrder.indexOf(a) - groupOrder.indexOf(b));
   groupSel.innerHTML = '<option value="">All Groups</option>';
-  groups.forEach(g => { const cnt = CLASSES.filter(c => getClassGroup(c.name) === g).length; groupSel.innerHTML += '<option value="' + g + '">' + g + ' (' + cnt + ')</option>'; });
+  groups.forEach(g => {
+    const classesInGroup = CLASSES.filter(c => getClassGroup(c.name) === g);
+    const subGroups = [...new Set(classesInGroup.map(c => getClassSubGroup(c.name)))];
+    subGroups.sort();
+    if(subGroups.length <= 1){
+      groupSel.innerHTML += '<option value="' + g + '">' + g + ' (' + classesInGroup.length + ')</option>';
+    } else {
+      let og = '<optgroup label="' + g + ' (' + classesInGroup.length + ')">';
+      og += '<option value="' + g + '">All ' + g + ' (' + classesInGroup.length + ')</option>';
+      subGroups.forEach(sg => {
+        const cnt = classesInGroup.filter(c => getClassSubGroup(c.name) === sg).length;
+        og += '<option value="' + sg + '">' + sg + ' (' + cnt + ')</option>';
+      });
+      og += '</optgroup>';
+      groupSel.innerHTML += og;
+    }
+  });
   groupSel.value = currentGroup || '';
   groupSel.onchange = () => renderAll();
 
