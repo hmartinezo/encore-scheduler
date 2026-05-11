@@ -284,6 +284,8 @@ select, input { font-family:inherit; }
     <div class="nav-item" data-tab="unassigned"><span>&#128203;</span> Unassigned <span class="badge" id="nav-unassigned-count" style="background:var(--danger);">0</span></div>
     <div style="border-top:1px solid #1E293B;margin:.4rem 0;"></div>
     <div class="nav-item" data-tab="sched-a" id="nav-sched-a"><span style="color:#3B82F6;">&#9632;</span> Schedule A <span class="count" id="nav-sched-a-check" style="display:none;">&#10003;</span></div>
+    <div class="nav-item" data-tab="sched-b" id="nav-sched-b"><span style="color:#10B981;">&#9632;</span> Schedule B <span class="count" id="nav-sched-b-check" style="display:none;">&#10003;</span></div>
+    <div class="nav-item" data-tab="sched-c" id="nav-sched-c"><span style="color:#F59E0B;">&#9632;</span> Schedule C <span class="count" id="nav-sched-c-check" style="display:none;">&#10003;</span></div>
   </nav>
 
   <div class="sidebar-footer" id="sidebar-footer">
@@ -368,7 +370,37 @@ select, input { font-family:inherit; }
     <div id="sched-a-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
   </div>
 
+  <!-- SCHEDULE B TAB -->
+  <div id="tab-sched-b" class="tab-content" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="opt-tab-bar">
+      <div class="opt-tab-bar-left">
+        <button class="opt-sub-tab active" data-subtab="findings" data-option="b" onclick="switchSubTab('b','findings')">Findings</button>
+        <button class="opt-sub-tab" data-subtab="calendar" data-option="b" onclick="switchSubTab('b','calendar')">Calendar</button>
+      </div>
+      <div class="opt-tab-bar-right">
+        <button class="btn btn-sm btn-outline" id="accept-btn-b" onclick="markPreferred('b')">&#10003; Accept</button>
+        <button class="btn btn-sm btn-outline" onclick="regenerateOption('b')">&#8635; Regenerate</button>
+      </div>
+    </div>
+    <div id="sched-b-findings" class="opt-findings-wrap"></div>
+    <div id="sched-b-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
+  </div>
 
+  <!-- SCHEDULE C TAB -->
+  <div id="tab-sched-c" class="tab-content" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <div class="opt-tab-bar">
+      <div class="opt-tab-bar-left">
+        <button class="opt-sub-tab active" data-subtab="findings" data-option="c" onclick="switchSubTab('c','findings')">Findings</button>
+        <button class="opt-sub-tab" data-subtab="calendar" data-option="c" onclick="switchSubTab('c','calendar')">Calendar</button>
+      </div>
+      <div class="opt-tab-bar-right">
+        <button class="btn btn-sm btn-outline" id="accept-btn-c" onclick="markPreferred('c')">&#10003; Accept</button>
+        <button class="btn btn-sm btn-outline" onclick="regenerateOption('c')">&#8635; Regenerate</button>
+      </div>
+    </div>
+    <div id="sched-c-findings" class="opt-findings-wrap"></div>
+    <div id="sched-c-calendar" class="opt-calendar-wrap" style="display:none;overflow:auto;"></div>
+  </div>
 
 </div>
 </div>
@@ -854,7 +886,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 6;
+const SCHEDULE_VERSION = 7;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1253,8 +1285,12 @@ function renderCalendar(){
       block.innerHTML = '';
       block.style.padding = '0';
       block.style.fontSize = '0';
+    } else if(sched.day === focusDay){
+      // Expanded day: full detail (no room name since columns show it)
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + cls.duration + 'm</div>';
     } else {
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div>' + (sched.day !== focusDay ? '<div class="cb-room">' + roomName(sched.room) + ' &middot; ' + cls.duration + 'm</div>' : '<div class="cb-room">' + cls.duration + 'm</div>');
+      // Default collapsed: compact — name + teacher only
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div>';
     }
     block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+cls.duration) + '\n' + roomName(sched.room);
 
@@ -1765,12 +1801,14 @@ function runAutoScheduler(){
 // =============================================
 // AUTO-SCHEDULE OPTION STATE
 // =============================================
-let autoScheduleResults = { a:null };
+let autoScheduleResults = { a:null, b:null, c:null };
 let preferredSchedule = null;
-let activeSubTabs = { a:'findings' };
+let activeSubTabs = { a:'findings', b:'findings', c:'findings' };
 
 const OPTION_META = {
   a: { strategy:'min-days', label:'Schedule A: Minimum Teacher Days', desc:'Packs each teacher into the fewest days possible', color:'#3B82F6' },
+  b: { strategy:'balanced', label:'Schedule B: Balanced Rooms', desc:'Spreads classes evenly across days and rooms', color:'#10B981' },
+  c: { strategy:'last-year', label:'Schedule C: Closest to Last Year', desc:'Keeps teachers on familiar day patterns', color:'#F59E0B' },
 };
 
 function ensureOptionGenerated(key){
@@ -1938,8 +1976,8 @@ function renderOptionFindings(key){
 // READ-ONLY CALENDAR FOR SCHEDULE OPTIONS
 // =============================================
 // Per-option calendar focus state (mirrors main calendar's focusDay/satCollapsed)
-let optFocusDay = { a:-1 };
-let optSatCollapsed = { a:true };
+let optFocusDay = { a:-1, b:-1, c:-1 };
+let optSatCollapsed = { a:true, b:true, c:true };
 
 function renderOptionCalendarView(key){
   const r = autoScheduleResults[key];
@@ -2096,8 +2134,12 @@ function renderOptionCalendarView(key){
       block.innerHTML = '';
       block.style.padding = '0';
       block.style.fontSize = '0';
+    } else if(a.day === fd){
+      // Expanded day: full detail
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div><div class="cb-room">' + a.dur + 'm</div>';
     } else {
-      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div>' + (a.day !== fd ? '<div class="cb-room">' + roomName(a.room) + ' &middot; ' + a.dur + 'm</div>' : '<div class="cb-room">' + a.dur + 'm</div>');
+      // Default collapsed: compact — name + teacher only
+      block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher ? teacher.short : '?') + '</div>';
     }
     block.title = cls.name + '\n' + (teacher ? teacher.name : '?') + '\n' + DAYS[a.day] + ' ' + minutesToTime(a.startTime) + '-' + minutesToTime(a.startTime + a.dur) + '\n' + roomName(a.room) + (isNew ? '\n(NEW - auto-placed)' : '');
 
