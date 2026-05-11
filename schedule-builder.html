@@ -688,7 +688,6 @@ const SCHEDULE_DATA = [
   {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby',day:3,start:1170},         // Thu 7:30 PM
   {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110}, // Tue 6:30 PM
   {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy',day:1,start:1170},       // Tue 7:30 PM
-  {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy',day:1,start:1170},       // Tue 7:30 PM (2nd section)
   {name:'Teen Level 1 Jazz',dur:60,teacher:'paige',day:2,start:1170},              // Wed 7:30 PM
   {name:'Teen Level 1 Tap',dur:60,teacher:'paige',day:2,start:1110},               // Wed 6:30 PM
   {name:'Teen Level 2 & 3 Tap',dur:60,teacher:'courtney',day:0,start:1110},        // Mon 6:30 PM (Cami last yr)
@@ -698,12 +697,12 @@ const SCHEDULE_DATA = [
   {name:'Teen Level 2 Jazz',dur:60,teacher:'jessy',day:0,start:1170},              // Mon 7:30 PM
   {name:'Teen Level 3 & 4 Hip Hop',dur:60,teacher:'luke',day:3,start:1170},        // Thu 7:30 PM
   {name:'Teen Level 3 Jazz',dur:60,teacher:'cami',day:0,start:1170},               // Mon 7:30 PM
-  {name:'Tween/Teen Broadway Bound',dur:60,teacher:'courtney',day:2,start:1110},    // Wed 6:30 PM
+  {name:'Tween/Teen Broadway Bound',dur:60,teacher:'courtney',day:3,start:1050},    // Thu 5:30 PM (moved from Wed - ITP E conflict)
   // ── ITP ── (matched to last year)
   {name:'ITP A Jazz',dur:60,teacher:'raynor',day:2,start:1110},                    // Wed 6:30 PM (A&B/Teen4 Jazz)
   {name:'ITP A Jazz',dur:60,teacher:'courtney',day:4,start:990},                   // Fri 4:30 PM (ITP C Jazz)
-  {name:'ITP A Tap',dur:60,teacher:'courtney',day:2,start:1170},                   // Wed 7:30 PM (A&B/Teen4 Tap)
-  {name:'ITP A Tap',dur:60,teacher:'luke',day:3,start:1050},                       // Thu 5:30 PM
+  {name:'ITP A Tap',dur:60,teacher:'courtney',day:4,start:1200},                   // Fri 8:00 PM (moved from Wed - ITP E overlap)
+  {name:'ITP A Tap',dur:60,teacher:'luke',day:3,start:1230},                       // Thu 8:30 PM (moved from 5:30 - Jr L2&3 Tap conflict)
   {name:'ITP A Ballet',dur:60,teacher:'gaby',day:3,start:1050},                    // Thu 5:30 PM (A&B/Teen4 Ballet)
   {name:'ITP A Ballet',dur:60,teacher:'vadim',day:3,start:990},                    // Thu 4:30 PM (ITP C Ballet)
   {name:'ITP B & C Jazz',dur:60,teacher:'courtney',day:1,start:1170},              // Tue 7:30 PM (B/C Jazz)
@@ -716,7 +715,7 @@ const SCHEDULE_DATA = [
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4,start:1050},                  // Fri 5:30 PM
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:1,start:1050},                   // Tue 5:30 PM
   {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4,start:990},                     // Fri 4:30 PM
-  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney',day:1,start:1110},              // Tue 6:30 PM (ITP E Jazz/Tap)
+  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney',day:4,start:1110},              // Fri 6:30 PM (moved from Tue - Courtney conflict)
   {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney',day:2,start:1110},           // Wed 6:30 PM (ITP E Jazz/Ballet)
   // ── ETAP A ── (matched to last year: A/B split across Mon/Tue/Thu/Sat)
   {name:'ETAP A Jazz',dur:90,teacher:'raynor',day:3,start:1110},                   // Thu 6:30 PM (A/B Jazz 90m)
@@ -742,13 +741,13 @@ const SCHEDULE_DATA = [
   {name:'ETAP B&C Acting',dur:60,teacher:'lorraine',day:0,start:1050},             // Mon 5:30 PM (C/D Acting)
   // ── ETAP D ── (new program - place on same pattern as ETAP C/D last year)
   {name:'ETAP D Jazz',dur:60,teacher:'raynor',day:3,start:1020},                   // Thu 5:00 PM
-  {name:'ETAP D Jazz',dur:60,teacher:'courtney',day:1,start:990},                  // Tue 4:30 PM
-  {name:'ETAP D Tap',dur:60,teacher:'courtney',day:4,start:1050},                  // Fri 5:30 PM
-  {name:'ETAP D Tap',dur:60,teacher:'luke',day:3,start:1050},                      // Thu 5:30 PM
-  {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:3,start:990},                   // Thu 4:30 PM
+  {name:'ETAP D Jazz',dur:60,teacher:'courtney',day:3,start:1170},                 // Thu 7:30 PM (moved from Tue to avoid ITP D Jazz conflict)
+  {name:'ETAP D Tap',dur:60,teacher:'courtney',day:3,start:1110},                  // Thu 6:30 PM (moved from Fri - ETAP no-Fri rule)
+  {name:'ETAP D Tap',dur:60,teacher:'luke',day:1,start:1050},                      // Tue 5:30 PM (combined with ETAP A Tap)
+  {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:0,start:1050},                  // Mon 5:30 PM (moved from Thu to avoid ITP Ballet conflict)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:5,start:690},                   // Sat 11:30 AM
   {name:'ETAP D Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM
-  {name:'ETAP D Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110},      // Tue 6:30 PM
+  {name:'ETAP D Contemporary',dur:60,teacher:'tbd_contemp',day:0,start:1110},      // Mon 6:30 PM (moved from Tue to avoid TBD triple-booking)
   // ── ETAP Company ──
   {name:'ETAP Company Leaps & Turns',dur:60,teacher:'raynor',day:5,start:780},     // Sat 1:00 PM
   // ── Voice (confirmed Mon, same as this year) ──
@@ -845,7 +844,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 9;
+const SCHEDULE_VERSION = 10;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -963,6 +962,30 @@ function getStudentCohorts(name){
   return [];
 }
 
+// Check if two overlapping classes with the same teacher are intentionally combined
+// (e.g., Junior Level 2 & 3 Ballet taught together, or ETAP A + B&C Jazz taught together)
+function isCombinedClass(nameA, nameB){
+  if(nameA === nameB) return true; // duplicate entry
+  const nA = nameA.toLowerCase(), nB = nameB.toLowerCase();
+
+  // Same program (ETAP or ITP): different groups with same style = combined class
+  const isETAP_A = nA.startsWith('etap'), isETAP_B = nB.startsWith('etap');
+  const isITP_A = nA.startsWith('itp'), isITP_B = nB.startsWith('itp');
+  if(isETAP_A && isETAP_B){
+    return detectStyle(nameA) === detectStyle(nameB);
+  }
+  if(isITP_A && isITP_B){
+    return detectStyle(nameA) === detectStyle(nameB);
+  }
+  // Cross-program (ETAP + ITP) is never combined
+  if(isETAP_A || isITP_A || isETAP_B || isITP_B) return false;
+
+  // Non-ETAP/ITP: same age group and same dance style = combined
+  const ageA = getAgeGroup(nameA), ageB = getAgeGroup(nameB);
+  if(!ageA || !ageB || ageA !== ageB) return false;
+  return detectStyle(nameA) === detectStyle(nameB);
+}
+
 function getConflicts(){
   const conflicts = [];
   for(let i=0; i<state.schedule.length; i++){
@@ -981,11 +1004,21 @@ function getConflicts(){
       const ignored = isConflictIgnored(a.classId, b.classId);
       // Same teacher
       if(a.teacherId === b.teacherId){
-        conflicts.push({ type:'teacher', a:i, b:j, msg:teacherShort(a.teacherId) + ' double-booked', ignored });
+        // Skip intentionally combined classes (same start time, same or compatible duration)
+        const sameStart = a.startTime === b.startTime;
+        const sameDur = ac.duration === bc.duration;
+        const isProgram = ac.name.toLowerCase().startsWith('etap') || ac.name.toLowerCase().startsWith('itp');
+        // For ETAP/ITP: same start is enough (groups can share; shorter group may leave early)
+        // For others: need same start AND same duration
+        if(sameStart && (isProgram || sameDur) && isCombinedClass(ac.name, bc.name)){
+          // Not a conflict — taught together as one combined class
+        } else {
+          conflicts.push({ type:'teacher', a:i, b:j, msg:teacherShort(a.teacherId) + ' double-booked', ignored, severity:'hard' });
+        }
       }
       // Same room (skip if either room is unassigned)
       if(a.room && b.room && a.room === b.room){
-        conflicts.push({ type:'room', a:i, b:j, msg:roomName(a.room) + ' overlap', ignored });
+        conflicts.push({ type:'room', a:i, b:j, msg:roomName(a.room) + ' overlap', ignored, severity:'hard' });
       }
       // Same student cohort — these students cannot be in two places
       const aCohorts = getStudentCohorts(ac.name);
@@ -993,7 +1026,9 @@ function getConflicts(){
       if(aCohorts.length && bCohorts.length){
         const shared = aCohorts.filter(function(c){ return bCohorts.indexOf(c) >= 0; });
         if(shared.length){
-          conflicts.push({ type:'cohort', a:i, b:j, msg:shared[0] + ' students overlap', ignored });
+          // ITP/ETAP cohort overlap = hard conflict; other level overlaps = soft warning
+          const isHard = shared.some(function(s){ return s.startsWith('ETAP-') || s.startsWith('ITP-'); });
+          conflicts.push({ type:'cohort', a:i, b:j, msg:shared[0] + ' students overlap', ignored, severity: isHard ? 'hard' : 'soft' });
         }
       }
     }
@@ -1002,7 +1037,7 @@ function getConflicts(){
 }
 
 function isConflict(schedIdx){
-  return getConflicts().some(c=>(c.a===schedIdx||c.b===schedIdx) && !c.ignored);
+  return getConflicts().some(c=>(c.a===schedIdx||c.b===schedIdx) && !c.ignored && c.severity !== 'soft');
 }
 
 function toast(msg){
@@ -1251,7 +1286,7 @@ function renderCalendar(){
     });
   });
 
-  const conflicts = getConflicts().filter(c => !c.ignored);
+  const conflicts = getConflicts().filter(c => !c.ignored && c.severity !== 'soft');
   document.getElementById('nav-conflict-count').textContent = conflicts.length;
 
   // Saturday toggle
@@ -2431,7 +2466,8 @@ function mergeAvailSlots(teacherId, day){
 function renderConflicts(){
   const view = document.getElementById('conflicts-view');
   const conflicts = getConflicts();
-  const activeConflicts = conflicts.filter(c => !c.ignored);
+  const hardActive = conflicts.filter(c => !c.ignored && c.severity === 'hard');
+  const softActive = conflicts.filter(c => !c.ignored && c.severity === 'soft');
   const ignoredConflicts = conflicts.filter(c => c.ignored);
 
   if(!conflicts.length){
@@ -2439,18 +2475,24 @@ function renderConflicts(){
     return;
   }
 
-  let html = '<h3 style="margin-bottom:1rem;font-size:.95rem;">&#9888;&#65039; ' + activeConflicts.length + ' Active Conflict' + (activeConflicts.length!==1?'s':'');
+  let html = '<h3 style="margin-bottom:1rem;font-size:.95rem;">';
+  if(hardActive.length) html += '&#9888;&#65039; ' + hardActive.length + ' Hard Conflict' + (hardActive.length!==1?'s':'');
+  else html += '&#10004; No hard conflicts!';
+  if(softActive.length) html += ' <span style="font-size:.75rem;color:var(--warning);">(' + softActive.length + ' soft warning' + (softActive.length!==1?'s':'') + ')</span>';
   if(ignoredConflicts.length) html += ' <span style="font-size:.75rem;color:var(--text-muted);">(' + ignoredConflicts.length + ' ignored)</span>';
   html += '</h3>';
 
-  html += '<table class="classes-table"><thead><tr><th>Type</th><th>Class A</th><th>Class B</th><th>Details</th><th>Actions</th></tr></thead><tbody>';
+  html += '<table class="classes-table"><thead><tr><th>Severity</th><th>Type</th><th>Class A</th><th>Class B</th><th>Details</th><th>Actions</th></tr></thead><tbody>';
 
   function renderConflictRow(c){
     const a = state.schedule[c.a], b = state.schedule[c.b];
     const ca = CLASSES.find(cc=>cc.id===a.classId), cb = CLASSES.find(cc=>cc.id===b.classId);
     const caName = ca?ca.name:'?', cbName = cb?cb.name:'?';
-    const typeIcon = c.type==='teacher' ? '&#128105;&#8205;&#127979; Teacher' : (c.type==='room' ? '&#127968; Room' : '&#128202; Level');
-    const rowClass = c.ignored ? ' class="conflict-ignored"' : '';
+    const typeIcon = c.type==='teacher' ? '&#128105;&#8205;&#127979; Teacher' : (c.type==='room' ? '&#127968; Room' : '&#128202; Cohort');
+    const rowClass = c.ignored ? ' class="conflict-ignored"' : (c.severity==='soft' ? ' style="opacity:.7;background:#FFFBEB;"' : '');
+    const sevBadge = c.severity==='soft'
+      ? '<span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-size:.6rem;font-weight:600;">SOFT</span>'
+      : '<span style="background:#FEE2E2;color:#991B1B;padding:1px 6px;border-radius:8px;font-size:.6rem;font-weight:600;">HARD</span>';
 
     let actions = '';
     if(c.ignored){
@@ -2462,7 +2504,8 @@ function renderConflicts(){
     }
 
     return '<tr' + rowClass + '>' +
-      '<td><span style="color:var(--danger);font-weight:600;">' + typeIcon + '</span></td>' +
+      '<td>' + sevBadge + '</td>' +
+      '<td><span style="color:' + (c.severity==='soft'?'var(--warning)':'var(--danger)') + ';font-weight:600;">' + typeIcon + '</span></td>' +
       '<td style="font-weight:600;">' + caName + '<br><span style="font-size:.65rem;color:var(--text-muted);">' + DAYS[a.day] + ' ' + minutesToTime(a.startTime) + ' &middot; ' + teacherShort(a.teacherId) + ' &middot; ' + roomName(a.room) + '</span></td>' +
       '<td style="font-weight:600;">' + cbName + '<br><span style="font-size:.65rem;color:var(--text-muted);">' + DAYS[b.day] + ' ' + minutesToTime(b.startTime) + ' &middot; ' + teacherShort(b.teacherId) + ' &middot; ' + roomName(b.room) + '</span></td>' +
       '<td style="font-size:.72rem;">' + c.msg + '</td>' +
@@ -2470,9 +2513,16 @@ function renderConflicts(){
     '</tr>';
   }
 
-  activeConflicts.forEach(c => { html += renderConflictRow(c); });
+  // Hard conflicts first
+  hardActive.forEach(c => { html += renderConflictRow(c); });
+  // Then soft warnings
+  if(softActive.length){
+    html += '<tr><td colspan="6" style="background:#FFFBEB;text-align:center;font-size:.72rem;color:#92400E;padding:.5rem;font-weight:600;">Soft Warnings (level overlaps — not blocking)</td></tr>';
+    softActive.forEach(c => { html += renderConflictRow(c); });
+  }
+  // Then ignored
   if(ignoredConflicts.length){
-    html += '<tr><td colspan="5" style="background:#F8FAFC;text-align:center;font-size:.72rem;color:var(--text-muted);padding:.5rem;">Ignored Conflicts</td></tr>';
+    html += '<tr><td colspan="6" style="background:#F8FAFC;text-align:center;font-size:.72rem;color:var(--text-muted);padding:.5rem;">Ignored Conflicts</td></tr>';
     ignoredConflicts.forEach(c => { html += renderConflictRow(c); });
   }
 
