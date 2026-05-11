@@ -490,26 +490,35 @@ TEACHERS.sort((a,b) => a.name.localeCompare(b.name));
 // =============================================
 const TEACHER_AVAIL = {
   raynor:      { days:[0,2,3,5] },                                      // Mon,Wed,Thu,Sat
-  courtney:    { days:[0,1,2,3,4,5], constraints:{ 0:{after:1200} } },  // Mon after 8PM
+  courtney:    { days:[0,1,2,3,4,5], constraints:{ 0:{after:1200} }, maxHours:15 },  // Mon after 8PM, up to 15h/week
   vadim:       { days:[0,3,5] },                                        // Mon,Thu,Sat
   anastasiia:  { days:[1] },                                            // Tue
   luke:        { days:[1,2,3] },                                        // Tue,Wed,Thu
   jessy:       { days:[0,1,3,4,5] },                                    // Mon,Tue,Thu,Fri,Sat
-  paige:       { days:[0,1,2,3,4,5], constraints:{ 1:{after:990,before:1110} } }, // Tue 4:30-6:30
-  ashleigh:    { days:[1,2] },                                          // Tue,Wed
+  paige:       { days:[0,1,2,3,4,5], maxClasses:20 },                   // up to 20 classes/week
+  ashleigh:    { days:[1,2], constraints:{ 1:{after:990}, 2:{after:990} }, maxClasses:8 }, // Tue,Wed from 4:30, 8 classes/week
   gaby:        { days:[3,4] },                                          // Thu,Fri
   liesl:       { days:[0], constraints:{ 0:{after:1050} } },            // Mon after 5:30
   cami:        { days:[0,5] },                                          // Mon,Sat
-  lorraine:    { days:[0] },                                            // Mon
-  kathy:       { days:[0] },                                            // Mon
-  tbd_contemp: { days:[0,1,2,3,4,5] },                                 // All days (solver picks best 2)
+  lorraine:    { days:[0], constraints:{ 0:{after:990,before:1110} } },  // Mon 4:30-6:30 only
+  kathy:       { days:[0], constraints:{ 0:{after:990,before:1110} } },  // Mon 4:30-6:30 only
+  tbd_contemp: { days:[0,1,2,3,4,5], maxDays:2, maxClasses:6 },         // 5-6 classes on 1-2 days
 };
 
 // Room constraints: ETAP/ITP cannot use Fosse or Workshop
+// ETAP Jazz & ETAP Ballet → Company or Broadway only
 function isRoomAllowed(className, roomId){
   const n = className.toLowerCase();
   if(n.startsWith('etap') || n.startsWith('itp')){
-    return roomId !== 'fosse' && roomId !== 'workshop';
+    if(roomId === 'fosse' || roomId === 'workshop') return false;
+    // ETAP Jazz and ETAP Ballet must be in Company or Broadway
+    if(n.startsWith('etap')){
+      const style = detectStyle(className);
+      if(style === 'jazz' || style === 'ballet'){
+        return roomId === 'company' || roomId === 'broadway';
+      }
+    }
+    return true;
   }
   return true;
 }
@@ -544,6 +553,7 @@ function detectStyle(name){
   if(n.includes('ballet') && n.includes('jazz')) return 'jazz';
   if(n.includes('jazz') && n.includes('tap')) return 'jazz';
   if(n.includes('ballet') && n.includes('pointe')) return 'ballet';
+  if(n.includes('pointe')) return 'ballet';
   if(n.includes('ballet')) return 'ballet';
   if(n.includes('tap')) return 'tap';
   if(n.includes('jazz')) return 'jazz';
@@ -714,6 +724,7 @@ const SCHEDULE_DATA = [
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:1,start:990},                   // Tue 4:30 PM
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4,start:1050},                  // Fri 5:30 PM
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:1,start:1050},                   // Tue 5:30 PM
+  {name:'ITP D Tap',dur:60,teacher:'courtney',day:4},                              // Fri (director requirement - auto-scheduler places)
   {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4,start:990},                     // Fri 4:30 PM
   {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney',day:4,start:1110},              // Fri 6:30 PM (moved from Tue - Courtney conflict)
   {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney',day:2,start:1110},           // Wed 6:30 PM (ITP E Jazz/Ballet)
@@ -724,7 +735,8 @@ const SCHEDULE_DATA = [
   {name:'ETAP A Tap',dur:60,teacher:'luke',day:1,start:1050},                      // Tue 5:30 PM (A/B Tap)
   {name:'ETAP A Ballet',dur:90,teacher:'vadim',day:5,start:600},                   // Sat 10:00 AM (A/B Ballet)
   {name:'ETAP A Ballet',dur:90,teacher:'vadim',day:3,start:1200},                  // Thu 8:00 PM (A/B Ballet)
-  {name:'ETAP A Ballet & Pointe',dur:90,teacher:'vadim',day:0,start:1170},         // Mon 7:30 PM (A/B Ballet&Pointe)
+  {name:'ETAP A Ballet',dur:60,teacher:'vadim',day:0,start:1170},                  // Mon 7:30 PM (split from Ballet&Pointe)
+  {name:'ETAP A Pointe',dur:30,teacher:'gaby'},                                    // Thu after ballet (unassigned — auto-scheduler places)
   {name:'ETAP A Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM (A/B Hip Hop)
   {name:'ETAP A Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1170},      // Tue 7:30 PM (A/B Contemporary)
   {name:'ETAP A Acting',dur:60,teacher:'lorraine',day:0,start:990},                // Mon 4:30 PM (A/B/C Acting)
@@ -735,7 +747,8 @@ const SCHEDULE_DATA = [
   {name:'ETAP B&C Tap',dur:60,teacher:'luke',day:1,start:1110},                    // Tue 6:30 PM (C/D Tap)
   {name:'ETAP B&C Ballet',dur:90,teacher:'vadim',day:5,start:690},                 // Sat 11:30 AM (C/D Ballet)
   {name:'ETAP B&C Ballet',dur:90,teacher:'vadim',day:3,start:1110},                // Thu 6:30 PM (C/D Ballet&PrePointe)
-  {name:'ETAP B&C Ballet & Pointe',dur:90,teacher:'vadim',day:0,start:1170},       // Mon 7:30 PM — shares with A
+  {name:'ETAP B&C Ballet',dur:60,teacher:'vadim',day:0,start:1170},                // Mon 7:30 PM (split from Ballet&Pointe)
+  {name:'ETAP B&C Pointe',dur:30,teacher:'gaby',day:3,start:1200},                 // Thu 8:00 PM after B&C Ballet
   {name:'ETAP B&C Hip Hop',dur:60,teacher:'luke',day:1,start:1170},                // Tue 7:30 PM (C/D Hip Hop)
   {name:'ETAP B&C Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1050},    // Tue 5:30 PM (C/D Contemporary)
   {name:'ETAP B&C Acting',dur:60,teacher:'lorraine',day:0,start:1050},             // Mon 5:30 PM (C/D Acting)
@@ -844,7 +857,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 10;
+const SCHEDULE_VERSION = 11;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
@@ -1054,7 +1067,7 @@ function toast(msg){
 const SLOT_MINUTES = 15;
 const AVAIL_SLOT_MINUTES = 30;
 const WEEKDAY_START = 990;  // 4:30 PM
-const WEEKDAY_END = 1290;   // 9:30 PM
+const WEEKDAY_END = 1260;   // 9:00 PM (no classes 9-10 PM)
 const SAT_START = 600;      // 10:00 AM
 const SAT_END = 840;        // 2:00 PM
 const SLOT_HEIGHT = 28;
@@ -1554,6 +1567,48 @@ function teacherDaysUsed(teacherId, assignments){
   return days;
 }
 
+// Count total hours for a teacher in assignments
+function teacherTotalMinutes(teacherId, assignments){
+  return assignments.filter(a => a.teacherId === teacherId).reduce((sum, a) => sum + a.dur, 0);
+}
+
+// Count total classes for a teacher in assignments
+function teacherClassCount(teacherId, assignments){
+  return assignments.filter(a => a.teacherId === teacherId).length;
+}
+
+// Back-to-back pairing: Jazz↔Tap and Ballet↔Contemporary for same cohort
+// Returns a bonus score if placing className at (day, startTime, dur) would be
+// adjacent to a complementary class for the same student cohort.
+function backToBackBonus(className, day, startTime, dur, assignments){
+  const style = detectStyle(className);
+  const cohorts = getStudentCohorts(className);
+  if(!cohorts.length) return 0;
+
+  // Determine complementary style
+  let compStyle = null;
+  if(style === 'jazz') compStyle = 'tap';
+  else if(style === 'tap') compStyle = 'jazz';
+  else if(style === 'ballet') compStyle = 'contemp';
+  else if(style === 'contemp') compStyle = 'ballet';
+  if(!compStyle) return 0;
+
+  const endTime = startTime + dur;
+  let bonus = 0;
+  for(const a of assignments){
+    if(a.day !== day) continue;
+    const aStyle = detectStyle(a.className);
+    if(aStyle !== compStyle) continue;
+    const aCohorts = getStudentCohorts(a.className);
+    if(!aCohorts.some(c => cohorts.includes(c))) continue;
+    // Check adjacency: this class ends where the other starts, or vice versa
+    if(endTime === a.startTime || startTime === a.startTime + a.dur){
+      bonus += 25; // strong bonus for back-to-back
+    }
+  }
+  return bonus;
+}
+
 // Count classes in a room on a day
 function roomDayLoad(roomId, day, assignments){
   return assignments.filter(a => a.room === roomId && a.day === day).length;
@@ -1602,12 +1657,34 @@ function generateScheduleOption(strategy){
     const teacherId = sd.teacher;
     const dur = cls.duration;
 
+    // Check teacher maxClasses limit
+    const avail = TEACHER_AVAIL[teacherId];
+    if(avail && avail.maxClasses !== undefined){
+      if(teacherClassCount(teacherId, assignments) >= avail.maxClasses){
+        unplaced.push({ classId: cls.id, className: cls.name, teacher: teacherId, reason: 'Teacher at max classes (' + avail.maxClasses + ')' });
+        continue;
+      }
+    }
+    // Check teacher maxHours limit (in minutes)
+    if(avail && avail.maxHours !== undefined){
+      if(teacherTotalMinutes(teacherId, assignments) + dur > avail.maxHours * 60){
+        unplaced.push({ classId: cls.id, className: cls.name, teacher: teacherId, reason: 'Teacher at max hours (' + avail.maxHours + 'h)' });
+        continue;
+      }
+    }
+
     let bestSlot = null;
     let bestScore = -Infinity;
 
     for(let day = 0; day < 6; day++){
       if(!isTeacherAvailDay(teacherId, day)) continue;
       if(!isClassAllowedDay(cls.name, day)) continue;
+
+      // Check teacher maxDays limit
+      if(avail && avail.maxDays !== undefined){
+        const usedDays = teacherDaysUsed(teacherId, assignments);
+        if(!usedDays.has(day) && usedDays.size >= avail.maxDays) continue;
+      }
 
       const dayStart = day === 5 ? SAT_START : WEEKDAY_START;
       const dayEnd = day === 5 ? SAT_END : WEEKDAY_END;
@@ -1645,6 +1722,9 @@ function generateScheduleOption(strategy){
           score -= dl * 2;
           score -= t * 0.01;
         }
+
+        // Back-to-back bonus: Jazz↔Tap and Ballet↔Contemporary for same cohort
+        score += backToBackBonus(cls.name, day, t, dur, assignments);
 
         if(score > bestScore){
           bestScore = score;
