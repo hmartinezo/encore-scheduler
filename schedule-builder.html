@@ -86,6 +86,7 @@ select, input { font-family:inherit; }
 .class-block .cb-teacher { opacity:.7; font-size:.55rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .class-block .cb-room { opacity:.5; font-size:.5rem; }
 .class-block.conflict { outline:2px solid var(--danger); outline-offset:-1px; animation:pulse-red 1.5s infinite; }
+.class-block.dimmed { opacity:.15; filter:grayscale(80%); pointer-events:none; z-index:1; }
 @keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2)} 50%{box-shadow:0 0 0 4px rgba(239,68,68,.1)} }
 
 /* Style colors */
@@ -1247,13 +1248,15 @@ function renderCalendar(){
     return off;
   }
 
-  state.schedule.forEach((sched, idx) => {
-    if(filterTeacher && sched.teacherId !== filterTeacher) return;
-    if(filterRoom && sched.room !== filterRoom) return;
+  const anyFilterActive = !!(filterTeacher || filterRoom || filterGroup);
 
+  state.schedule.forEach((sched, idx) => {
     const cls = CLASSES.find(c=>c.id===sched.classId);
     if(!cls) return;
-    if(filterGroup && !matchesGroupFilter(cls.name, filterGroup)) return;
+
+    const isFiltered = (filterTeacher && sched.teacherId !== filterTeacher) ||
+                       (filterRoom && sched.room !== filterRoom) ||
+                       (filterGroup && !matchesGroupFilter(cls.name, filterGroup));
 
     if(sched.day >= numDays) return;
     const timeRowInVisible = visibleSlots.indexOf(sched.startTime);
@@ -1272,10 +1275,10 @@ function renderCalendar(){
 
     const teacher = teacherById(sched.teacherId);
     const block = document.createElement('div');
-    block.className = 'class-block style-' + style + (hasConflict?' conflict':'');
+    block.className = 'class-block style-' + style + (hasConflict && !isFiltered?' conflict':'') + (anyFilterActive && isFiltered?' dimmed':'');
     block.style.top = '0px';
     block.style.height = height + 'px';
-    block.draggable = true;
+    block.draggable = !isFiltered;
     block.dataset.schedIdx = idx;
     block.innerHTML = '<div class="cb-name">' + cls.name + '</div><div class="cb-teacher">' + (teacher?teacher.short:'?') + '</div><div class="cb-room">' + effectiveDur + 'm</div>';
     block.title = cls.name + '\n' + (teacher?teacher.name:'?') + '\n' + DAYS[sched.day] + ' ' + minutesToTime(sched.startTime) + '-' + minutesToTime(sched.startTime+effectiveDur) + '\n' + roomName(sched.room);
