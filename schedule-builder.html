@@ -86,7 +86,7 @@ select, input { font-family:inherit; }
 .class-block .cb-teacher { opacity:.7; font-size:.55rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .class-block .cb-room { opacity:.5; font-size:.5rem; }
 .class-block.conflict { outline:2px solid var(--danger); outline-offset:-1px; animation:pulse-red 1.5s infinite; }
-.class-block.dimmed { opacity:.15; filter:grayscale(80%); pointer-events:none; z-index:1; }
+.class-block.dimmed { opacity:var(--dim-opacity,.15); filter:grayscale(var(--dim-grayscale,80%)); pointer-events:none; z-index:1; }
 @keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2)} 50%{box-shadow:0 0 0 4px rgba(239,68,68,.1)} }
 
 /* Style colors */
@@ -301,6 +301,10 @@ select, input { font-family:inherit; }
   <select id="filter-teacher"><option value="">All Teachers</option></select>
   <select id="filter-group"><option value="">All Groups</option></select>
   <select id="filter-room"><option value="">All Rooms (6)</option></select>
+  <span id="dim-controls" style="display:none;align-items:center;gap:.5rem;margin-left:.25rem;border-left:1px solid var(--border);padding-left:.75rem;">
+    <label style="font-size:.6rem;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:.3rem;" title="How visible non-matching classes are">&#128065; <input type="range" id="dim-opacity" min="0" max="100" value="15" style="width:60px;height:14px;cursor:pointer;"></label>
+    <label style="font-size:.6rem;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:.3rem;" title="How much color to remove from non-matching classes">&#127912; <input type="range" id="dim-grayscale" min="0" max="100" value="80" style="width:60px;height:14px;cursor:pointer;"></label>
+  </span>
   <button class="btn btn-outline" onclick="undo()" title="Ctrl+Z">&#8617; Undo</button>
   <button class="btn btn-outline" onclick="redo()" title="Ctrl+Y">&#8618; Redo</button>
   <button class="btn btn-primary" onclick="showAssignModal()">+ Assign Class</button>
@@ -3597,6 +3601,18 @@ function populateFilters(){
   roomSel.onchange = () => renderAll();
 }
 
+function updateDimControls(){
+  const anyFilter = document.getElementById('filter-teacher').value || document.getElementById('filter-group').value || document.getElementById('filter-room').value;
+  const controls = document.getElementById('dim-controls');
+  controls.style.display = anyFilter ? 'flex' : 'none';
+  const opacity = document.getElementById('dim-opacity').value / 100;
+  const grayscale = document.getElementById('dim-grayscale').value;
+  document.documentElement.style.setProperty('--dim-opacity', opacity);
+  document.documentElement.style.setProperty('--dim-grayscale', grayscale + '%');
+}
+document.getElementById('dim-opacity').oninput = updateDimControls;
+document.getElementById('dim-grayscale').oninput = updateDimControls;
+
 // =============================================
 // RENDER ALL
 // =============================================
@@ -3618,6 +3634,7 @@ function renderAll(){
   // Schedule option tabs
   const optMatch = activeTab.match(/^sched-(a|b|c)$/);
   if(optMatch) renderScheduleOption(optMatch[1]);
+  updateDimControls();
 }
 
 // =============================================
