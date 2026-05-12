@@ -869,7 +869,7 @@ function redo(){
 }
 
 // localStorage
-const SCHEDULE_VERSION = 16;
+const SCHEDULE_VERSION = 17;
 function save(){
   const data = { ...state, version: SCHEDULE_VERSION, customTeachers: state.customTeachers || [], customClasses: state.customClasses || [] };
   try { localStorage.setItem('encore-schedule-v1', JSON.stringify(data)); } catch(e){}
