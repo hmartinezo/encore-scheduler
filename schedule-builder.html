@@ -724,11 +724,11 @@ const SCHEDULE_DATA = [
   {name:'ITP A Tap',dur:60,teacher:'courtney'},                                   // (moved off Fri — not in director's Friday list)
   {name:'ITP A Tap',dur:60,teacher:'luke',day:3,start:1230},                       // Thu 8:30 PM (moved from 5:30 - Jr L2&3 Tap conflict)
   {name:'ITP A Ballet',dur:60,teacher:'gaby',day:3,start:1050},                    // Thu 5:30 PM (A&B/Teen4 Ballet)
-  {name:'ITP A Ballet',dur:60,teacher:'vadim',day:3,start:990},                    // Thu 4:30 PM (ITP C Ballet)
+  {name:'ITP A Ballet',dur:60,teacher:'vadim',day:0,start:990},                    // Mon 4:30 PM (moved from Thu — 2 ballets on Thu, helps reduce break)
   {name:'ITP B & C Jazz',dur:60,teacher:'courtney',day:1,start:1170},              // Tue 7:30 PM (B/C Jazz)
   {name:'ITP B & C Jazz',dur:60,teacher:'courtney',day:4,start:1050},              // Fri 5:30 PM (ITP D Jazz)
   {name:'ITP B & C Tap',dur:60,teacher:'courtney',day:1,start:1110},               // Tue 6:30 PM (B/C Tap)
-  {name:'ITP B & C Tap',dur:60,teacher:'luke',day:4,start:1110},                   // Fri 6:30 PM (ITP C Tap)
+  {name:'ITP B & C Tap',dur:60,teacher:'courtney',day:4,start:1110},               // Fri 6:30 PM (ITP C Tap — was Luke, not avail Fri)
   {name:'ITP B & C Ballet',dur:60,teacher:'gaby',day:4,start:990},                 // Fri 4:30 PM (ITP D Ballet)
   {name:'ITP B & C Ballet',dur:60,teacher:'vadim'},                                // (split from ITP A Ballet Thu — auto places)
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:1,start:990},                   // Tue 4:30 PM
@@ -766,8 +766,8 @@ const SCHEDULE_DATA = [
   {name:'ETAP D Tap',dur:60,teacher:'courtney',day:3,start:1110},                  // Thu 6:30 PM (moved from Fri - ETAP no-Fri rule)
   {name:'ETAP D Tap',dur:60,teacher:'luke'},                                      // (split from ETAP A Tap — auto places)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:0,start:1050},                  // Mon 5:30 PM (moved from Thu to avoid ITP Ballet conflict)
-  {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:5,start:690},                   // Sat 11:30 AM
-  {name:'ETAP D Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM
+  {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:5,start:780},                   // Sat 1:00 PM (moved from 11:30 — Vadim double-booked with ETAP B&C Ballet)
+  {name:'ETAP D Hip Hop',dur:60,teacher:'luke',day:2,start:1230},                  // Wed 8:30 PM (moved from Tue — Luke double-booked with ETAP A HH)
   {name:'ETAP D Contemporary',dur:60,teacher:'tbd_contemp',day:0,start:1110},      // Mon 6:30 PM (moved from Tue to avoid TBD triple-booking)
   // ── ETAP Company ──
   {name:'ETAP Company Leaps & Turns',dur:60,teacher:'raynor',day:5,start:780},     // Sat 1:00 PM
