@@ -667,9 +667,9 @@ const SCHEDULE_DATA = [
   {name:'Mini Age 5 & 6 Ballet',dur:60,teacher:'paige',day:3,start:990},           // Thu 4:30 PM
   {name:'Mini Age 5 & 6 Ballet',dur:60,teacher:'paige',day:1,start:1050},          // Tue 5:30 PM
   // ── Junior ── (matched to last year)
-  {name:'Junior Level 1 Ballet',dur:60,teacher:'liesl',day:0,start:1050},          // Mon 5:30 PM
+  {name:'Junior Level 1 Ballet',dur:60,teacher:'liesl',day:0,start:1170},          // Mon 7:30 PM (moved from 5:30 — was overlapping Jr L1 Jazz/Tap)
   {name:'Junior Level 1 Contemporary',dur:60,teacher:'tbd_contemp',day:2,start:1050}, // Wed 5:30 PM
-  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy',day:4,start:1050},         // Fri 5:30 PM (F*)
+  {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy',day:4,start:1110},         // Fri 6:30 PM (moved from 5:30 — was overlapping Jr L1 Jazz/Tap 4:45-6:15)
   {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy',day:0,start:990},          // Mon 4:30 PM (M*)
   {name:'Junior Level 1 Hip Hop',dur:60,teacher:'jessy',day:3,start:1050},         // Thu 5:30 PM (R*)
   {name:'Junior Level 1 Hip Hop',dur:60,teacher:'luke',day:2,start:990},           // Wed 4:30 PM (W*)
@@ -677,13 +677,13 @@ const SCHEDULE_DATA = [
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:5,start:600},         // Sat 10:00 AM
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:0,start:1050},        // Mon 5:30 PM
   {name:'Junior Level 1 Jazz/Tap',dur:90,teacher:'paige',day:4,start:1005},        // Fri 4:45 PM (1a)
-  {name:'Junior Level 2 Ballet',dur:60,teacher:'liesl',day:0,start:1110},          // Mon 6:30 PM
-  {name:'Junior Level 3 Ballet',dur:60,teacher:'liesl'},                          // (split from Jr2 — auto-scheduler places)
+  {name:'Junior Level 2 Ballet',dur:60,teacher:'liesl',day:0,start:1050},          // Mon 5:30 PM (moved from 6:30 — liesl teaches Jr L3 at 6:30 now)
+  {name:'Junior Level 3 Ballet',dur:60,teacher:'liesl',day:0,start:1110},          // Mon 6:30 PM (pinned — was auto-placed)
   {name:'Junior Level 2 Jazz',dur:60,teacher:'courtney',day:3,start:990},          // Thu 4:30 PM
-  {name:'Junior Level 3 Jazz',dur:60,teacher:'courtney'},                         // (split from Jr2 — auto-scheduler places)
+  {name:'Junior Level 3 Jazz',dur:60,teacher:'cami',day:5,start:780},               // Sat 1:00 PM (cami — courtney busy with team rehearsals)
   {name:'Junior Level 2 Tap',dur:60,teacher:'luke',day:3,start:1050},             // Thu 5:30 PM
-  {name:'Junior Level 3 Tap',dur:60,teacher:'luke'},                              // (split from Jr2 — auto-scheduler places)
-  {name:'Junior Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:0,start:1050}, // Mon 5:30 PM
+  {name:'Junior Level 3 Tap',dur:60,teacher:'courtney',day:1,start:1230},           // Tue 8:30 PM (courtney — luke double-booked at 7:30)
+  {name:'Junior Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:2,start:1110}, // Wed 6:30 PM (moved from Mon 5:30 — Jr L2 Ballet conflict)
   {name:'Junior Level 2 Hip Hop',dur:60,teacher:'jessy',day:5,start:690},          // Sat 11:30 AM
   {name:'Junior Level 2 Hip Hop',dur:60,teacher:'luke',day:1,start:990},           // Tue 4:30 PM
   {name:'Junior Level 3 Contemporary',dur:60,teacher:'tbd_contemp',day:2,start:990}, // Wed 4:30 PM
@@ -697,22 +697,22 @@ const SCHEDULE_DATA = [
   {name:'Tween Level 2 Hip Hop',dur:60,teacher:'luke',day:2,start:1170},           // Wed 7:30 PM
   {name:'Tween Level 1 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1110}, // Tue 6:30 PM (Ashleigh last yr)
   {name:'Tween Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1050}, // Thu 5:30 PM
-  {name:'Tween Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},                // (split — auto-scheduler places)
+  {name:'Tween Level 2 Ballet',dur:60,teacher:'ashleigh',day:1,start:1050},        // Tue 5:30 PM (new — director requested)
+  {name:'Tween Level 3 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1170}, // Thu 7:30 PM (pinned)
   {name:'Tween Level 1 Tap',dur:60,teacher:'courtney',day:2,start:1050},           // Wed 5:30 PM
   {name:'Tween Level 2 & 3 Tap',dur:60,teacher:'luke',day:2,start:1110},          // Wed 6:30 PM
   {name:'Tween Level 1 Jazz',dur:60,teacher:'ashleigh',day:2,start:990},           // Wed 4:30 PM
   {name:'Tween Level 2 Jazz',dur:60,teacher:'ashleigh',day:2,start:1050},          // Wed 5:30 PM
   {name:'Tween/Teen Level 1 Jazz',dur:60,teacher:'paige',day:0,start:1170},        // Mon 7:30 PM
   // ── Teen ── (matched to last year)
-  {name:'Teen Level 1 & 2 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
-  {name:'Teen Level 2 & 3 Ballet',dur:60,teacher:'gaby',day:1},                    // Tue (moved from Thu to free Gaby for ETAP Pointe)
-  {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1},             // Tue (unpin time — was conflicting with Tween Lvl1 at 6:30)
+  {name:'Teen Ballet',dur:60,teacher:'gaby',day:1,start:990},                      // Tue 4:30 PM (consolidated from 2 level-specific classes per director)
+  {name:'Teen Level 1 & 2 Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1230}, // Tue 8:30 PM (pinned)
   {name:'Teen Level 1 & 2 Hip Hop',dur:60,teacher:'jessy',day:1,start:1170},       // Tue 7:30 PM
   {name:'Teen Level 1 Jazz',dur:60,teacher:'paige',day:2,start:1170},              // Wed 7:30 PM
   {name:'Teen Level 1 Tap',dur:60,teacher:'paige',day:2,start:1110},               // Wed 6:30 PM
-  {name:'Teen Level 2 & 3 Tap',dur:60,teacher:'courtney',day:0,start:1110},        // Mon 6:30 PM (Cami last yr)
+  {name:'Teen Level 2 & 3 Tap',dur:60,teacher:'cami',day:0,start:1110},             // Mon 6:30 PM (changed from courtney — not avail Mon before 8pm)
   {name:'Teen Level 2 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1110}, // Thu 6:30 PM
-  {name:'Teen Level 3 Contemporary',dur:60,teacher:'tbd_contemp'},                 // (split — auto-scheduler places)
+  {name:'Teen Level 3 Contemporary',dur:60,teacher:'tbd_contemp',day:3,start:1230}, // Thu 8:30 PM (pinned)
   {name:'Teen Level 2 & 3 Hip Hop',dur:60,teacher:'jessy',day:3,start:990},        // Thu 4:30 PM
   {name:'Teen Level 2 Jazz',dur:60,teacher:'jessy',day:0,start:1170},              // Mon 7:30 PM
   {name:'Teen Level 3 & 4 Hip Hop',dur:60,teacher:'luke',day:3,start:1170},        // Thu 7:30 PM
@@ -720,8 +720,8 @@ const SCHEDULE_DATA = [
   {name:'Tween/Teen Broadway Bound',dur:60,teacher:'courtney',day:3,start:1050},    // Thu 5:30 PM (moved from Wed - ITP E conflict)
   // ── ITP ── (matched to last year)
   {name:'ITP A Jazz',dur:60,teacher:'raynor',day:2,start:1110},                    // Wed 6:30 PM (A&B/Teen4 Jazz)
-  {name:'ITP A Jazz',dur:60,teacher:'courtney'},                                  // (moved off Fri — not in director's Friday list)
-  {name:'ITP A Tap',dur:60,teacher:'courtney'},                                   // (moved off Fri — not in director's Friday list)
+  {name:'ITP A Jazz',dur:60,teacher:'raynor',day:0,start:1170},                     // Mon 7:30 PM (raynor — courtney packed)
+  {name:'ITP A Tap',dur:60,teacher:'courtney',day:2,start:1200},                    // Wed 8:00 PM (pinned)
   {name:'ITP A Tap',dur:60,teacher:'luke',day:3,start:1230},                       // Thu 8:30 PM (moved from 5:30 - Jr L2&3 Tap conflict)
   {name:'ITP A Ballet',dur:60,teacher:'gaby',day:3,start:1050},                    // Thu 5:30 PM (A&B/Teen4 Ballet)
   {name:'ITP A Ballet',dur:60,teacher:'vadim',day:0,start:990},                    // Mon 4:30 PM (moved from Thu — 2 ballets on Thu, helps reduce break)
@@ -730,22 +730,23 @@ const SCHEDULE_DATA = [
   {name:'ITP B & C Tap',dur:60,teacher:'courtney',day:1,start:1110},               // Tue 6:30 PM (B/C Tap)
   {name:'ITP B & C Tap',dur:60,teacher:'courtney',day:4,start:1110},               // Fri 6:30 PM (ITP C Tap — was Luke, not avail Fri)
   {name:'ITP B & C Ballet',dur:60,teacher:'gaby',day:4,start:990},                 // Fri 4:30 PM (ITP D Ballet)
-  {name:'ITP B & C Ballet',dur:60,teacher:'vadim'},                                // (split from ITP A Ballet Thu — auto places)
+  {name:'ITP B & C Ballet',dur:60,teacher:'vadim',day:0,start:1110},                // Mon 6:30 PM (pinned)
   {name:'ITP D Jazz',dur:60,teacher:'courtney',day:1,start:990},                   // Tue 4:30 PM
-  {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4},                             // Fri (split from ITP B&C Jazz — auto places time)
+  {name:'ITP D Jazz',dur:60,teacher:'courtney',day:4,start:990},                    // Fri 4:30 PM (pinned)
   {name:'ITP D Tap',dur:60,teacher:'courtney',day:1,start:1050},                   // Tue 5:30 PM
-  {name:'ITP D Tap',dur:60,teacher:'courtney',day:4},                              // Fri (director requirement - auto-scheduler places)
-  {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4},                               // Fri (split from ITP B&C Ballet — auto places time)
-  {name:'ITP E Jazz/Tap',dur:90,teacher:'courtney'},                               // (moved off Fri — not in director's Friday list)
+  {name:'ITP D Tap',dur:60,teacher:'paige',day:4,start:1110},                       // Fri 6:30 PM (pinned — paige, courtney unavail)
+  {name:'ITP D Ballet',dur:60,teacher:'gaby',day:4,start:1050},                     // Fri 5:30 PM (pinned)
+  {name:'ITP D Ballet',dur:60,teacher:'vadim',day:0,start:1170},                   // Mon 7:30 PM (2nd ballet — director requested)
+  {name:'ITP E Jazz/Tap',dur:90,teacher:'raynor',day:5,start:600},                   // Sat 10:00 AM (pinned — raynor, courtney full)
   {name:'ITP E Jazz/Ballet',dur:90,teacher:'courtney',day:2,start:1110},           // Wed 6:30 PM (ITP E Jazz/Ballet)
   // ── ETAP A ── (matched to last year: A/B split across Mon/Tue/Thu/Sat)
-  {name:'ETAP A Jazz',dur:90,teacher:'raynor',day:3,start:1110},                   // Thu 6:30 PM (A/B Jazz 90m)
+  {name:'ETAP A Jazz',dur:90,teacher:'raynor',day:3,start:1020},                   // Thu 5:00 PM (combined with B&C — was 6:30, caused overlap with Ballet)
   {name:'ETAP A Jazz',dur:60,teacher:'raynor',day:0,start:1110},                   // Mon 6:30 PM (A/B Jazz 60m)
   {name:'ETAP A Tap',dur:60,teacher:'courtney',day:5,start:720},                   // Sat 12:00 PM (A/B Tap)
   {name:'ETAP A Tap',dur:60,teacher:'luke',day:1,start:1050},                      // Tue 5:30 PM (A/B Tap)
   {name:'ETAP A Ballet',dur:90,teacher:'vadim',day:5,start:600},                   // Sat 10:00 AM (A/B Ballet)
-  {name:'ETAP A Ballet',dur:60,teacher:'vadim',day:3,start:1170},                  // Thu 7:30 PM (60min Ballet, Pointe follows)
-  {name:'ETAP A Pointe',dur:30,teacher:'gaby',day:3,start:1230},                   // Thu 8:30 PM (30min Pointe after Ballet)
+  {name:'ETAP A Ballet',dur:60,teacher:'vadim',day:3,start:1110},                  // Thu 6:30 PM (combined with B&C — was 7:30)
+  {name:'ETAP A Pointe',dur:30,teacher:'gaby',day:3,start:1170},                   // Thu 7:30 PM (combined with B&C — was 8:30)
   {name:'ETAP A Hip Hop',dur:60,teacher:'luke',day:1,start:1230},                  // Tue 8:30 PM (A/B Hip Hop)
   {name:'ETAP A Contemporary',dur:60,teacher:'tbd_contemp',day:1,start:1170},      // Tue 7:30 PM (A/B Contemporary)
   {name:'ETAP A Acting',dur:60,teacher:'lorraine',day:0,start:990},                // Mon 4:30 PM (A/B/C Acting)
@@ -763,10 +764,10 @@ const SCHEDULE_DATA = [
   {name:'ETAP B&C Acting',dur:60,teacher:'lorraine',day:0,start:1050},             // Mon 5:30 PM (C/D Acting)
   {name:'ETAP B&C Ballroom',dur:60,teacher:'anastasiia',day:1,start:1230},          // Tue 8:30 PM (last year: C/D Ballroom)
   // ── ETAP D ── (new program - place on same pattern as ETAP C/D last year)
-  {name:'ETAP D Jazz',dur:60,teacher:'raynor'},                                    // (split from ETAP B&C Jazz — auto places)
+  {name:'ETAP D Jazz',dur:60,teacher:'raynor',day:0,start:990},                    // Mon 4:30 PM (pinned)
   {name:'ETAP D Jazz',dur:60,teacher:'courtney',day:3,start:1170},                 // Thu 7:30 PM (moved from Tue to avoid ITP D Jazz conflict)
   {name:'ETAP D Tap',dur:60,teacher:'courtney',day:3,start:1110},                  // Thu 6:30 PM (moved from Fri - ETAP no-Fri rule)
-  {name:'ETAP D Tap',dur:60,teacher:'luke'},                                      // (split from ETAP A Tap — auto places)
+  {name:'ETAP D Tap',dur:60,teacher:'luke',day:3,start:990},                       // Thu 4:30 PM (pinned)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:0,start:1050},                  // Mon 5:30 PM (moved from Thu to avoid ITP Ballet conflict)
   {name:'ETAP D Ballet',dur:60,teacher:'vadim',day:5,start:780},                   // Sat 1:00 PM (moved from 11:30 — Vadim double-booked with ETAP B&C Ballet)
   {name:'ETAP D Hip Hop',dur:60,teacher:'luke',day:2,start:1230},                  // Wed 8:30 PM (moved from Tue — Luke double-booked with ETAP A HH)
@@ -973,6 +974,7 @@ function getStudentCohorts(name){
   if(n.startsWith('ITP E ')) return ['ITP-E'];
   if(n.includes('BROADWAY BOUND')) return [];
   if(n.startsWith('TWEEN/TEEN')) return [];
+  if(n === 'TEEN BALLET') return ['TN-L1','TN-L2','TN-L3']; // consolidated class serves all teen levels
   m = n.match(/^JUNIOR LEVEL (\d+)/);
   if(m) return ['JR-L' + m[1]];
   m = n.match(/^TWEEN LEVEL (\d+)\s*(?:&\s*(\d+))?/);
